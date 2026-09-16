@@ -1,0 +1,20 @@
+# Webhook URL が入っているので絶対にコミットしない
+.env
+
+# ログ
+logs/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# バックアップ
+*.bak
+data/*.bak
+
+# データベースはリポジトリに入れず、GitHub Actionsのキャッシュで引き継ぐ
+data/*.db

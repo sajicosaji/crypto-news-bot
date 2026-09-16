@@ -1,0 +1,85 @@
+name: crypto-news-bot
+
+# PCの電源に関係なくGitHub上で実行する。
+# cronはUTC基準のため、日本時間8:00 = UTC前日23:00 を指定している。
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # 速報チェック（30分ごと）
+    - cron: "0 23 * * *"     # 日次まとめ（毎日8:00 JST）
+    - cron: "0 23 * * 0"     # 週次振り返り（月曜8:00 JST = 日曜23:00 UTC）
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "実行するモード"
+        required: true
+        default: alert
+        type: choice
+        options: [alert, digest, weekly, test-webhooks]
+
+# 同時に走るとデータベースの引き継ぎが壊れるため、必ず1つずつ実行する
+concurrency:
+  group: crypto-news-bot
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: ライブラリのインストール
+        run: pip install -r requirements.txt
+
+      # 前回の実行結果（記事履歴・価格・速報履歴）を引き継ぐ。
+      # 引き継げなかった場合も初回扱いで安全に動く（速報は出さず保存のみ）。
+      - name: データベースの復元
+        uses: actions/cache/restore@v4
+        with:
+          path: data/bot.db
+          key: botdb-${{ github.run_id }}
+          restore-keys: |
+            botdb-
+
+      - name: 実行するモードを決める
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "0 23 * * 0" ]; then
+            echo "mode=weekly" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "0 23 * * *" ]; then
+            echo "mode=digest" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=alert" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 実行
+        env:
+          WEBHOOK_ARB: ${{ secrets.WEBHOOK_ARB }}
+          WEBHOOK_ETH: ${{ secrets.WEBHOOK_ETH }}
+          WEBHOOK_SOL: ${{ secrets.WEBHOOK_SOL }}
+          WEBHOOK_WLD: ${{ secrets.WEBHOOK_WLD }}
+        run: python main.py --${{ steps.mode.outputs.mode }}
+
+      - name: データベースの保存
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/bot.db
+          key: botdb-${{ github.run_id }}
+
+      # 失敗の原因を後から確認できるようにログを残す（7日間）
+      - name: ログの保存
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: log-${{ steps.mode.outputs.mode }}-${{ github.run_id }}
+          path: logs/
+          retention-days: 7
+          if-no-files-found: ignore

@@ -1,0 +1,356 @@
+# crypto-news-bot 設定ファイル
+# 銘柄を追加するときは、ここに銘柄を追加し、.env に WEBHOOK_XXX を追加するだけでよい。
+
+btc_coingecko_id: bitcoin
+
+# この日数より古い記事・価格・速報履歴は自動で削除する（データベースを小さく保つ）
+data_retention_days: 30
+
+coins:
+  ARB:
+    coingecko_id: arbitrum
+    webhook_env: WEBHOOK_ARB
+    username: "ARB News"
+    # 見出しに含まれていたら採用する検索語（単語境界で判定。略称単独は誤検出しやすいので避ける）
+    names:
+      - "Arbitrum"
+      - "ARB token"
+      - "アービトラム"
+  ETH:
+    coingecko_id: ethereum
+    webhook_env: WEBHOOK_ETH
+    username: "ETH News"
+    names:
+      - "Ethereum"
+      - "Ether"
+      - "イーサリアム"
+  SOL:
+    coingecko_id: solana
+    webhook_env: WEBHOOK_SOL
+    username: "SOL News"
+    names:
+      - "Solana"
+      - "ソラナ"
+  WLD:
+    # CoinGecko の id は実際に確認済み。"worldcoin" は別の古いトークンを指すため使わないこと。
+    coingecko_id: worldcoin-wld
+    webhook_env: WEBHOOK_WLD
+    username: "WLD News"
+    names:
+      - "Worldcoin"
+      - "World Network"
+      - "WLD token"
+      - "ワールドコイン"
+
+# ニュース取得元
+sources:
+  google_news_en: true
+  google_news_ja: true
+  # 直接RSS。ここに追加すると取得元が増える。
+  # Google Newsと違い、本文抜粋が取れてリンクも記事に直接つながるため、
+  # 「リンクを踏まずに内容が分かる」のはこちらの媒体。日本語media優先で並べている。
+  # （CoinPostとCointelegraph日本版のRSSは配信停止中だったため不採用）
+  feeds:
+    - name: "CoinDesk Japan"
+      url: "https://www.coindeskjapan.com/feed/"
+    - name: "あたらしい経済"
+      url: "https://www.neweconomy.jp/feed"
+    - name: "BeInCrypto Japan"
+      url: "https://jp.beincrypto.com/feed/"
+    - name: "CoinDesk"
+      url: "https://www.coindesk.com/arc/outboundfeeds/rss/"
+    - name: "Cointelegraph"
+      url: "https://cointelegraph.com/rss"
+    - name: "The Block"
+      url: "https://www.theblock.co/rss.xml"
+    - name: "Decrypt"
+      url: "https://decrypt.co/feed"
+    - name: "CryptoSlate"
+      url: "https://cryptoslate.com/feed/"
+    - name: "Blockworks"
+      url: "https://blockworks.co/feed"
+    - name: "The Defiant"
+      url: "https://thedefiant.io/api/feed"
+  # Arbitrum DAO 公式フォーラム（Discourse）。実在を確認済み。
+  arbitrum_dao_forum_rss: "https://forum.arbitrum.foundation/latest.rss"
+
+# 同じニュースの言い換え記事をまとめる設定
+# （「ARBが10ドルへ」「7,000%成長予測」のように媒体ごとに見出しが変わるため、
+#   完全一致だけでは同じ話題が何件も並んでしまう）
+dedup:
+  merge_similar_headlines: true
+  # 見出しの中で手がかりになる語がこの数だけ一致したら同じ話題とみなす。
+  # 増やすとまとめる条件が厳しくなり、減らすと別の話題まで誤ってまとまりやすくなる。
+  min_shared_terms: 3
+  similarity_window_days: 2
+
+# 記事の抜粋（リンクを踏まずに中身が分かるようにする）
+excerpt:
+  enabled: true
+  # 1記事あたりの抜粋の最大文字数。長くするとDiscordの表示上限に達しやすくなるので、
+  # 詳しく載せる記事の件数(detailed_items)とのバランスで調整する。
+  max_length: 300
+  # RSSに抜粋が無い媒体（CoinDesk等）は記事ページから og:description を取得する
+  fetch_og_description: true
+  fetch_timeout_seconds: 8
+  # 1回の実行でページ取得する記事数の上限（時間がかかりすぎないようにする）
+  max_page_fetches: 12
+
+# 「このリンクは読む価値がある」というアドバイス（キーワードとルールで判定）
+reading_advice:
+  enabled: true
+  # この%以上の値動きが同時に起きていれば優先度を上げる
+  price_reaction_pct: 5
+
+# 見出しにこれらの語が含まれる記事は除外する
+exclude_keywords:
+  - "price prediction"
+  - "price analysis"
+  - "could reach"
+  - "予想"
+  - "テクニカル分析"
+
+# 見出しの判定に使うキーワード（差し替え自由）
+keywords:
+  good:
+    en:
+      - surge
+      - rally
+      - soar
+      - record
+      - partnership
+      - integration
+      - launch
+      - upgrade
+      - approval
+      - inflow
+      - buyback
+      - burn
+    ja:
+      - 上昇
+      - 急騰
+      - 提携
+      - 承認
+      - 買い戻し
+      - バーン
+  bad:
+    en:
+      - plunge
+      - drop
+      - slump
+      - hack
+      - exploit
+      - unlock
+      - lawsuit
+      - outage
+      - delist
+      - outflow
+      - ban
+      - suspend
+      - depeg
+    ja:
+      - 下落
+      - 急落
+      - ハッキング
+      - 流出
+      - アンロック
+      - 停止
+      - 禁止
+
+# ヒットしたら速報の候補になる重大ワード（全銘柄共通）
+critical_keywords:
+  en:
+    - hack
+    - exploit
+    - drained
+    - breach
+    - delist
+    - SEC
+    - lawsuit
+    - halt
+    - outage
+    - depeg
+    - bankruptcy
+    - "ETF approval"
+    - "ETF rejected"
+    - "listing on Coinbase"
+    - "listing on Binance"
+    - "listing on Upbit"
+  ja:
+    - ハッキング
+    - 流出
+    - 上場廃止
+    - 停止
+
+# 既知の誤判定を招く言い回し。スコアリング前に見出しから取り除く（「falls short」など）
+idiom_neutralizers:
+  - "falls short"
+  - "no hack"
+  - "no exploit"
+
+# 英語の否定語。キーワード直前の数語にあれば、そのキーワードは判定から除外する
+negation_words_en:
+  - "no"
+  - "not"
+  - "denies"
+  - "denied"
+  - "without"
+  - "avoids"
+  - "avoided"
+  - "isn't"
+  - "wasn't"
+  - "doesn't"
+  - "didn't"
+
+# 日本語の否定の接尾表現。キーワード直後にあれば、そのキーワードは判定から除外する
+# （例: 「アンロック後も下落せず」の「下落」を否定として扱う）
+negation_suffixes_ja:
+  - "せず"
+  - "しない"
+  - "回避"
+  - "否定"
+
+emojis:
+  good: "🚀"
+  bad: "📉"
+  neutral: "📰"
+  alert: "🚨"
+
+# @here / @everyone / <@&ロールID> / "" (メンションなし)
+mention: "@here"
+
+# 速報の条件（銘柄ごとに変更可能）
+alert_thresholds:
+  arb_wld_price_change_pct: 10        # ARB・WLD: 24時間でこの%以上動いたら速報
+  eth_sol_price_change_pct: 8         # ETH・SOL: 24時間でこの%以上動いたら速報
+  eth_sol_critical_media_count: 2     # ETH・SOL: 重大ワード記事が直近window時間内でこの媒体数以上
+  eth_sol_critical_window_hours: 3
+  price_alert_cooldown_hours: 12      # 価格急変・節目の速報のクールダウン（同一銘柄・同一条件）
+  max_alerts_per_channel_per_run: 3   # 1回の実行での速報上限（チャンネルごと）
+  # 公開からこの時間を超えた記事は速報にしない
+  # （Google Newsの検索結果には数ヶ月前の記事も混ざるため、今はじめてDBに保存された
+  #   古い記事を「速報」として誤って流さないためのガード。30分間隔の実行を想定し、
+  #   実行漏れも考慮して余裕を持たせている）
+  news_alert_max_age_hours: 6
+
+# ARB 固有設定
+arb:
+  extra_search_terms:
+    - "Robinhood Chain"
+    - "Arbitrum sequencer"
+    - "Arbitrum DAO"
+    - "Arbitrum treasury"
+  # DAOフォーラムの新規投稿タイトルにこれらの語を含めば記事として扱う（[DAO提案] として良い材料）
+  dao_forum_keywords:
+    - buyback
+    - burn
+    - treasury
+    - fee
+    - tokenomics
+    - staking
+  price_levels: [0.14, 0.20]
+  # DefiLlama のスラッグ／チェーン名（実際に確認済み）
+  defillama:
+    robinhood_chain_fees_chain: "Robinhood Chain"
+    arbitrum_fees_chain: "Arbitrum"
+    dao_treasury_slug: "arbitrum-dao"
+  onchain_weekly_change_alert_pct: 30
+  # 見出しに含まれていれば速報候補にする良い材料（DAOのbuyback/burn等の話題）
+  priority_good_keywords:
+    - buyback
+    - burn
+    - "fee switch"
+    - treasury
+    - "value accrual"
+    - staking
+  # 見出しに含まれていれば速報候補にする悪い材料（アンロック・sequencer障害・ブリッジ問題など）
+  priority_bad_keywords:
+    - unlock
+    - sequencer
+    - bridge
+  # アンロック予定はここに手入力する（日付をコードに直書きしない）
+  unlocks: []
+  # 例:
+  # unlocks:
+  #   - date: "2026-10-16"
+  #     amount: "92,600,000 ARB"
+  #     description: "投資家・チーム向け月次アンロック"
+
+# ETH 固有設定（速報は価格急変のみ。ETH固有の重点監視語は無し）
+eth:
+  extra_search_terms: []
+
+# SOL 固有設定
+sol:
+  # 単独では紛らわしい語（Jupiterは衛星企業や地名とも一致するため）は
+  # crypto文脈が伝わる複合語にしている
+  extra_search_terms:
+    - "Raydium"
+    - "Orca DEX"
+    - "Meteora Solana"
+    - "Jupiter Exchange crypto"
+    - "USD1 stablecoin"
+    - "World Liberty Financial"
+  usd1_coingecko_id: usd1-wlfi
+  usd1_depeg_low: 0.995
+  usd1_depeg_high: 1.005
+  hourly_change_alert_pct: 5
+  # Solanaの主要DEX名。見出しにこれと重大ワードが両方含まれれば速報候補にする
+  dex_names:
+    - Raydium
+    - Orca
+    - Meteora
+    - Jupiter
+
+# WLD 固有設定
+wld:
+  # "World App" は単独だと Disney World のアプリ等と紛らわしいため使わない
+  extra_search_terms:
+    - "Morpho WLD"
+    - "World ID crypto"
+  price_levels: [0.5, 0.75, 1.0]
+  unlocks: []
+  # 各国の規制・停止命令・プライバシー調査系。見出しに含まれていれば速報候補（悪材料）にする
+  priority_bad_keywords:
+    - ban
+    - suspend
+    - regulator
+    - privacy
+    - investigation
+    - 停止命令
+    - 規制当局
+  morpho:
+    enabled: true
+    collateral_symbol: "WLD"
+    min_supply_usd: 10000   # このドル規模未満のマーケットはノイズとして無視
+    utilization_alert_pct: 95
+    # 「Morpho」と併記されていれば速報候補にするリスクワード
+    risk_keywords:
+      - "bad debt"
+      - oracle
+      - liquidation
+      - paused
+  # World Network の認証済み人数などの公開APIは確認できなかったため無効化（README参照）
+  world_network_stats_enabled: false
+
+# マクロ経済イベント（日付を手入力）
+macro_events: []
+# 例:
+# macro_events:
+#   - date: "2026-10-29"
+#     description: "FOMC（政策金利発表）"
+#   - date: "2026-10-15"
+#     description: "米CPI発表"
+
+digest:
+  max_news_items: 10
+  # 上位何件を「抜粋＋読む価値アドバイス付き」で詳しく載せるか。
+  # 残りは1行のリスト表示になる（Discordの文字数上限を超えないための配分）。
+  detailed_items: 5
+
+weekly:
+  top_move_days: 3
+  onchain_weeks: 4
+
+discord:
+  post_interval_seconds: 1.2
