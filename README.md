@@ -4,165 +4,164 @@ ARB・ETH・SOL・WLD のニュースと関連データを収集し、銘柄ご�
 Webhookで通知するツールです。有料API・LLM APIは一切使わず、判定はすべてキーワードと
 ルールで行います。
 
+**GitHub Actions（クラウド）で自動実行されるため、PCの電源は関係ありません。**
+
 投稿は3種類あります。
 
-- **日次まとめ**（`--digest`）: 毎朝8:00に前日分のニュースとデータを1チャンネル1投稿でまとめる
-- **速報**（`--alert`）: 30分ごとにチェックし、重大なニュースや急な値動きがあるときだけ `@here` 付きで即時投稿する
-- **週次振り返り**（`--weekly`）: 毎週月曜8:00に、先週大きく動いた日とその直前のニュースをまとめる
+| 種類 | タイミング | 内容 |
+|---|---|---|
+| 日次まとめ | 毎朝8:00（日本時間） | 前日のニュースと価格・オンチェーンデータを1チャンネル1投稿 |
+| 速報 | 30分ごと | 重大ニュースや急な値動きがあるときだけ `@here` 付きで即時投稿 |
+| 週次振り返り | 毎週月曜8:00 | 先週大きく動いた日と、その直前に出たニュース |
+
+リポジトリ: https://github.com/sajicosaji/crypto-news-bot
 
 ---
 
-## 1. セットアップ手順
+## 1. ニュースの読みやすさについて
 
-### 1-1. Python のインストール確認
+リンクを踏まなくても内容が分かるように、次の2つを各記事に付けています。
 
-Windows に Python 3 がインストールされていることを確認してください（コマンドプロンプトで
-`python --version` を実行して `Python 3.x.x` と表示されればOK）。
+- **本文抜粋**: 媒体が配信している記事の書き出しをそのまま表示します
+- **読む価値アドバイス**: 重大ワード・報道媒体数・同時に起きている値動きから
+  「高 / 中 / 低」と理由を判定して表示します
 
-### 1-2. 必要なライブラリのインストール
-
-**`セットアップ.bat` をダブルクリックするだけ**でインストールが終わります。
-
-コマンドで行いたい場合は、このフォルダ（`crypto-news-bot`）でコマンドプロンプトまたは
-PowerShellを開き、次を実行します。
+表示例:
 
 ```
-pip install -r requirements.txt
+📉 Arbitrum bridge exploited for $24M
+　ブリッジから2,400万ドル相当が流出。攻撃者は資金を分散送金している。
+　👉 読む価値: 高 — 重大ワード「exploit」を含む、3媒体が報じている、
+　　同時に24hで-11.2%の値動き。まず最初に目を通すのがおすすめ
 ```
 
-### 1-3. .env ファイルの作成
+### できないこと（正直な制約）
 
-`.env.example` をコピーして `.env` という名前のファイルを作り、Webhook URLを入力します
-（作り方は次の章）。
-
-```
-copy .env.example .env
-```
-
-### 1-4. 動作確認（投稿せずに内容だけ確認する）
-
-```
-python main.py --digest --dry-run
-python main.py --alert --dry-run
-python main.py --weekly --dry-run
-```
-
-コンソールに投稿予定の内容が表示されれば正常です。`--dry-run` を付けている間は
-Discordには一切投稿されません。
-
-### 1-5. 各チャンネルへのテスト投稿
-
-**`テスト投稿.bat` をダブルクリック**するか、次のコマンドを実行します。
-
-```
-python main.py --test-webhooks
-```
-
-`.env` に設定した各チャンネルに実際に1件ずつテストメッセージが届きます。
+- **英語記事を日本語に翻訳することはできません。** 翻訳や本格的な要約にはLLMが必要で、
+  「LLM APIを使わない」という方針のため実装していません。日本語メディア
+  （CoinDesk Japan・あたらしい経済・BeInCrypto Japan）の記事は日本語で読めますが、
+  英語メディアの抜粋は英語のままです。
+- 抜粋は媒体が配信している長さ（通常1〜3文）が上限です。それ以上長くはできません。
+- もし日本語の要約が欲しくなった場合は、LLM APIを使う方式に変更できます
+  （Claude Haikuで月200〜500円程度の見込み）。必要になったら言ってください。
 
 ---
 
-## 2. Discord Webhookの作り方
+## 2. 普段の運用
 
-1. Discordサーバーの対象チャンネル（例: #arb-news）を開く
-2. チャンネル名の右にある歯車アイコン（チャンネルの編集）→「連携サービス」→「ウェブフック」
-3. 「新しいウェブフック」を作成し、名前を分かりやすく変更（例: ARB News）
-4. 「ウェブフックURLをコピー」でURLを取得する
-5. これを ARB・ETH・SOL・WLD の4チャンネル分（必要な銘柄だけでよい）繰り返す
+**基本的に何もする必要はありません。** GitHub Actionsが自動で実行します。
+
+### 動いているか確認したいとき
+
+https://github.com/sajicosaji/crypto-news-bot/actions
+
+緑のチェックが並んでいれば正常です。赤い×があれば、それをクリックするとエラー内容が見られます。
+
+### 今すぐ手動で動かしたいとき
+
+上記のActionsページ →「crypto-news-bot」→「Run workflow」→ モードを選んで実行。
+コマンドからは次のようにします。
+
+```
+gh workflow run crypto-news-bot.yml --repo sajicosaji/crypto-news-bot -f mode=digest
+```
+
+`mode` は `alert` / `digest` / `weekly` / `test-webhooks` から選べます。
+
+### 設定を変えたいとき
+
+`config.yaml` を編集して、GitHubにpushすれば次回の実行から反映されます。
+
+```
+git add config.yaml
+git commit -m "設定を変更"
+git push
+```
 
 ---
 
-## 3. .env の書き方
+## 3. Discord Webhookの設定
 
-`.env` に、銘柄ごとのWebhook URLを1行ずつ書きます。
+Webhook URLは**GitHubのSecretsに登録済み**です（コードには入っていません）。
+チャンネルを作り直すなどでURLが変わった場合は、次のように更新します。
 
 ```
-WEBHOOK_ARB=https://discord.com/api/webhooks/xxxxxxxx/xxxxxxxx
-WEBHOOK_ETH=https://discord.com/api/webhooks/xxxxxxxx/xxxxxxxx
-WEBHOOK_SOL=https://discord.com/api/webhooks/xxxxxxxx/xxxxxxxx
-WEBHOOK_WLD=https://discord.com/api/webhooks/xxxxxxxx/xxxxxxxx
+gh secret set WEBHOOK_ARB --repo sajicosaji/crypto-news-bot
 ```
 
-- 通知が不要な銘柄は空欄のままでOKです（起動時にログへ警告が出て、その銘柄はスキップされます）
-- 値を入れ忘れた場合もエラーで止まらず、他の銘柄の処理は続行されます
+（実行するとURLの入力を求められます。`WEBHOOK_ETH` / `WEBHOOK_SOL` / `WEBHOOK_WLD` も同様）
+
+Webhookの作り方: Discordの対象チャンネル → 歯車（チャンネルの編集）→「連携サービス」
+→「ウェブフック」→「新しいウェブフック」→「ウェブフックURLをコピー」
+
+登録していない銘柄はスキップされ、ログに警告が出るだけでエラーにはなりません。
 
 ---
 
-## 4. タスクスケジューラへの登録
-
-Windowsの「タスクスケジューラ」を開き、「基本タスクの作成」から以下を3つ登録します。
-「プログラムの開始」の画面で入力する内容は次の通りです（`<フォルダのパス>` は実際にこの
-フォルダを置いた場所に置き換えてください。例: `C:\Users\あなたの名前\OneDrive\Desktop\crypto-news-bot`）。
-
-いずれも「開始（作業）フォルダ」欄に `<フォルダのパス>` を指定してください（相対パスで
-config.yaml や .env を読み込むため必須です）。
-
-### 日次まとめ（毎日 8:00）
-
-- プログラム/スクリプト: `python`
-- 引数の追加: `main.py --digest`
-- 開始（作業）フォルダ: `<フォルダのパス>`
-- トリガー: 毎日 8:00
-
-### 速報（30分ごと）
-
-- プログラム/スクリプト: `python`
-- 引数の追加: `main.py --alert`
-- 開始（作業）フォルダ: `<フォルダのパス>`
-- トリガー: 毎日、開始時刻 0:00、「タスクの繰り返し間隔」を30分・継続時間を「1日」に設定
-
-### 週次振り返り（毎週月曜 8:00）
-
-- プログラム/スクリプト: `python`
-- 引数の追加: `main.py --weekly`
-- 開始（作業）フォルダ: `<フォルダのパス>`
-- トリガー: 毎週、月曜日、8:00
-
-コマンドラインから `schtasks` で登録する場合は次のようになります（管理者権限は不要です。
-`python` がフルパスで見つからない環境では `python` の部分を `python.exe` のフルパスに
-置き換えてください）。
-
-```
-schtasks /create /tn "crypto-news-bot digest" /tr "python \"<フォルダのパス>\main.py\" --digest" /sc daily /st 08:00
-schtasks /create /tn "crypto-news-bot alert" /tr "python \"<フォルダのパス>\main.py\" --alert" /sc minute /mo 30
-schtasks /create /tn "crypto-news-bot weekly" /tr "python \"<フォルダのパス>\main.py\" --weekly" /sc weekly /d MON /st 08:00
-```
-
-（`schtasks` はタスク実行時の作業フォルダを明示的に指定できないため、`main.py` は自分の
-置かれている場所を基準にファイルを読み書きするように作ってあります。フルパスで
-`main.py` を指定していれば作業フォルダに依存せず正しく動作します。）
-
----
-
-## 5. config.yaml の編集方法
-
-`config.yaml` に、通知の中身に関わる設定をすべてまとめています。編集後はPythonの
-再起動（次回のタスク実行）で反映されます。
+## 4. config.yaml の編集方法
 
 ### 銘柄の追加・変更
 
-`coins:` の下に銘柄を追加し、`.env` に対応する `WEBHOOK_XXX` を追加するだけで通知対象を
-増やせます。`coingecko_id` は [CoinGecko](https://www.coingecko.com/) でそのコインの
-ページURLの末尾にあるIDを実際に確認してから設定してください（本ツールの開発時、
-`worldcoin` というIDは別の古いトークンを指しており、正しいWLDのIDは `worldcoin-wld` でした。
-似た名前の別トークンに注意してください）。
+`coins:` に銘柄を追加し、GitHub Secretsに対応する `WEBHOOK_XXX` を追加すれば通知対象が増えます。
+`coingecko_id` は [CoinGecko](https://www.coingecko.com/) の該当コインのページURLで実際に
+確認してください（開発時、`worldcoin` は別の古いトークンを指しており、正しいWLDのIDは
+`worldcoin-wld` でした。似た名前の別トークンに注意）。
+
+### ニュースの取得元
+
+`sources.feeds` に「名前」と「RSSのURL」を並べるだけで取得元を増やせます。
+日本語メディアを増やすと、日本語で読める記事が増えます。
+
+```yaml
+sources:
+  feeds:
+    - name: "媒体名"
+      url: "https://example.com/feed"
+```
+
+**Google Newsについて**: `google_news_en` / `google_news_ja` は既定で `false` です。
+Google NewsはGitHub Actionsのようなデータセンター経由のアクセスを503で拒否するため、
+クラウドでは取得できません（実際に確認済み）。またGoogle Newsのリンクは記事本文に
+到達できないため、本文抜粋も取れません。ローカルPCで動かす場合のみ `true` が使えます。
 
 ### キーワード（判定ロジック）
 
-`keywords.good` / `keywords.bad` に良い/悪いキーワードを追加・削除できます。
-`critical_keywords` は速報の候補になる重大ワードです。絵文字は `emojis` で変更できます。
+`keywords.good` / `keywords.bad` に良い/悪いキーワードを、`critical_keywords` に
+速報の候補になる重大ワードを設定します。絵文字は `emojis` で変更できます。
 
-絵文字にはサーバー独自の絵文字（`<:name:id>`、アニメーション絵文字は `<a:name:id>`）も
-指定できます。ただしDiscordの仕様上、埋め込み（embed）のタイトル部分では独自絵文字が
-描画されず文字列のまま表示されてしまうため、独自絵文字を設定した場合は自動的に本文の
-先頭へ移動して表示します（通常のUnicode絵文字を設定した場合はタイトルに表示されます）。
+絵文字にはサーバー独自の絵文字（`<:name:id>`、アニメーションは `<a:name:id>`）も
+指定できます。Discordの仕様上、埋め込みのタイトルでは独自絵文字が描画されないため、
+その場合は自動的に本文の先頭に移動して表示します。
 
-否定表現の誤判定を抑えるための設定:
+否定表現の誤判定を抑える設定:
 
-- `idiom_neutralizers`: 「falls short」のように、それ自体では判定に使わない言い回しを
-  スコア計算前に取り除きます
+- `idiom_neutralizers`: 「falls short」のような紛らわしい言い回しを判定前に取り除く
 - `negation_words_en` / `negation_suffixes_ja`: 「no hack」「下落せず」のように、
-  キーワードの前後に否定語があれば、そのキーワードを判定から除外します
+  キーワードの前後に否定語があればそのキーワードを判定から除外する
+
+### 読む価値アドバイス
+
+`reading_advice.price_reaction_pct`: この%以上の値動きが同時に起きていれば優先度を上げます。
+`reading_advice.enabled: false` にすればアドバイス行を消せます。
+
+### 抜粋の長さ・件数
+
+- `excerpt.max_length`: 1記事あたりの抜粋の最大文字数（既定300）
+- `digest.detailed_items`: 抜粋＋アドバイス付きで詳しく載せる件数（既定5）
+- `digest.max_news_items`: 日次まとめに載せる記事数の上限（既定10）
+
+Discordの埋め込みには文字数の上限があるため、長くする場合は件数を減らしてください
+（上限を超える分は自動的に打ち切られます）。
+
+### 同じニュースのまとめ方
+
+媒体ごとに見出しが書き換えられるため、完全一致だけでは同じ話題が何件も並びます。
+`dedup.min_shared_terms`（既定3）は、見出しの中で手がかりになる語がいくつ一致したら
+同じ話題とみなすかの設定です。
+
+- 数を**増やす**とまとめる条件が厳しくなり、同じ話題が複数並びやすくなります
+- 数を**減らすと**まとめすぎて、別のニュースが隠れてしまうことがあります（2は実測で
+  まとめすぎだったため3にしています）
 
 ### しきい値・速報の条件
 
@@ -170,13 +169,10 @@ schtasks /create /tn "crypto-news-bot weekly" /tr "python \"<フォルダのパ�
 
 - `arb_wld_price_change_pct` / `eth_sol_price_change_pct`: 24時間の値動きで速報を出す%
 - `eth_sol_critical_media_count` / `eth_sol_critical_window_hours`: ETH・SOLで重大ワード
-  記事が何媒体・何時間以内で報じられたら速報にするか
-- `price_alert_cooldown_hours`: 価格・データ系の速報を出したあと、同じ条件で次に出すまでの
-  クールダウン時間
+  記事が何媒体・何時間以内に報じられたら速報にするか
+- `price_alert_cooldown_hours`: 価格・データ系の速報を出したあとのクールダウン時間
 - `max_alerts_per_channel_per_run`: 1回の実行でチャンネルごとに出す速報の上限
 - `news_alert_max_age_hours`: 公開からこの時間を超えた記事は速報にしない
-  （Google Newsの検索結果には数ヶ月前の記事も混ざることがあるため、今日はじめてDBに
-  保存された古い記事を「速報」として誤って流さないための安全装置です）
 
 銘柄ごとの重点ワードは `arb.priority_good_keywords` / `arb.priority_bad_keywords`、
 `wld.priority_bad_keywords`、`wld.morpho.risk_keywords`、`sol.dex_names` で編集できます。
@@ -184,13 +180,12 @@ schtasks /create /tn "crypto-news-bot weekly" /tr "python \"<フォルダのパ�
 ### 価格の節目
 
 `arb.price_levels`・`wld.price_levels` に配列で設定します（例: `[0.14, 0.20]`）。
-上抜け・下抜けを検知したときに速報を出し、`price_alert_cooldown_hours` の間は同じ節目での
-連続投稿を防ぎます。
+上抜け・下抜けで速報を出し、`price_alert_cooldown_hours` の間は同じ節目での連続投稿を防ぎます。
 
-### アンロック予定
+### アンロック予定・マクロ予定
 
-`arb.unlocks` / `wld.unlocks` に、日付を **必ずダブルクォートで囲んだ `YYYY-MM-DD` 形式**
-で手入力します。日次まとめで、その3日前と前日に自動的に表示されます。
+日付は**必ずダブルクォートで囲んだ `YYYY-MM-DD` 形式**で手入力します。
+アンロックは3日前と前日に、マクロ予定は当日と翌日に、日次まとめへ自動表示されます。
 
 ```yaml
 arb:
@@ -198,14 +193,7 @@ arb:
     - date: "2026-10-16"
       amount: "92,600,000 ARB"
       description: "投資家・チーム向け月次アンロック"
-```
 
-### マクロ経済イベント
-
-`macro_events` に同様の形式で日付とイベント名を追加します。日次まとめで当日・翌日分が
-表示されます。
-
-```yaml
 macro_events:
   - date: "2026-10-29"
     description: "FOMC（政策金利発表）"
@@ -217,56 +205,66 @@ macro_events:
 
 ---
 
-## 6. 確認できなかった外部API（無効化している機能）
+## 5. 確認できなかった外部API（無効化している機能）
 
-実装前に実際にAPIへリクエストして仕様を確認しましたが、以下は公開APIが見つからず
-無効化した状態にしてあります。将来的に公開APIが見つかった場合は、対応するコードを
-有効化してください。
+実装前に実際にAPIへリクエストして確認しましたが、以下は公開APIが見つからず無効化しています。
 
 - **World Networkの利用状況（World ID認証済み人数など）**
-  `worldcoin.org` / `world.org` 配下でそれらしいAPIエンドポイントを探しましたが、
-  公開APIを確認できませんでした。`src/onchain.py` の `fetch_world_network_stats()` は
-  常に `None` を返す無効化状態です。日次まとめには表示されません。
+  `worldcoin.org` / `world.org` 配下を調べましたが公開APIを確認できませんでした。
+  `src/onchain.py` の `fetch_world_network_stats()` は常に `None` を返します。
 
-なお、以下のAPIは実装前に実際にリクエストして仕様を確認済みで、有効に動作します。
+確認済みで動作しているAPI:
 
-- CoinGecko 無料API（`worldcoin-wld` がWLDの正しいID、`usd1-wlfi` がUSD1のID）
-- DefiLlama 手数料API（`/overview/fees/{chain}`）… Robinhood Chain・Arbitrum Oneの日次収益
-- DefiLlama DEX出来高API（`/overview/dexs/{chain}`）… Robinhood ChainのDEX出来高
-- DefiLlama トレジャリーAPI（`/treasury/arbitrum-dao`）… Arbitrum DAOトレジャリー残高
-  （`chainTvls` の "Arbitrum" "Arbitrum Nova" "Ethereum" "OwnTokens" を合算した概算値です。
-  DefiLlamaが単一の合計値を明示的に提供していないための近似値である点に注意してください）
-- Arbitrum DAO公式フォーラムのRSS（`forum.arbitrum.foundation/latest.rss`）
-- Morpho GraphQL API（`blue-api.morpho.org/graphql`）… WLD関連マーケットの利用率・APY・預け入れ額
-- Google News RSS（英語版・日本語版）、CoinDesk・Cointelegraph・The BlockのRSS
+- CoinGecko 無料API（WLD = `worldcoin-wld`、USD1 = `usd1-wlfi`）
+- DefiLlama 手数料API（Robinhood Chain・Arbitrum Oneの日次収益）
+- DefiLlama DEX出来高API（Robinhood ChainのDEX出来高）
+- DefiLlama トレジャリーAPI（`treasury/arbitrum-dao`）
+  ※ `chainTvls` の "Arbitrum" "Arbitrum Nova" "Ethereum" "OwnTokens" を合算した**概算値**です
+- Arbitrum DAO公式フォーラムRSS（`forum.arbitrum.foundation/latest.rss`）
+- Morpho GraphQL API（WLD関連マーケットの利用率・APY・預け入れ額）
+- 各媒体の直接RSS（config.yaml の `sources.feeds` 参照）
 
 ---
 
-## 7. その他の注意点
+## 6. 仕組み上の注意点
 
 - DefiLlamaの日次データはUTC基準で区切られているため、「前日」は日本時間の暦日と
-  厳密には一致しません（最大で数時間のズレが生じます）。無料APIの制約による近似です。
-- 初回の `--alert` 実行時は、記事・価格・データの保存のみ行い、速報は出しません
-  （何が「新着」かをまだ判定できないためです）。
-- 週次振り返りは、`--alert` が30分ごとに記録した価格スナップショットをもとに
-  作成します。運用を開始した直後の1回目・2回目の週次振り返りは、まだ1週間分の
-  価格データが蓄積されていないため、変化率が正しく出ないことがあります
-  （データ不足の場合はその旨を表示します）。運用を続けるほど内容が充実します。
-- ログは `logs/bot.log` に出力され、2MBを超えると自動でローテーションします
-  （`logs/bot.log.1` などに退避され、最大5世代保持）。
-- データは `data/bot.db`（SQLite）に保存されます。バックアップしたい場合はこのファイルを
-  コピーしてください。
+  厳密には一致しません（最大で数時間のズレ）。無料APIの制約による近似です。
+- 初回の `--alert` 実行時は保存のみ行い、速報は出しません（何が新着かまだ判定できないため）。
+- 週次振り返りは、30分ごとの実行で記録した価格をもとに作ります。運用開始直後は
+  1週間分のデータが無いため変化率が正しく出ません（データ不足の場合はその旨を表示します）。
+- 記事・価格・速報履歴は30日で自動削除されます（`data_retention_days` で変更可）。
+- データベースはGitHub Actionsのキャッシュで実行間を引き継いでいます。キャッシュが
+  消えた場合は初回扱いになり、速報を出さずに保存からやり直すため誤爆はしません。
+- GitHubのスケジュール実行は混雑時に遅れることがあります。速報が数十分遅れる場合が
+  あるのはこのためです。
+
+---
+
+## 7. ローカルPCで動かす場合（任意）
+
+クラウドで動いているので通常は不要ですが、手元で試したいときは次の通りです。
+
+```
+セットアップ.bat をダブルクリック（ライブラリのインストール）
+.env.example を .env にコピーしてWebhook URLを記入
+python main.py --digest --dry-run     # 投稿せず内容だけ確認
+python main.py --alert --dry-run
+python main.py --weekly --dry-run
+テスト投稿.bat をダブルクリック（各チャンネルへテスト投稿）
+```
+
+`--dry-run` を付けている間はDiscordには一切投稿されません。
 
 ---
 
 ## 8. テストの実行
 
 ```
-pip install pytest
 pytest tests/ -v
 ```
 
 判定ロジック（否定形を含む）、速報条件の銘柄ごとの違い、価格節目の連続投稿防止、
-記事の重複判定、銘柄への振り分け、BTCとの比較、Robinhood Chain収益変化の検知などを
-自動テストしています。外部APIへの実際のアクセスは行いません（モック不要な純粋関数、
-またはインメモリSQLiteのみを使ってテストしています）。
+記事の重複判定と言い換え記事のまとめ、銘柄への振り分け、BTCとの比較、
+Robinhood Chain収益変化の検知、抜粋の整形、読む価値アドバイスを自動テストしています。
+外部APIへの実際のアクセスは行いません。
