@@ -1,30 +1,37 @@
 name: crypto-news-bot
 
 # PCの電源に関係なくGitHub上で実行する。
-# cronはUTC基準のため、日本時間8:00 = UTC前日23:00 を指定している。
+#
+# GitHubのスケジュール実行(schedule)はこのアカウントでは発火しないことが多いため、
+# 「1つの長時間ジョブが自分の時計を見て各モードを実行する」自走モード(serve)が本体。
+# 外部トリガー（Claudeのクラウドルーティン）が1日4回このジョブを起動する。
+# 下のscheduleは保険として残してある（発火すればその分も動く）。
 on:
   schedule:
-    - cron: "*/30 * * * *"   # 速報チェック（30分ごと）
-    - cron: "0 23 * * *"     # 日次まとめ（毎日8:00 JST）
-    - cron: "0 23 * * 0"     # 週次振り返り（月曜8:00 JST = 日曜23:00 UTC）
+    - cron: "5 23,5,11,17 * * *"   # 保険。外部トリガーが本体
   workflow_dispatch:
     inputs:
       mode:
         description: "実行するモード"
         required: true
-        default: alert
+        default: serve
         type: choice
-        options: [alert, digest, weekly, test-webhooks]
+        options: [serve, alert, digest, weekly, test-webhooks]
+      max_runtime:
+        description: "自走モードの最大実行時間（分）"
+        required: false
+        default: "330"
 
-# 同時に走るとデータベースの引き継ぎが壊れるため、必ず1つずつ実行する
+# 同時に走るとデータベースの引き継ぎが壊れるため、必ず1つずつ実行する。
+# 新しいジョブが来たら古いジョブを止めて引き継ぐ（長時間ジョブが居座らないように）。
 concurrency:
   group: crypto-news-bot
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
 
@@ -51,12 +58,10 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event.schedule }}" = "0 23 * * 0" ]; then
-            echo "mode=weekly" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event.schedule }}" = "0 23 * * *" ]; then
-            echo "mode=digest" >> "$GITHUB_OUTPUT"
+            echo "runtime=${{ inputs.max_runtime }}" >> "$GITHUB_OUTPUT"
           else
-            echo "mode=alert" >> "$GITHUB_OUTPUT"
+            echo "mode=serve" >> "$GITHUB_OUTPUT"
+            echo "runtime=330" >> "$GITHUB_OUTPUT"
           fi
 
       - name: 実行
@@ -65,8 +70,14 @@ jobs:
           WEBHOOK_ETH: ${{ secrets.WEBHOOK_ETH }}
           WEBHOOK_SOL: ${{ secrets.WEBHOOK_SOL }}
           WEBHOOK_WLD: ${{ secrets.WEBHOOK_WLD }}
-        run: python main.py --${{ steps.mode.outputs.mode }}
+        run: |
+          if [ "${{ steps.mode.outputs.mode }}" = "serve" ]; then
+            python main.py --serve --max-runtime "${{ steps.mode.outputs.runtime }}"
+          else
+            python main.py --${{ steps.mode.outputs.mode }}
+          fi
 
+      # ジョブが途中で止められた場合もデータを残す
       - name: データベースの保存
         if: always()
         uses: actions/cache/save@v4
@@ -74,7 +85,6 @@ jobs:
           path: data/bot.db
           key: botdb-${{ github.run_id }}
 
-      # 失敗の原因を後から確認できるようにログを残す（7日間）
       - name: ログの保存
         if: always()
         uses: actions/upload-artifact@v4

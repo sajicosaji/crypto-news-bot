@@ -14,10 +14,12 @@ import argparse
 import logging
 import logging.handlers
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 from src import alerts, config, db, digest, discord, fetch_news, onchain, prices, weekly
+from src.utils import now_jst
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "data" / "bot.db"
@@ -53,11 +55,13 @@ def parse_args() -> argparse.Namespace:
     mode.add_argument("--digest", action="store_true", help="日次まとめを投稿する")
     mode.add_argument("--alert", action="store_true", help="速報をチェックする")
     mode.add_argument("--weekly", action="store_true", help="週次振り返りを投稿する")
+    mode.add_argument("--serve", action="store_true", help="自走モード（指定時間ループして各モードを実行）")
     parser.add_argument("--dry-run", action="store_true", help="投稿せず内容を表示する")
     parser.add_argument("--test-webhooks", action="store_true", help="各チャンネルにテスト投稿する")
+    parser.add_argument("--max-runtime", type=int, default=330, help="自走モードの最大実行時間（分）")
     args = parser.parse_args()
-    if not (args.digest or args.alert or args.weekly or args.test_webhooks):
-        parser.error("--digest / --alert / --weekly / --test-webhooks のいずれかを指定してください")
+    if not (args.digest or args.alert or args.weekly or args.serve or args.test_webhooks):
+        parser.error("--digest / --alert / --weekly / --serve / --test-webhooks のいずれかを指定してください")
     return args
 
 
@@ -270,6 +274,67 @@ def run_weekly(conn, cfg: dict, dry_run: bool) -> None:
         logger.info("%s 週次振り返り投稿: %s", symbol, "成功" if ok else "失敗")
 
 
+def should_run_digest(conn, cfg: dict, now) -> bool:
+    sched = cfg.get("schedule", {})
+    hour = sched.get("digest_hour_jst", 8)
+    window = sched.get("digest_window_hours", 6)
+    if not (hour <= now.hour < hour + window):
+        return False
+    return db.get_state(conn, "last_digest_date") != now.date().isoformat()
+
+
+def should_run_weekly(conn, cfg: dict, now) -> bool:
+    sched = cfg.get("schedule", {})
+    hour = sched.get("digest_hour_jst", 8)
+    window = sched.get("digest_window_hours", 6)
+    if now.weekday() != sched.get("weekly_weekday", 0):
+        return False
+    if not (hour <= now.hour < hour + window):
+        return False
+    iso = now.isocalendar()
+    return db.get_state(conn, "last_weekly_week") != f"{iso.year}-W{iso.week}"
+
+
+def run_serve(conn, cfg: dict, dry_run: bool, max_runtime_minutes: int) -> None:
+    """1つのジョブの中で、自分の時計を見て各モードを実行し続ける。
+
+    GitHubのスケジュール実行は発火しないことが多いため、外部から起動された
+    長時間ジョブがこのループを回して速報・日次まとめ・週次振り返りを担当する。
+    """
+    sched = cfg.get("schedule", {})
+    interval_seconds = sched.get("alert_interval_minutes", 30) * 60
+    deadline = time.monotonic() + max_runtime_minutes * 60
+    logger.info("自走モードを開始します（最大%d分、%d分間隔）", max_runtime_minutes, interval_seconds // 60)
+
+    while True:
+        now = now_jst()
+        try:
+            if should_run_digest(conn, cfg, now):
+                logger.info("日次まとめの時刻になりました（%s）", now.strftime("%m/%d %H:%M"))
+                run_digest(conn, cfg, dry_run)
+                if not dry_run:
+                    # dry-runでは「投稿済み」と記録しない（本番の投稿を潰さないため）
+                    db.set_state(conn, "last_digest_date", now.date().isoformat())
+
+            if should_run_weekly(conn, cfg, now):
+                logger.info("週次振り返りの時刻になりました（%s）", now.strftime("%m/%d %H:%M"))
+                run_weekly(conn, cfg, dry_run)
+                if not dry_run:
+                    iso = now.isocalendar()
+                    db.set_state(conn, "last_weekly_week", f"{iso.year}-W{iso.week}")
+
+            run_alert(conn, cfg, dry_run)
+        except Exception:
+            # 1回の失敗でループ全体を止めない（次の巡回で自然に復帰する）
+            logger.exception("巡回中にエラーが発生しました。次の巡回で再試行します。")
+
+        remaining = deadline - time.monotonic()
+        if remaining <= interval_seconds:
+            logger.info("自走モードの時間が終了しました。次のジョブに引き継ぎます。")
+            return
+        time.sleep(interval_seconds)
+
+
 def main() -> None:
     args = parse_args()
     setup_logging()
@@ -288,6 +353,8 @@ def main() -> None:
             run_alert(conn, cfg, args.dry_run)
         elif args.weekly:
             run_weekly(conn, cfg, args.dry_run)
+        elif args.serve:
+            run_serve(conn, cfg, args.dry_run, args.max_runtime)
 
         retention_days = cfg.get("data_retention_days", 30)
         removed = db.prune_old_data(conn, retention_days)

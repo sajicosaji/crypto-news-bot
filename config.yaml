@@ -6,6 +6,17 @@ btc_coingecko_id: bitcoin
 # この日数より古い記事・価格・速報履歴は自動で削除する（データベースを小さく保つ）
 data_retention_days: 30
 
+# 自走モード（--serve）の時刻設定。すべて日本時間。
+# GitHubのスケジュール実行は発火しないことが多いため、1つの長時間ジョブの中で
+# 自分の時計を見て日次まとめ・週次振り返り・速報を実行する方式にしている。
+schedule:
+  alert_interval_minutes: 30   # 速報チェックの間隔
+  digest_hour_jst: 8           # 日次まとめの時刻
+  # 何らかの理由で朝に実行できなかった場合、この時間内なら遅れて投稿する
+  # （例: 8時 + 6時間 = 14時まで。それを過ぎたらその日は見送る）
+  digest_window_hours: 6
+  weekly_weekday: 0            # 週次振り返りの曜日（0=月曜）
+
 coins:
   ARB:
     coingecko_id: arbitrum
