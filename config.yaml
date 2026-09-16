@@ -44,8 +44,11 @@ coins:
 
 # ニュース取得元
 sources:
-  google_news_en: true
-  google_news_ja: true
+  # Google News は datacenter IP（GitHub Actions等）からのアクセスを503で拒否するため、
+  # クラウド実行では使えない。代わりに下の直接RSSを厚くしている。
+  # ローカルPCで動かす場合だけ true にすると追加の取得元として使える。
+  google_news_en: false
+  google_news_ja: false
   # 直接RSS。ここに追加すると取得元が増える。
   # Google Newsと違い、本文抜粋が取れてリンクも記事に直接つながるため、
   # 「リンクを踏まずに内容が分かる」のはこちらの媒体。日本語media優先で並べている。
@@ -71,6 +74,30 @@ sources:
       url: "https://blockworks.co/feed"
     - name: "The Defiant"
       url: "https://thedefiant.io/api/feed"
+    - name: "DL News"
+      url: "https://www.dlnews.com/arc/outboundfeeds/rss/"
+    - name: "Crypto Briefing"
+      url: "https://cryptobriefing.com/feed/"
+    - name: "BeInCrypto"
+      url: "https://beincrypto.com/feed/"
+    - name: "Cryptonews"
+      url: "https://cryptonews.com/news/feed/"
+    - name: "U.Today"
+      url: "https://u.today/rss"
+    - name: "AMBCrypto"
+      url: "https://ambcrypto.com/feed/"
+    - name: "CryptoPotato"
+      url: "https://cryptopotato.com/feed/"
+    - name: "CoinGape"
+      url: "https://coingape.com/feed/"
+    - name: "NewsBTC"
+      url: "https://www.newsbtc.com/feed/"
+    - name: "Bitcoinist"
+      url: "https://bitcoinist.com/feed/"
+    - name: "The Crypto Basic"
+      url: "https://thecryptobasic.com/feed/"
+    - name: "CoinJournal"
+      url: "https://coinjournal.net/feed/"
   # Arbitrum DAO 公式フォーラム（Discourse）。実在を確認済み。
   arbitrum_dao_forum_rss: "https://forum.arbitrum.foundation/latest.rss"
 
