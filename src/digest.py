@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 
 from . import db, discord
 from .advice import build_reading_advice, priority_rank
+from .move_context import analyze_move, direction_label, pick_move_context
 from .formatting import fmt_jpy, fmt_pct, fmt_usd, fmt_usd_compact
 from .utils import JST, now_jst
 
@@ -211,6 +212,52 @@ def build_wld_field(morpho_summary: dict | None) -> str | None:
     )
 
 
+def fetch_articles_for_move_context(conn, coin: str, hours: int = 30) -> list[dict]:
+    """値動きの背景候補にする記事。
+
+    24時間の変化率を説明するため、「昨日の暦日」ではなく直近の時間幅で見る
+    （今朝出た記事も候補に入れるため、少し広めに取る）。
+    """
+    since = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+    return db.recent_articles_with_source_count(conn, coin, since)
+
+
+def build_move_context_field(
+    *, cfg: dict, articles: list[dict], coin_change_24h: float | None, btc_change_24h: float | None
+) -> dict | None:
+    """値動きの背景になりそうなニュースを1つのフィールドにまとめる。
+
+    BTCにつられただけの動きなら、その旨だけを書いてニュースは挙げない。
+    """
+    move_cfg = cfg.get("move_context", {})
+    if not move_cfg.get("enabled", True) or coin_change_24h is None:
+        return None
+
+    analysis = analyze_move(coin_change_24h, btc_change_24h, move_cfg.get("coin_specific_pct", 3))
+    lines = [analysis["summary"]]
+
+    if analysis["is_coin_specific"]:
+        picked = pick_move_context(
+            articles, analysis["direction"], datetime.now(timezone.utc),
+            move_cfg.get("max_items", 3),
+        )
+        label = direction_label(analysis["direction"])
+        if picked:
+            lines.append("")
+            lines.append(f"{label}の背景になりそうなニュース（原因と断定するものではありません）:")
+            for a in picked:
+                url = a.get("excerpt_url") or a["url"]
+                lines.append(f"{a['emoji']} [{a['display_title']}]({url})")
+        else:
+            lines.append(f"{label}の背景になりそうなニュースは見つかりませんでした。")
+
+    value = "\n".join(lines)
+    # Discordのフィールド値は1024文字まで
+    if len(value) > 1000:
+        value = value[:1000].rstrip() + "…"
+    return {"name": "値動きの背景", "value": value, "inline": False}
+
+
 def build_digest_embed(
     *,
     coin: str,
@@ -219,11 +266,22 @@ def build_digest_embed(
     price_data: dict,
     btc_change_24h: float | None,
     articles: list[dict],
+    move_articles: list[dict],
     onchain_field: str | None,
     schedule_notes: list[str],
     today: date,
 ) -> dict:
     fields = [{"name": "価格", "value": build_price_field(coin, price_data, btc_change_24h), "inline": False}]
+
+    move_field = build_move_context_field(
+        cfg=cfg,
+        articles=move_articles,
+        coin_change_24h=(price_data.get(coin) or {}).get("usd_24h_change"),
+        btc_change_24h=btc_change_24h,
+    )
+    if move_field:
+        fields.append(move_field)
+
     if onchain_field:
         fields.append({"name": "指標", "value": onchain_field, "inline": False})
     if schedule_notes:
@@ -259,6 +317,7 @@ def run_digest_for_coin(
 ) -> bool:
     today = now_jst().date()
     articles = fetch_yesterday_articles(conn, coin, today)
+    move_articles = fetch_articles_for_move_context(conn, coin)
 
     schedule_notes = list(macro_events_for_digest(cfg.get("macro_events", []), today))
     unlocks = cfg.get(coin.lower(), {}).get("unlocks", [])
@@ -266,7 +325,8 @@ def run_digest_for_coin(
 
     embed = build_digest_embed(
         coin=coin, coin_cfg=coin_cfg, cfg=cfg, price_data=price_data,
-        btc_change_24h=btc_change_24h, articles=articles, onchain_field=onchain_field,
+        btc_change_24h=btc_change_24h, articles=articles, move_articles=move_articles,
+        onchain_field=onchain_field,
         schedule_notes=schedule_notes, today=today,
     )
     return discord.post_webhook(

@@ -159,6 +159,22 @@ def find_article_by_normalized_title(
     ).fetchone()
 
 
+def recent_articles_with_source_count(
+    conn: sqlite3.Connection, coin: str, since_iso: str
+) -> list[dict]:
+    """指定時刻以降の記事を、報道媒体数つきで返す（値動きの背景候補用）。"""
+    rows = conn.execute(
+        "SELECT a.*, "
+        "  (SELECT COUNT(DISTINCT source_name) FROM article_sources s WHERE s.article_id = a.id) "
+        "  AS source_count "
+        "FROM articles a JOIN article_coins ac ON ac.article_id = a.id "
+        "WHERE ac.coin = ? AND a.first_published_at >= ? "
+        "ORDER BY a.first_published_at DESC",
+        (coin, since_iso),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
 def recent_articles_for_similarity(
     conn: sqlite3.Connection, since_iso: str, limit: int = 300
 ) -> list[sqlite3.Row]:

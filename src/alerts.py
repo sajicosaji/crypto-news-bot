@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 from . import db, discord
 from .formatting import fmt_level, fmt_pct, fmt_usd
+from .move_context import analyze_move, direction_label, pick_move_context
 from .utils import contains_term, format_jst, now_jst
 
 logger = logging.getLogger("crypto_news_bot.alerts")
@@ -204,6 +205,21 @@ def _post_news_alert(
     )
 
 
+def _recent_articles(conn, coin: str, now: datetime, hours: int = 24) -> list[dict]:
+    """値動きの背景候補にする、直近の記事（媒体数つき）。"""
+    since = (now - timedelta(hours=hours)).isoformat()
+    return db.recent_articles_with_source_count(conn, coin, since)
+
+
+def _article_lines(articles: list[dict]) -> list[str]:
+    lines = []
+    for a in articles:
+        url = a.get("excerpt_url") or a["url"]
+        dt = datetime.fromisoformat(a["first_published_at"])
+        lines.append(f"{a['emoji']} [{a['display_title']}]({url}) - {format_jst(dt)}")
+    return lines
+
+
 def _recent_news_lines(conn, coin: str, now: datetime, hours: int = 12, limit: int = 5) -> list[str]:
     since = (now - timedelta(hours=hours)).isoformat()
     rows = conn.execute(
@@ -225,23 +241,33 @@ def _todays_macro_events(cfg: dict, now_jst_dt: datetime) -> list[str]:
     return [e["description"] for e in cfg.get("macro_events", []) if e.get("date") == today]
 
 
-def classify_move_scope(btc_change_24h: float | None, market_wide_threshold_pct: float = 3.0) -> str:
-    """BTCも同時に動いていれば「相場全体の動き」、そうでなければ「銘柄固有の動き」と判定する。"""
-    if btc_change_24h is not None and abs(btc_change_24h) >= market_wide_threshold_pct:
-        return "相場全体の動き"
-    return "銘柄固有の動き"
-
-
 def _post_data_alert(
-    *, webhook_url, username, title_text, reason, coin, btc_change_24h, cfg, conn, now, dry_run,
+    *, webhook_url, username, title_text, reason, coin, btc_change_24h, coin_change_24h,
+    cfg, conn, now, dry_run,
 ):
     emojis = cfg["emojis"]
-    scope = classify_move_scope(btc_change_24h)
-    lines = [reason, f"BTCの24h変化率: {fmt_pct(btc_change_24h)}（{scope}）"]
+    move_cfg = cfg.get("move_context", {})
+    analysis = analyze_move(coin_change_24h, btc_change_24h, move_cfg.get("coin_specific_pct", 3))
+    lines = [reason, analysis["summary"]]
 
     macro = _todays_macro_events(cfg, now_jst())
     if macro:
         lines.append("本日のマクロ予定: " + " / ".join(macro))
+
+    if move_cfg.get("enabled", True) and analysis["is_coin_specific"]:
+        # BTCと切り離して動いているので、向きの合うニュースを背景候補として出す
+        picked = pick_move_context(
+            _recent_articles(conn, coin, now), analysis["direction"], now,
+            move_cfg.get("max_items", 3),
+        )
+        label = direction_label(analysis["direction"])
+        if picked:
+            lines.append("")
+            lines.append(f"{label}の背景になりそうなニュース（原因と断定するものではありません）:")
+            lines.extend(_article_lines(picked))
+        else:
+            lines.append("")
+            lines.append(f"{label}の背景になりそうなニュースは見つかりませんでした。")
 
     recent = _recent_news_lines(conn, coin, now)
     if recent:
@@ -294,6 +320,7 @@ def run_alert_for_coin(
     cooldown_hours = thresholds["price_alert_cooldown_hours"]
     now = datetime.now(timezone.utc)
     username = coin_cfg["username"]
+    coin_change_24h = (price_data.get(coin) or {}).get("usd_24h_change")
     posted = 0
 
     # 1) ニュース速報
@@ -338,7 +365,8 @@ def run_alert_for_coin(
             title_text = f"価格急変 {coin} {fmt_pct(pct24)}（24h）"
             if _post_data_alert(
                 webhook_url=webhook_url, username=username, title_text=title_text, reason=reason,
-                coin=coin, btc_change_24h=btc_change_24h, cfg=cfg, conn=conn, now=now, dry_run=dry_run,
+                coin=coin, btc_change_24h=btc_change_24h, coin_change_24h=coin_change_24h,
+                cfg=cfg, conn=conn, now=now, dry_run=dry_run,
             ):
                 db.log_alert(conn, coin, "price_change", "24h", reason, now.isoformat())
                 posted += 1
@@ -363,7 +391,8 @@ def run_alert_for_coin(
                     reason = f"{coin}が{fmt_usd(level)}を{verb}しました（現在値 {fmt_usd(curr_price)}）"
                     if _post_data_alert(
                         webhook_url=webhook_url, username=username, title_text=title_text, reason=reason,
-                        coin=coin, btc_change_24h=btc_change_24h, cfg=cfg, conn=conn, now=now, dry_run=dry_run,
+                        coin=coin, btc_change_24h=btc_change_24h, coin_change_24h=coin_change_24h,
+                cfg=cfg, conn=conn, now=now, dry_run=dry_run,
                     ):
                         db.log_alert(conn, coin, "price_level", dedupe_key, reason, now.isoformat())
                         posted += 1
@@ -375,7 +404,8 @@ def run_alert_for_coin(
         if usd1_reason and not is_in_cooldown(conn, coin, "usd1_depeg", "usd1", cooldown_hours, now):
             if _post_data_alert(
                 webhook_url=webhook_url, username=username, title_text="USD1 デペッグ懸念", reason=usd1_reason,
-                coin=coin, btc_change_24h=btc_change_24h, cfg=cfg, conn=conn, now=now, dry_run=dry_run,
+                coin=coin, btc_change_24h=btc_change_24h, coin_change_24h=coin_change_24h,
+                cfg=cfg, conn=conn, now=now, dry_run=dry_run,
             ):
                 db.log_alert(conn, coin, "usd1_depeg", "usd1", usd1_reason, now.isoformat())
                 posted += 1
@@ -386,7 +416,8 @@ def run_alert_for_coin(
                 title_text = f"価格急変 {coin} {fmt_pct(hourly_change)}（1h）"
                 if _post_data_alert(
                     webhook_url=webhook_url, username=username, title_text=title_text, reason=hourly_reason,
-                    coin=coin, btc_change_24h=btc_change_24h, cfg=cfg, conn=conn, now=now, dry_run=dry_run,
+                    coin=coin, btc_change_24h=btc_change_24h, coin_change_24h=coin_change_24h,
+                cfg=cfg, conn=conn, now=now, dry_run=dry_run,
                 ):
                     db.log_alert(conn, coin, "hourly_change", "1h", hourly_reason, now.isoformat())
                     posted += 1
@@ -397,7 +428,8 @@ def run_alert_for_coin(
         if reason and not is_in_cooldown(conn, coin, "onchain_change", "robinhood_fees_7d", cooldown_hours, now):
             if _post_data_alert(
                 webhook_url=webhook_url, username=username, title_text="Robinhood Chain収益の急変", reason=reason,
-                coin=coin, btc_change_24h=btc_change_24h, cfg=cfg, conn=conn, now=now, dry_run=dry_run,
+                coin=coin, btc_change_24h=btc_change_24h, coin_change_24h=coin_change_24h,
+                cfg=cfg, conn=conn, now=now, dry_run=dry_run,
             ):
                 db.log_alert(conn, coin, "onchain_change", "robinhood_fees_7d", reason, now.isoformat())
                 posted += 1
@@ -409,7 +441,8 @@ def run_alert_for_coin(
         if reason and not is_in_cooldown(conn, coin, "morpho_utilization", "wld", cooldown_hours, now):
             if _post_data_alert(
                 webhook_url=webhook_url, username=username, title_text="WLD関連Morphoマーケットの利用率上昇", reason=reason,
-                coin=coin, btc_change_24h=btc_change_24h, cfg=cfg, conn=conn, now=now, dry_run=dry_run,
+                coin=coin, btc_change_24h=btc_change_24h, coin_change_24h=coin_change_24h,
+                cfg=cfg, conn=conn, now=now, dry_run=dry_run,
             ):
                 db.log_alert(conn, coin, "morpho_utilization", "wld", reason, now.isoformat())
                 posted += 1

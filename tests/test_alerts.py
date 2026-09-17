@@ -7,7 +7,6 @@ from src.alerts import (
     check_price_change_alert,
     check_price_level_cross,
     check_usd1_depeg,
-    classify_move_scope,
     evaluate_news_alert,
     is_in_cooldown,
 )
@@ -104,10 +103,31 @@ def test_onchain_weekly_change_alert():
     assert check_onchain_weekly_change(summary3, 30) is None
 
 
-def test_move_scope_market_wide_vs_coin_specific():
-    assert classify_move_scope(4.0) == "相場全体の動き"
-    assert classify_move_scope(0.5) == "銘柄固有の動き"
-    assert classify_move_scope(None) == "銘柄固有の動き"
+def test_move_is_market_wide_when_following_btc():
+    """BTCと一緒に動いただけなら銘柄固有とはみなさない。"""
+    from src.move_context import analyze_move
+
+    result = analyze_move(coin_change_24h=9.0, btc_change_24h=8.0, coin_specific_pct=3)
+    assert result["is_coin_specific"] is False
+    assert "相場全体" in result["summary"]
+
+
+def test_move_is_coin_specific_when_diverging_from_btc():
+    from src.move_context import analyze_move
+
+    result = analyze_move(coin_change_24h=11.0, btc_change_24h=0.5, coin_specific_pct=3)
+    assert result["is_coin_specific"] is True
+    assert result["direction"] == "up"
+    assert round(result["excess_pct"], 1) == 10.5
+
+
+def test_move_is_coin_specific_when_falling_against_rising_btc():
+    """BTCが上がっているのに下げた場合も銘柄固有として拾う。"""
+    from src.move_context import analyze_move
+
+    result = analyze_move(coin_change_24h=-5.0, btc_change_24h=3.0, coin_specific_pct=3)
+    assert result["is_coin_specific"] is True
+    assert result["direction"] == "down"
 
 
 def test_price_level_cooldown_prevents_repeat_alerts_within_window(conn):
