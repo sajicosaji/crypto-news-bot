@@ -8,7 +8,7 @@ name: crypto-news-bot
 # 下のscheduleは保険として残してある（発火すればその分も動く）。
 on:
   schedule:
-    - cron: "5 23,5,11,17 * * *"   # 保険。外部トリガーが本体
+    - cron: "5 22,4,10,16 * * *"   # 保険。外部トリガーが本体
   workflow_dispatch:
     inputs:
       mode:

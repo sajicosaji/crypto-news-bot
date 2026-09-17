@@ -11,9 +11,9 @@ data_retention_days: 30
 # 自分の時計を見て日次まとめ・週次振り返り・速報を実行する方式にしている。
 schedule:
   alert_interval_minutes: 30   # 速報チェックの間隔
-  digest_hour_jst: 8           # 日次まとめの時刻
+  digest_hour_jst: 7           # 日次まとめの時刻
   # 何らかの理由で朝に実行できなかった場合、この時間内なら遅れて投稿する
-  # （例: 8時 + 6時間 = 14時まで。それを過ぎたらその日は見送る）
+  # （例: 7時 + 6時間 = 13時まで。それを過ぎたらその日は見送る）
   digest_window_hours: 6
   weekly_weekday: 0            # 週次振り返りの曜日（0=月曜）
 
