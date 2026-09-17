@@ -263,8 +263,10 @@ emojis:
   neutral: "📰"
   alert: "🚨"
 
-# @here / @everyone / <@&ロールID> / "" (メンションなし)
-mention: "@here"
+# 速報に付けるメンション。全員に通知が飛んで迷惑になるため既定はメンションなし。
+# 通知が欲しくなったら "@here" / "@everyone" / "<@&ロールID>" に変更する
+# （特定の人だけに通知するならロールIDが安全）。
+mention: ""
 
 # 速報の条件（銘柄ごとに変更可能）
 alert_thresholds:
