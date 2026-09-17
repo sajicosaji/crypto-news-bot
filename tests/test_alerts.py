@@ -55,7 +55,8 @@ def test_eth_requires_two_media_within_window(cfg):
 
 
 def test_eth_outside_window_is_not_eligible_even_with_media_count(cfg):
-    reason = evaluate_news_alert("ETH", "Ethereum hit by exploit", ["exploit"], 3, 5.0, cfg)
+    # 媒体数は「注目ニュース」のしきい値(3)未満にして、時間窓の判定だけを見る
+    reason = evaluate_news_alert("ETH", "Ethereum hit by exploit", ["exploit"], 2, 5.0, cfg)
     assert reason is None
 
 
@@ -144,3 +145,36 @@ def test_price_level_cooldown_key_is_shared_across_direction_to_avoid_flapping()
     key_up = f"level:{up[1]}"
     key_down = f"level:{down[1]}"
     assert key_up == key_down
+
+
+# --- 注目ニュース（重大ワードが無くても多媒体なら個別速報） --------------------
+
+def test_widely_reported_news_alerts_even_without_critical_keyword(cfg):
+    """「価値のあるニュースは朝を待たず個別に出す」という要望への対応。"""
+    reason = evaluate_news_alert(
+        "SOL", "Standard Chartered raises Solana target", [], 3, 1.0, cfg
+    )
+    assert reason is not None
+    assert "3媒体" in reason
+
+
+def test_widely_reported_rule_applies_to_eth_and_sol_too(cfg):
+    """ETH・SOLは従来2媒体+重大ワードが必要だったが、注目ニュースは重大ワード不要。"""
+    for coin in ("ETH", "SOL", "ARB", "WLD"):
+        assert evaluate_news_alert(coin, "大きく報じられた話題", [], 3, 1.0, cfg) is not None
+
+
+def test_thinly_reported_ordinary_news_still_does_not_alert(cfg):
+    """1〜2媒体だけの平凡なニュースでは通知しない（通知過多を防ぐ）。"""
+    assert evaluate_news_alert("SOL", "Solana community update", [], 2, 1.0, cfg) is None
+    assert evaluate_news_alert("ETH", "Ethereum meetup announced", [], 1, 1.0, cfg) is None
+
+
+def test_notable_news_is_not_limited_by_the_three_hour_window(cfg):
+    """注目ニュースは「3時間以内の速報」ルールとは別枠で拾う。
+
+    全体の「公開6時間以内」ガード(news_alert_max_age_hours)で古すぎる記事は
+    別途はじかれるため、ここでは時間窓に縛られない。
+    """
+    reason = evaluate_news_alert("ETH", "大きく報じられた話題", [], 3, 5.0, cfg)
+    assert reason is not None

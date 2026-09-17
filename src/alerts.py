@@ -30,6 +30,12 @@ def evaluate_news_alert(
     if title.startswith("[DAO提案]"):
         return "Arbitrum DAO提案（buyback/burn等）"
 
+    # 多くの媒体が同じニュースを追いかけていれば、重大ワードが無くても価値のある話題と
+    # みなして全銘柄で個別に速報する（朝のまとめまで待たせない）
+    notable_count = thresholds.get("notable_media_count")
+    if notable_count and source_count >= notable_count:
+        return f"{source_count}媒体が報じている注目ニュース"
+
     if coin in ("ARB", "WLD"):
         if critical_hits:
             return f"重大ワード: {', '.join(critical_hits)}"
