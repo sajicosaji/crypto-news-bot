@@ -266,14 +266,12 @@ def _post_data_alert(
             _recent_articles(conn, coin, now), analysis["direction"], now,
             move_cfg.get("max_items", 3),
         )
-        label = direction_label(analysis["direction"])
+        # 該当が無ければ何も書かない（「見つかりませんでした」は書かない）
         if picked:
+            label = direction_label(analysis["direction"])
             lines.append("")
             lines.append(f"{label}の背景になりそうなニュース（原因と断定するものではありません）:")
             lines.extend(_article_lines(picked))
-        else:
-            lines.append("")
-            lines.append(f"{label}の背景になりそうなニュースは見つかりませんでした。")
 
     recent = _recent_news_lines(conn, coin, now)
     if recent:

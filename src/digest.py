@@ -241,15 +241,14 @@ def build_move_context_field(
             articles, analysis["direction"], datetime.now(timezone.utc),
             move_cfg.get("max_items", 3),
         )
-        label = direction_label(analysis["direction"])
+        # 該当が無ければ何も書かない（「見つかりませんでした」は書かない）
         if picked:
+            label = direction_label(analysis["direction"])
             lines.append("")
             lines.append(f"{label}の背景になりそうなニュース（原因と断定するものではありません）:")
             for a in picked:
                 url = a.get("excerpt_url") or a["url"]
                 lines.append(f"{a['emoji']} [{a['display_title']}]({url})")
-        else:
-            lines.append(f"{label}の背景になりそうなニュースは見つかりませんでした。")
 
     value = "\n".join(lines)
     # Discordのフィールド値は1024文字まで
@@ -314,9 +313,18 @@ def run_digest_for_coin(
     btc_change_24h: float | None,
     onchain_field: str | None,
     dry_run: bool,
-) -> bool:
+) -> str:
+    """日次まとめを投稿する。戻り値は "posted" / "skipped" / "failed"。"""
     today = now_jst().date()
     articles = fetch_yesterday_articles(conn, coin, today)
+
+    digest_cfg = cfg.get("digest", {})
+    always_post = digest_cfg.get("always_post", [])
+    if not articles and digest_cfg.get("skip_when_no_news") and coin not in always_post:
+        # 静かな日に空の投稿を並べない（always_post の銘柄は必ず投稿する）
+        logger.info("%s はニュースが無いため日次まとめを見送ります", coin)
+        return "skipped"
+
     move_articles = fetch_articles_for_move_context(conn, coin)
 
     schedule_notes = list(macro_events_for_digest(cfg.get("macro_events", []), today))
@@ -329,10 +337,11 @@ def run_digest_for_coin(
         onchain_field=onchain_field,
         schedule_notes=schedule_notes, today=today,
     )
-    return discord.post_webhook(
+    ok = discord.post_webhook(
         webhook_url,
         username=coin_cfg["username"],
         embeds=[embed],
         dry_run=dry_run,
         min_interval_seconds=cfg["discord"]["post_interval_seconds"],
     )
+    return "posted" if ok else "failed"

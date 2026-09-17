@@ -152,13 +152,16 @@ def test_digest_field_does_not_blame_news_when_following_btc(cfg):
     assert "大きく報じられた好材料" not in field["value"]
 
 
-def test_digest_field_says_not_found_when_no_matching_news(cfg):
+def test_digest_field_stays_silent_when_no_matching_news(cfg):
+    """該当が無いときは「見つかりませんでした」と書かず、値動きの説明だけにする。"""
     from src.digest import build_move_context_field
 
     field = build_move_context_field(
         cfg=cfg, articles=[], coin_change_24h=11.0, btc_change_24h=0.5
     )
-    assert "見つかりませんでした" in field["value"]
+    assert "見つかりません" not in field["value"]
+    assert "背景になりそうなニュース" not in field["value"]
+    assert "銘柄固有の動き" in field["value"]
 
 
 def test_digest_field_is_omitted_without_price_data(cfg):

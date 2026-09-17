@@ -196,12 +196,13 @@ def run_digest(conn, cfg: dict, dry_run: bool) -> None:
         else:
             onchain_field = None
 
-        ok = digest.run_digest_for_coin(
+        status = digest.run_digest_for_coin(
             conn=conn, coin=symbol, coin_cfg=coin_cfg, cfg=cfg, webhook_url=url,
             price_data=price_data, btc_change_24h=btc_change_24h, onchain_field=onchain_field,
             dry_run=dry_run,
         )
-        logger.info("%s 日次まとめ投稿: %s", symbol, "成功" if ok else "失敗")
+        label = {"posted": "成功", "skipped": "見送り（ニュース無し）", "failed": "失敗"}[status]
+        logger.info("%s 日次まとめ投稿: %s", symbol, label)
 
 
 def run_alert(conn, cfg: dict, dry_run: bool) -> None:
