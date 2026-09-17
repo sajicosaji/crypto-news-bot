@@ -5,7 +5,7 @@ import logging
 from datetime import date, datetime, time, timedelta, timezone
 
 from . import discord
-from .formatting import fmt_pct, fmt_usd
+from .formatting import fit_lines, fmt_pct, fmt_usd
 from .utils import JST, now_jst, to_jst
 
 logger = logging.getLogger("crypto_news_bot.weekly")
@@ -171,7 +171,8 @@ def build_weekly_embed(
 
     return {
         "title": f"{coin} 週次振り返り - {start.date().isoformat()} 〜 {(end - timedelta(days=1)).date().isoformat()}",
-        "description": "\n".join(lines),
+        # 上限を超えると投稿そのものが失敗するため、長すぎる場合は切り詰める
+        "description": "\n".join(fit_lines(lines)),
         "color": color,
         "timestamp": now_jst().isoformat(),
     }

@@ -36,6 +36,24 @@ def fmt_level(value: float) -> str:
     return f"{value:,.2f}"
 
 
+# Discordの埋め込み本文の上限は4096文字。超えると投稿そのものが失敗するため余裕を持たせる。
+DISCORD_DESCRIPTION_LIMIT = 3900
+
+
+def fit_lines(lines: list[str], limit: int = DISCORD_DESCRIPTION_LIMIT) -> list[str]:
+    """Discordの文字数上限に収まるように行を切り詰める。"""
+    result: list[str] = []
+    used = 0
+    for line in lines:
+        cost = len(line) + 1
+        if used + cost > limit:
+            result.append("…（長いため以下省略）")
+            break
+        result.append(line)
+        used += cost
+    return result
+
+
 def fmt_usd_compact(value: float | None) -> str:
     if value is None:
         return "-"

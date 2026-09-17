@@ -21,6 +21,11 @@ on:
         description: "自走モードの最大実行時間（分）"
         required: false
         default: "330"
+      dry_run:
+        description: "投稿せず内容だけログに出す（動作確認用）"
+        required: false
+        default: false
+        type: boolean
 
 # 同時に走るとデータベースの引き継ぎが壊れるため、必ず1つずつ実行する。
 # 新しいジョブが来たら古いジョブを止めて引き継ぐ（長時間ジョブが居座らないように）。
@@ -59,9 +64,15 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
             echo "runtime=${{ inputs.max_runtime }}" >> "$GITHUB_OUTPUT"
+            if [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo "dry=--dry-run" >> "$GITHUB_OUTPUT"
+            else
+              echo "dry=" >> "$GITHUB_OUTPUT"
+            fi
           else
             echo "mode=serve" >> "$GITHUB_OUTPUT"
             echo "runtime=330" >> "$GITHUB_OUTPUT"
+            echo "dry=" >> "$GITHUB_OUTPUT"
           fi
 
       - name: 実行
@@ -72,9 +83,9 @@ jobs:
           WEBHOOK_WLD: ${{ secrets.WEBHOOK_WLD }}
         run: |
           if [ "${{ steps.mode.outputs.mode }}" = "serve" ]; then
-            python main.py --serve --max-runtime "${{ steps.mode.outputs.runtime }}"
+            python main.py --serve --max-runtime "${{ steps.mode.outputs.runtime }}" ${{ steps.mode.outputs.dry }}
           else
-            python main.py --${{ steps.mode.outputs.mode }}
+            python main.py --${{ steps.mode.outputs.mode }} ${{ steps.mode.outputs.dry }}
           fi
 
       # ジョブが途中で止められた場合もデータを残す
