@@ -72,8 +72,14 @@ def _build_client(cfg: dict):
     except ImportError:
         logger.warning("anthropic ライブラリが入っていないため要約は行いません")
         return None
+    # ワークスペースに紐づいていないAPIキーは、リクエストごとに
+    # どのワークスペースを使うかの指定が必要になる（未指定だと400）。
+    # ワークスペース内で作ったキーなら不要なので、設定されているときだけ付ける。
+    workspace_id = os.environ.get("ANTHROPIC_WORKSPACE_ID", "").strip()
+    headers = {"anthropic-workspace-id": workspace_id} if workspace_id else None
+
     try:
-        return anthropic.Anthropic()
+        return anthropic.Anthropic(default_headers=headers)
     except Exception as e:  # 認証情報の組み立て失敗など
         logger.warning("Anthropicクライアントの初期化に失敗しました error=%s", e)
         return None

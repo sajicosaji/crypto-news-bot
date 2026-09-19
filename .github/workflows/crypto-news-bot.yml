@@ -83,6 +83,8 @@ jobs:
           WEBHOOK_WLD: ${{ secrets.WEBHOOK_WLD }}
           # 日本語要約に使う。未設定でも動く（抜粋表示に自動で戻る）
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # ワークスペースに紐づいていないAPIキーの場合だけ必要（未設定なら無視される）
+          ANTHROPIC_WORKSPACE_ID: ${{ secrets.ANTHROPIC_WORKSPACE_ID }}
         run: |
           if [ "${{ steps.mode.outputs.mode }}" = "serve" ]; then
             python main.py --serve --max-runtime "${{ steps.mode.outputs.runtime }}" ${{ steps.mode.outputs.dry }}
