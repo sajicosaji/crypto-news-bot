@@ -140,20 +140,19 @@ def test_digest_field_lists_news_when_move_is_coin_specific(cfg):
     assert "関係なさそうな悪材料" not in field["value"]
 
 
-def test_digest_field_does_not_blame_news_when_following_btc(cfg):
-    """BTCと一緒に動いただけなら、ニュースのせいにしない。"""
+def test_digest_field_is_omitted_when_following_btc(cfg):
+    """BTCと一緒に動いただけなら特筆することが無いので、欄ごと出さない。"""
     from src.digest import build_move_context_field
 
     articles = [_article("大きく報じられた好材料", "good", hours_ago=3, sources=5)]
     field = build_move_context_field(
         cfg=cfg, articles=articles, coin_change_24h=9.5, btc_change_24h=8.0
     )
-    assert "相場全体につられた動き" in field["value"]
-    assert "大きく報じられた好材料" not in field["value"]
+    assert field is None
 
 
 def test_digest_field_stays_silent_when_no_matching_news(cfg):
-    """該当が無いときは「見つかりませんでした」と書かず、値動きの説明だけにする。"""
+    """銘柄固有の動きなら、該当ニュースが無くてもその事実だけは伝える。"""
     from src.digest import build_move_context_field
 
     field = build_move_context_field(

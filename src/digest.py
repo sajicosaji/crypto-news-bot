@@ -268,6 +268,11 @@ def build_move_context_field(
         return None
 
     analysis = analyze_move(coin_change_24h, btc_change_24h, move_cfg.get("coin_specific_pct", 3))
+
+    # BTCにつられただけの動きは特筆することが無いので、欄ごと出さない
+    if not analysis["is_coin_specific"]:
+        return None
+
     lines = [analysis["summary"]]
 
     if analysis["is_coin_specific"]:
