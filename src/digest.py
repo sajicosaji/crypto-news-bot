@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from datetime import date, datetime, time, timedelta, timezone
 
-from . import db, discord
+from . import db, discord, summarize
 from .advice import build_reading_advice, priority_rank
 from .move_context import analyze_move, direction_label, pick_move_context
 from .formatting import fmt_jpy, fmt_pct, fmt_usd, fmt_usd_compact
@@ -117,7 +117,7 @@ def drop_similar_for_display(articles: list[dict], min_shared_terms: int) -> lis
     return kept
 
 
-def build_news_lines(articles: list[dict], cfg: dict, char_budget: int = 3800) -> list[str]:
+def build_news_lines(articles: list[dict], cfg: dict, char_budget: int = 3800, conn=None) -> list[str]:
     """上位は抜粋＋アドバイス付き、残りは1行のリストで組み立てる。
 
     Discordの埋め込み本文には文字数上限があるため、予算を超える分は打ち切る。
@@ -132,10 +132,15 @@ def build_news_lines(articles: list[dict], cfg: dict, char_budget: int = 3800) -
         ordered, cfg.get("dedup", {}).get("display_min_shared_terms", 2)
     )[:max_items]
 
-    # 詳しく載せる枠は、本文抜粋が取れている記事を優先して埋める
-    # （Google News経由の記事は本文が取れないため、見出しだけのリスト行に回す）
-    with_excerpt = [a for a in ordered if (a.get("excerpt") or "").strip()]
-    detailed_ids = {id(a) for a in with_excerpt[:detailed_items]}
+    # 詳しく載せる枠は、要約か本文抜粋がある記事を優先して埋める
+    # （本文に到達できない記事は、見出しだけのリスト行に回す）
+    with_body = [a for a in ordered if (a.get("summary") or a.get("excerpt") or "").strip()]
+    detailed = with_body[:detailed_items]
+    detailed_ids = {id(a) for a in detailed}
+
+    # 実際に詳しく載せる記事だけを要約する（表示しない記事に課金しない）
+    if conn is not None:
+        summarize.summarize_pending_articles(conn, detailed, cfg)
 
     lines: list[str] = []
     used = 0
@@ -148,9 +153,14 @@ def build_news_lines(articles: list[dict], cfg: dict, char_budget: int = 3800) -
 
         if id(a) in detailed_ids:
             block.append(f"{prefix}{a['emoji']} **[{a['display_title']}]({url})** - {source}")
-            excerpt = (a.get("excerpt") or "").strip()
-            if excerpt:
-                block.append(f"　{excerpt}")
+            # 日本語要約があればそれを、無ければ媒体配信の抜粋を載せる
+            summary = (a.get("summary") or "").strip()
+            if summary:
+                for line in summary.splitlines():
+                    if line.strip():
+                        block.append(f"　{line.strip()}")
+            elif (a.get("excerpt") or "").strip():
+                block.append(f"　{a['excerpt'].strip()}")
             if advice_enabled:
                 block.append(f"　👉 {a['advice']}")
             block.append("")
@@ -293,6 +303,7 @@ def build_digest_embed(
     onchain_field: str | None,
     schedule_notes: list[str],
     today: date,
+    conn=None,
 ) -> dict:
     fields = [{"name": "価格", "value": build_price_field(coin, price_data, btc_change_24h), "inline": False}]
 
@@ -312,7 +323,7 @@ def build_digest_embed(
 
     if articles:
         annotate_articles(articles, cfg, (price_data.get(coin) or {}).get("usd_24h_change"))
-        news_lines = build_news_lines(articles, cfg)
+        news_lines = build_news_lines(articles, cfg, conn=conn)
         description = "\n".join(news_lines).strip()
     else:
         description = "本日の主要ニュースはありません"
@@ -359,7 +370,7 @@ def run_digest_for_coin(
         coin=coin, coin_cfg=coin_cfg, cfg=cfg, price_data=price_data,
         btc_change_24h=btc_change_24h, articles=articles, move_articles=move_articles,
         onchain_field=onchain_field,
-        schedule_notes=schedule_notes, today=today,
+        schedule_notes=schedule_notes, today=today, conn=conn,
     )
     ok = discord.post_webhook(
         webhook_url,

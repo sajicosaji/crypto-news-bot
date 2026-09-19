@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timedelta, timezone
 
-from . import db, discord
+from . import db, discord, summarize
 from .formatting import fmt_level, fmt_pct, fmt_usd
 from .move_context import analyze_move, direction_label, pick_move_context
 from .utils import contains_term, format_jst, is_same_story, now_jst
@@ -168,9 +168,14 @@ def _post_news_alert(
     price = price_data.get(coin, {})
     description_lines = []
 
-    excerpt = (article_row["excerpt"] or "").strip() if "excerpt" in article_row.keys() else ""
-    if excerpt:
-        description_lines.append(excerpt)
+    keys = article_row.keys()
+    body = ""
+    if "summary" in keys and (article_row["summary"] or "").strip():
+        body = article_row["summary"].strip()
+    elif "excerpt" in keys and (article_row["excerpt"] or "").strip():
+        body = article_row["excerpt"].strip()
+    if body:
+        description_lines.append(body)
         description_lines.append("")
 
     description_lines += [
@@ -374,6 +379,12 @@ def run_alert_for_coin(
             # 同じ話題を直近で速報済み。見出しの言い回しが違うだけなので見送る
             logger.info("%s 同じ話題を速報済みのため見送り: %s", coin, row["display_title"][:40])
             continue
+        # 速報に出す記事だけ要約する（出さない記事には課金しない）
+        article = dict(row)
+        summarize.summarize_pending_articles(conn, [article], cfg)
+        if article.get("summary"):
+            row = article
+
         ok = _post_news_alert(
             webhook_url=webhook_url, username=username, coin=coin, article_row=row,
             reason=reason, source_count=source_count, price_data=price_data, cfg=cfg, dry_run=dry_run,

@@ -141,6 +141,18 @@ excerpt:
   # 1回の実行でページ取得する記事数の上限（時間がかかりすぎないようにする）
   max_page_fetches: 12
 
+# 記事の日本語要約（Claude Haiku を使う。ここだけ有料APIを使用）
+# APIキーは GitHub Secrets の ANTHROPIC_API_KEY から読む。未設定なら自動的に
+# 本文抜粋の表示に戻るので、有効にしたまま放置しても壊れない。
+summary:
+  enabled: true
+  model: "claude-haiku-4-5"     # 入力$1 / 出力$5 per 1Mトークン
+  max_output_tokens: 500
+  fetch_timeout_seconds: 10
+  # 1回の実行で要約する最大件数（費用の上限）。要約は1記事1回だけで、
+  # 結果はDBに保存して使い回すため、実際の課金は新着記事の分だけ。
+  max_articles_per_run: 15
+
 # 値動きの背景になりそうなニュースの表示
 # BTCと一緒に動いただけの場合は個別ニュースのせいにせず、その旨だけ表示する。
 move_context:

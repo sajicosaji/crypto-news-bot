@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS articles (
     created_at TEXT NOT NULL,
     excerpt TEXT,
     excerpt_url TEXT,
-    excerpt_source TEXT
+    excerpt_source TEXT,
+    summary TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_articles_normalized_title
@@ -94,7 +95,7 @@ def connect(db_path: str | Path) -> sqlite3.Connection:
 def _migrate(conn: sqlite3.Connection) -> None:
     """既存のDBに後から追加した列を足す（古いDBでも壊さずに使えるようにする）。"""
     existing = {row["name"] for row in conn.execute("PRAGMA table_info(articles)")}
-    for column in ("excerpt", "excerpt_url", "excerpt_source"):
+    for column in ("excerpt", "excerpt_url", "excerpt_source", "summary"):
         if column not in existing:
             conn.execute(f"ALTER TABLE articles ADD COLUMN {column} TEXT")
     conn.commit()
@@ -263,6 +264,12 @@ def add_source_to_article(
         "VALUES (?, ?, ?, ?)",
         (article_id, source_name, url, published_at),
     )
+    conn.commit()
+
+
+def set_summary(conn: sqlite3.Connection, article_id: int, summary: str) -> None:
+    """要約を保存する（同じ記事を二度要約して課金しないため）。"""
+    conn.execute("UPDATE articles SET summary = ? WHERE id = ?", (summary, article_id))
     conn.commit()
 
 
