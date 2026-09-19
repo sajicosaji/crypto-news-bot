@@ -5,7 +5,7 @@ import logging
 from datetime import date, datetime, time, timedelta, timezone
 
 from . import db, discord, summarize
-from .advice import build_reading_advice, priority_rank
+from .advice import build_reading_advice, meets_minimum, priority_rank
 from .move_context import analyze_move, direction_label, pick_move_context
 from .formatting import fmt_jpy, fmt_pct, fmt_usd, fmt_usd_compact
 from .utils import JST, is_same_story, normalize_title, now_jst
@@ -134,7 +134,13 @@ def build_news_lines(articles: list[dict], cfg: dict, char_budget: int = 3800, c
 
     # 詳しく載せる枠は、要約か本文抜粋がある記事を優先して埋める
     # （本文に到達できない記事は、見出しだけのリスト行に回す）
-    with_body = [a for a in ordered if (a.get("summary") or a.get("excerpt") or "").strip()]
+    # 読む価値が低い記事は、要約もアドバイスも付けず見出し1行だけにする
+    minimum = cfg.get("reading_advice", {}).get("minimum_priority", "中")
+    with_body = [
+        a for a in ordered
+        if (a.get("summary") or a.get("excerpt") or "").strip()
+        and meets_minimum(a.get("priority", "低"), minimum)
+    ]
     detailed = with_body[:detailed_items]
     detailed_ids = {id(a) for a in detailed}
 

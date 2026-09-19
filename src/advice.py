@@ -67,3 +67,11 @@ def build_reading_advice(
 def priority_rank(priority: str) -> int:
     """並べ替え用（高いほど先頭に来るように小さい値を返す）。"""
     return {PRIORITY_HIGH: 0, PRIORITY_MEDIUM: 1, PRIORITY_LOW: 2}.get(priority, 3)
+
+
+def meets_minimum(priority: str, minimum: str) -> bool:
+    """「読む価値」が指定の優先度以上かどうか。
+
+    低い記事は通知も要約もせず、日次まとめの1行リストに回すために使う。
+    """
+    return priority_rank(priority) <= priority_rank(minimum)

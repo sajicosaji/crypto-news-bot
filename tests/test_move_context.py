@@ -169,3 +169,67 @@ def test_digest_field_is_omitted_without_price_data(cfg):
     assert build_move_context_field(
         cfg=cfg, articles=[], coin_change_24h=None, btc_change_24h=0.5
     ) is None
+
+
+# --- 読む価値による足切り ----------------------------------------------------
+
+def test_meets_minimum():
+    from src.advice import meets_minimum
+
+    assert meets_minimum("高", "中") is True
+    assert meets_minimum("中", "中") is True
+    assert meets_minimum("低", "中") is False
+    assert meets_minimum("低", "低") is True      # 低まで含める設定なら通す
+    assert meets_minimum("中", "高") is False     # 高だけに絞る設定
+
+
+def test_low_value_article_gets_no_summary_or_advice(cfg):
+    """読む価値が低い記事は、要約もアドバイスも付けず見出し1行だけにする。"""
+    from src.digest import build_news_lines
+
+    low = {
+        "display_title": "価値の低い記事", "url": "https://example.com/low", "emoji": "📰",
+        "first_source": "媒体", "is_critical": 0, "source_count": 1, "score": 0,
+        "excerpt": "抜粋テキスト", "summary": "日本語の要約",
+        "critical_hits": "", "alerted_at": None, "priority": "低", "advice": "読む価値: 低 — 流し読みでOK",
+    }
+    body = "\n".join(build_news_lines([low], cfg))
+    assert "価値の低い記事" in body       # 見出しは載る
+    assert "日本語の要約" not in body     # 要約は付けない
+    assert "読む価値: 低" not in body     # アドバイスも付けない
+
+
+def test_medium_value_article_gets_summary_and_advice(cfg):
+    from src.digest import build_news_lines
+
+    medium = {
+        "display_title": "中程度の記事", "url": "https://example.com/mid", "emoji": "📰",
+        "first_source": "媒体", "is_critical": 0, "source_count": 2, "score": 0,
+        "excerpt": "抜粋", "summary": "日本語の要約",
+        "critical_hits": "", "alerted_at": None, "priority": "中", "advice": "読む価値: 中 — 余裕があれば確認",
+    }
+    body = "\n".join(build_news_lines([medium], cfg))
+    assert "日本語の要約" in body
+    assert "読む価値: 中" in body
+
+
+def test_low_value_articles_are_not_summarized_so_they_cost_nothing(cfg, conn, monkeypatch):
+    """低い記事は要約APIに渡さない＝課金対象にならない。"""
+    from src import summarize
+    from src.digest import build_news_lines
+
+    called = []
+    monkeypatch.setattr(
+        summarize, "summarize_pending_articles",
+        lambda conn, articles, cfg: called.append([a["display_title"] for a in articles]) or 0,
+    )
+    articles = [
+        {"display_title": "低い記事", "url": "u1", "emoji": "📰", "first_source": "媒体",
+         "is_critical": 0, "source_count": 1, "score": 0, "excerpt": "抜粋", "summary": "",
+         "critical_hits": "", "alerted_at": None, "priority": "低", "advice": "x"},
+        {"display_title": "中の記事", "url": "u2", "emoji": "📰", "first_source": "媒体",
+         "is_critical": 0, "source_count": 2, "score": 0, "excerpt": "抜粋", "summary": "",
+         "critical_hits": "", "alerted_at": None, "priority": "中", "advice": "y"},
+    ]
+    build_news_lines(articles, cfg, conn=conn)
+    assert called == [["中の記事"]], "要約に回すのは中以上だけ"

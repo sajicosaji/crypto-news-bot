@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 from . import db, discord, summarize
 from .formatting import fmt_level, fmt_pct, fmt_usd
+from .advice import build_reading_advice, meets_minimum
 from .move_context import analyze_move, direction_label, pick_move_context
 from .utils import contains_term, format_jst, is_same_story, now_jst
 
@@ -374,6 +375,19 @@ def run_alert_for_coin(
         critical_hits = row["critical_hits"].split(",") if row["critical_hits"] else []
         reason = evaluate_news_alert(coin, row["display_title"], critical_hits, source_count, hours_since_first, cfg)
         if not reason:
+            continue
+        priority, _ = build_reading_advice(
+            critical_hits=critical_hits,
+            source_count=source_count,
+            score=row["score"],
+            is_dao_proposal=row["display_title"].startswith("[DAO提案]"),
+            price_change_24h=coin_change_24h,
+            cfg=cfg,
+        )
+        minimum = cfg.get("reading_advice", {}).get("minimum_priority", "中")
+        if not meets_minimum(priority, minimum):
+            # 読む価値が低い記事は通知しない（日次まとめには1行で載る）
+            logger.info("%s 読む価値が低いため速報を見送り: %s", coin, row["display_title"][:40])
             continue
         if _already_alerted_similar(conn, coin, row["normalized_title"], cfg, now):
             # 同じ話題を直近で速報済み。見出しの言い回しが違うだけなので見送る
