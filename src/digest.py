@@ -8,7 +8,7 @@ from . import db, discord
 from .advice import build_reading_advice, priority_rank
 from .move_context import analyze_move, direction_label, pick_move_context
 from .formatting import fmt_jpy, fmt_pct, fmt_usd, fmt_usd_compact
-from .utils import JST, now_jst
+from .utils import JST, is_same_story, normalize_title, now_jst
 
 logger = logging.getLogger("crypto_news_bot.digest")
 
@@ -96,6 +96,27 @@ def sort_news_for_digest(articles: list[dict]) -> list[dict]:
     )
 
 
+def drop_similar_for_display(articles: list[dict], min_shared_terms: int) -> list[dict]:
+    """同じまとめの中に、同じ話題の記事を並べない。
+
+    DB上は別記事のまま残す（統合を緩めると別のニュースまで飲み込むため）。
+    表示から外すだけなので、誤って同一視しても記事自体は失われない。
+    先に来たもの（＝読む価値の高い順で上位）を残す。
+    """
+    if min_shared_terms <= 0:
+        return articles
+    kept: list[dict] = []
+    for article in articles:
+        title = article.get("normalized_title") or normalize_title(article.get("display_title", ""))
+        if any(
+            is_same_story(title, k.get("normalized_title") or normalize_title(k.get("display_title", "")), min_shared_terms)
+            for k in kept
+        ):
+            continue
+        kept.append(article)
+    return kept
+
+
 def build_news_lines(articles: list[dict], cfg: dict, char_budget: int = 3800) -> list[str]:
     """上位は抜粋＋アドバイス付き、残りは1行のリストで組み立てる。
 
@@ -106,7 +127,10 @@ def build_news_lines(articles: list[dict], cfg: dict, char_budget: int = 3800) -
     detailed_items = digest_cfg.get("detailed_items", 5)
     advice_enabled = cfg.get("reading_advice", {}).get("enabled", True)
 
-    ordered = sort_news_for_digest(articles)[:max_items]
+    ordered = sort_news_for_digest(articles)
+    ordered = drop_similar_for_display(
+        ordered, cfg.get("dedup", {}).get("display_min_shared_terms", 2)
+    )[:max_items]
 
     # 詳しく載せる枠は、本文抜粋が取れている記事を優先して埋める
     # （Google News経由の記事は本文が取れないため、見出しだけのリスト行に回す）

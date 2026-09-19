@@ -159,6 +159,18 @@ def find_article_by_normalized_title(
     ).fetchone()
 
 
+def recently_alerted_articles(conn: sqlite3.Connection, coin: str, since_iso: str) -> list[dict]:
+    """直近に速報を出した記事（同じ話題の二重通知を防ぐために使う）。"""
+    rows = conn.execute(
+        "SELECT a.id, a.normalized_title, a.display_title, a.alerted_at "
+        "FROM articles a JOIN article_coins ac ON ac.article_id = a.id "
+        "WHERE ac.coin = ? AND a.alerted_at IS NOT NULL AND a.alerted_at >= ? "
+        "ORDER BY a.alerted_at DESC",
+        (coin, since_iso),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
 def recent_articles_with_source_count(
     conn: sqlite3.Connection, coin: str, since_iso: str
 ) -> list[dict]:

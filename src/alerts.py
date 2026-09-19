@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from . import db, discord
 from .formatting import fmt_level, fmt_pct, fmt_usd
 from .move_context import analyze_move, direction_label, pick_move_context
-from .utils import contains_term, format_jst, now_jst
+from .utils import contains_term, format_jst, is_same_story, now_jst
 
 logger = logging.getLogger("crypto_news_bot.alerts")
 
@@ -211,6 +211,24 @@ def _post_news_alert(
     )
 
 
+def _already_alerted_similar(conn, coin: str, normalized_title: str, cfg: dict, now: datetime) -> bool:
+    """同じ話題の速報を直近で出していないか。
+
+    DBの統合は保守的（別記事のまま残す）なので、通知の段階でゆるめに突き合わせて
+    「言い回しが違うだけの同じ話題」が続けて飛ぶのを防ぐ。
+    """
+    dedup_cfg = cfg.get("dedup", {})
+    min_shared = dedup_cfg.get("display_min_shared_terms", 2)
+    window_hours = dedup_cfg.get("alert_duplicate_window_hours", 24)
+    if min_shared <= 0 or window_hours <= 0:
+        return False
+    since = (now - timedelta(hours=window_hours)).isoformat()
+    for previous in db.recently_alerted_articles(conn, coin, since):
+        if is_same_story(normalized_title, previous["normalized_title"], min_shared):
+            return True
+    return False
+
+
 def _recent_articles(conn, coin: str, now: datetime, hours: int = 24) -> list[dict]:
     """値動きの背景候補にする、直近の記事（媒体数つき）。"""
     since = (now - timedelta(hours=hours)).isoformat()
@@ -351,6 +369,10 @@ def run_alert_for_coin(
         critical_hits = row["critical_hits"].split(",") if row["critical_hits"] else []
         reason = evaluate_news_alert(coin, row["display_title"], critical_hits, source_count, hours_since_first, cfg)
         if not reason:
+            continue
+        if _already_alerted_similar(conn, coin, row["normalized_title"], cfg, now):
+            # 同じ話題を直近で速報済み。見出しの言い回しが違うだけなので見送る
+            logger.info("%s 同じ話題を速報済みのため見送り: %s", coin, row["display_title"][:40])
             continue
         ok = _post_news_alert(
             webhook_url=webhook_url, username=username, coin=coin, article_row=row,
