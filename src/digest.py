@@ -263,7 +263,8 @@ def fetch_articles_for_move_context(conn, coin: str, hours: int = 30) -> list[di
 
 
 def build_move_context_field(
-    *, cfg: dict, articles: list[dict], coin_change_24h: float | None, btc_change_24h: float | None
+    *, cfg: dict, articles: list[dict], coin_change_24h: float | None, btc_change_24h: float | None,
+    coin: str = "",
 ) -> dict | None:
     """値動きの背景になりそうなニュースを1つのフィールドにまとめる。
 
@@ -282,6 +283,16 @@ def build_move_context_field(
     lines = [analysis["summary"]]
 
     if analysis["is_coin_specific"]:
+        # 銘柄固有の乱高下は「何が起きたか」を必ず調べる（Haikuで直近の記事を分析）
+        investigation = summarize.investigate_move(
+            coin=coin, analysis=analysis, coin_change_24h=coin_change_24h,
+            btc_change_24h=btc_change_24h, recent_articles=articles, cfg=cfg,
+        )
+        if investigation:
+            lines.append("")
+            lines.append("何が起きたか（直近のニュースから分析）:")
+            lines.append(investigation)
+
         picked = pick_move_context(
             articles, analysis["direction"], datetime.now(timezone.utc),
             move_cfg.get("max_items", 3),
@@ -320,6 +331,7 @@ def build_digest_embed(
 
     move_field = build_move_context_field(
         cfg=cfg,
+        coin=coin,
         articles=move_articles,
         coin_change_24h=(price_data.get(coin) or {}).get("usd_24h_change"),
         btc_change_24h=btc_change_24h,
@@ -365,11 +377,19 @@ def run_digest_for_coin(
     articles = fetch_yesterday_articles(conn, coin, today)
 
     digest_cfg = cfg.get("digest", {})
-    always_post = digest_cfg.get("always_post", [])
-    if not articles and digest_cfg.get("skip_when_no_news") and coin not in always_post:
-        # 静かな日に空の投稿を並べない（always_post の銘柄は必ず投稿する）
-        logger.info("%s はニュースが無いため日次まとめを見送ります", coin)
-        return "skipped"
+    always_post = digest_cfg.get("always_post") or []
+    if coin not in always_post:
+        if not articles and digest_cfg.get("skip_when_no_news"):
+            # 静かな日に空の投稿を並べない
+            logger.info("%s はニュースが無いため日次まとめを見送ります", coin)
+            return "skipped"
+        # 銘柄ごとの「この優先度以上の記事が無ければ投稿しない」
+        minimum = (digest_cfg.get("minimum_priority_to_post") or {}).get(coin)
+        if minimum and articles:
+            annotate_articles(articles, cfg, (price_data.get(coin) or {}).get("usd_24h_change"))
+            if not any(meets_minimum(a.get("priority", "低"), minimum) for a in articles):
+                logger.info("%s は読む価値%s以上の記事が無いため日次まとめを見送ります", coin, minimum)
+                return "skipped"
 
     move_articles = fetch_articles_for_move_context(conn, coin)
 

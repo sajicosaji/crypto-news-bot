@@ -244,6 +244,17 @@ def run_alert(conn, cfg: dict, dry_run: bool) -> None:
         )
         logger.info("%s 速報投稿件数: %d", symbol, posted)
 
+    # BTCの急騰・急落は相場全体の指標として、指定チャンネルに一言告知する
+    btc_cfg = cfg.get("btc_market_alert", {})
+    target = btc_cfg.get("channel")
+    if btc_cfg.get("enabled") and target in coins:
+        target_cfg, target_url = coins[target]
+        if alerts.run_btc_market_alert(
+            conn=conn, cfg=cfg, price_data=price_data, webhook_url=target_url,
+            username="BTC Market", dry_run=dry_run,
+        ):
+            logger.info("BTC急変の告知を %s チャンネルに投稿しました", target)
+
     save_price_snapshots(conn, cfg, price_data, usd1_price)
     save_onchain_snapshots(conn, cfg, arb_onchain, wld_onchain)
 

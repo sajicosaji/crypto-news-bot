@@ -217,6 +217,31 @@ def _post_news_alert(
     )
 
 
+def _post_celebration(
+    *, webhook_url, username, coin, celebration, curr_jpy, price_data, cfg, dry_run,
+):
+    """円建ての節目を上抜けたときの、全力のお祝い投稿。"""
+    price = price_data.get(coin, {})
+    title = celebration.get("title") or f"🎉 {coin} {fmt_level(float(celebration['price']))}円を突破"
+    body_lines = [
+        (celebration.get("message") or "").rstrip(),
+        "",
+        f"現在: ¥{curr_jpy:,.2f} / {fmt_usd(price.get('usd'))}（24h {fmt_pct(price.get('usd_24h_change'))}）",
+    ]
+    embed = {
+        "title": title,
+        "description": "\n".join(body_lines).strip(),
+        "color": 0xFFD700,  # 金色
+    }
+    # この祝福だけメンションを付けられる（普段の速報とは別扱い）
+    mention = celebration.get("mention")
+    content = mention if mention is not None else _mention(cfg)
+    return discord.post_webhook(
+        webhook_url, username=username, content=content or None, embeds=[embed],
+        dry_run=dry_run, min_interval_seconds=cfg["discord"]["post_interval_seconds"],
+    )
+
+
 def _already_alerted_similar(conn, coin: str, normalized_title: str, cfg: dict, now: datetime) -> bool:
     """同じ話題の速報を直近で出していないか。
 
@@ -285,12 +310,18 @@ def _post_data_alert(
         lines.append("本日のマクロ予定: " + " / ".join(macro))
 
     if move_cfg.get("enabled", True) and analysis["is_coin_specific"]:
-        # BTCと切り離して動いているので、向きの合うニュースを背景候補として出す
-        picked = pick_move_context(
-            _recent_articles(conn, coin, now), analysis["direction"], now,
-            move_cfg.get("max_items", 3),
+        # 銘柄固有の乱高下は「何が起きたか」を必ず調べる。
+        # まずHaikuに直近の記事をまとめて渡して原因を分析させ、その下に根拠記事を並べる。
+        recent = _recent_articles(conn, coin, now)
+        investigation = summarize.investigate_move(
+            coin=coin, analysis=analysis, coin_change_24h=coin_change_24h,
+            btc_change_24h=btc_change_24h, recent_articles=recent, cfg=cfg,
         )
-        # 該当が無ければ何も書かない（「見つかりませんでした」は書かない）
+        if investigation:
+            lines.append("")
+            lines.append("何が起きたか（直近のニュースから分析）:")
+            lines.append(investigation)
+        picked = pick_move_context(recent, analysis["direction"], now, move_cfg.get("max_items", 3))
         if picked:
             label = direction_label(analysis["direction"])
             lines.append("")
@@ -448,6 +479,31 @@ def run_alert_for_coin(
                         db.log_alert(conn, coin, "price_level", dedupe_key, reason, now.isoformat())
                         posted += 1
 
+    # 3b) 円建ての節目（お祝い）。上抜けだけ祝う
+    if posted < max_alerts:
+        celebrations = coin_cfg.get("celebration_levels_jpy") or cfg.get(coin.lower(), {}).get("celebration_levels_jpy", [])
+        if celebrations:
+            prev_row = conn.execute(
+                "SELECT jpy FROM prices WHERE coin = ? AND ts < ? AND jpy IS NOT NULL ORDER BY ts DESC LIMIT 1",
+                (coin, now.isoformat()),
+            ).fetchone()
+            prev_jpy = prev_row["jpy"] if prev_row else None
+            curr_jpy = (price_data.get(coin) or {}).get("jpy")
+            for celebration in celebrations:
+                level = float(celebration["price"])
+                if prev_jpy is None or curr_jpy is None or not (prev_jpy < level <= curr_jpy):
+                    continue
+                dedupe_key = f"celebrate_jpy:{level}"
+                if is_in_cooldown(conn, coin, "celebration", dedupe_key, cooldown_hours, now):
+                    continue
+                if _post_celebration(
+                    webhook_url=webhook_url, username=username, coin=coin, celebration=celebration,
+                    curr_jpy=curr_jpy, price_data=price_data, cfg=cfg, dry_run=dry_run,
+                ):
+                    db.log_alert(conn, coin, "celebration", dedupe_key, celebration.get("title", ""), now.isoformat())
+                    posted += 1
+                break
+
     # 4) SOLの追加監視: USD1デペッグ・1時間変化率
     if coin == "SOL" and posted < max_alerts:
         sol_cfg = cfg["sol"]
@@ -499,3 +555,76 @@ def run_alert_for_coin(
                 posted += 1
 
     return posted
+
+
+def check_btc_market_move(btc_change_24h: float | None, threshold_pct: float) -> str | None:
+    """BTCが相場全体を動かすほど動いたか。"""
+    if btc_change_24h is None or abs(btc_change_24h) < threshold_pct:
+        return None
+    direction = "急騰" if btc_change_24h > 0 else "急落"
+    return f"BTC {direction} {fmt_pct(btc_change_24h)}（24h）"
+
+
+def run_btc_market_alert(
+    *, conn, cfg: dict, price_data: dict, webhook_url: str, username: str, dry_run: bool,
+) -> bool:
+    """BTCの急騰・急落を一言告知する。相場全体の指標なので銘柄横断で1回だけ出す。"""
+    btc_cfg = cfg.get("btc_market_alert", {})
+    if not btc_cfg.get("enabled"):
+        return False
+
+    btc = price_data.get("BTC") or {}
+    btc_change = btc.get("usd_24h_change")
+    reason = check_btc_market_move(btc_change, btc_cfg.get("change_pct_24h", 5))
+    if not reason:
+        return False
+
+    now = datetime.now(timezone.utc)
+    cooldown_hours = cfg["alert_thresholds"]["price_alert_cooldown_hours"]
+    if is_in_cooldown(conn, "BTC", "btc_market", "24h", cooldown_hours, now):
+        return False
+
+    direction = "急騰" if btc_change > 0 else "急落"
+    lines = [
+        f"BTC {fmt_usd(btc.get('usd'))} / ¥{(btc.get('jpy') or 0):,.0f}（24h {fmt_pct(btc_change)}）",
+        "相場全体が動いています。各銘柄の24h変化:",
+    ]
+    for symbol in cfg["coins"]:
+        p = price_data.get(symbol) or {}
+        if p.get("usd_24h_change") is not None:
+            lines.append(f"　{symbol}: {fmt_pct(p['usd_24h_change'])}")
+
+    # 何が起きたかを直近のBTC記事から分析する（乱高下は必ず調べる）
+    recent = _recent_articles(conn, "BTC", now)
+    analysis = {"is_coin_specific": True, "excess_pct": btc_change, "direction": "up" if btc_change > 0 else "down"}
+    investigation = summarize.investigate_move(
+        coin="BTC", analysis=analysis, coin_change_24h=btc_change, btc_change_24h=0.0,
+        recent_articles=recent, cfg=cfg,
+    )
+    if investigation:
+        lines.append("")
+        lines.append("何が起きたか（直近のニュースから分析）:")
+        lines.append(investigation)
+    picked = pick_move_context(recent, analysis["direction"], now, cfg.get("move_context", {}).get("max_items", 3))
+    if picked:
+        lines.append("")
+        lines.append("関連しそうなニュース（原因と断定するものではありません）:")
+        lines.extend(_article_lines(picked))
+
+    macro = _todays_macro_events(cfg, now_jst())
+    if macro:
+        lines.append("")
+        lines.append("本日のマクロ予定: " + " / ".join(macro))
+
+    embed = {
+        "title": f"{cfg['emojis']['alert']} BTC {direction} {fmt_pct(btc_change)}（24h）",
+        "description": "\n".join(lines),
+        "color": discord.COLOR_ALERT_GOOD if btc_change > 0 else discord.COLOR_ALERT_BAD,
+    }
+    ok = discord.post_webhook(
+        webhook_url, username=username, content=_mention(cfg) or None, embeds=[embed],
+        dry_run=dry_run, min_interval_seconds=cfg["discord"]["post_interval_seconds"],
+    )
+    if ok:
+        db.log_alert(conn, "BTC", "btc_market", "24h", reason, now.isoformat())
+    return ok

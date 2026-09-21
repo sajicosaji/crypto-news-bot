@@ -172,3 +172,97 @@ def summarize_pending_articles(conn, articles: list[dict], cfg: dict) -> int:
     if done:
         logger.info("記事を%d件要約しました", done)
     return done
+
+
+MOVE_ANALYSIS_PROMPT = """あなたは暗号資産の値動きを調査するアナリストです。
+ある銘柄がビットコイン（相場全体）から乖離して大きく動きました。渡された直近のニュース一覧から、
+この値動きの原因になった可能性が高いものを特定してください。
+
+出力の条件:
+- 日本語で2〜4行。
+- 原因として考えられる記事があれば、何が起きたかと、なぜ値動きにつながるかを書く。
+- 複数の要因がありそうなら、影響が大きい順に書く。
+- ニュース一覧の中に原因らしいものが無ければ、必ず「直近のニュースには明確な原因が見当たりません」と
+  書き、相場全体・大口の売買・テクニカル要因など、ニュース以外の可能性に一言触れる。
+- 記事に書かれていないことを断定しない。「〜の可能性」「〜とみられる」と書く。
+- 投資判断（買うべき・売るべき）は書かない。
+- 前置きは不要。結論から書く。"""
+
+
+def analyze_move_with_llm(
+    client,
+    *,
+    coin: str,
+    coin_change_24h: float,
+    btc_change_24h: float,
+    excess_pct: float,
+    articles: list[dict],
+    cfg: dict,
+) -> str | None:
+    """銘柄固有の値動きについて、直近の記事から原因を分析する。
+
+    キーワードでは拾えない原因（言い換え、間接的な要因）を読み取るため、
+    向きに関係なく直近の記事をすべて渡して判断させる。失敗時は None。
+    """
+    if client is None:
+        return None
+
+    move_cfg = cfg.get("move_context", {})
+    max_articles = move_cfg.get("analysis_max_articles", 15)
+
+    direction = "上昇" if coin_change_24h >= 0 else "下落"
+    lines = [
+        f"銘柄: {coin}",
+        f"24時間の変化: {coin_change_24h:+.1f}%（{direction}）",
+        f"同じ期間のBTC: {btc_change_24h:+.1f}%",
+        f"BTCとの差（銘柄固有の動き）: {excess_pct:+.1f}%",
+        "",
+        "直近のニュース一覧（新しい順）:",
+    ]
+    if not articles:
+        lines.append("（該当する記事はありません）")
+    for i, a in enumerate(articles[:max_articles], 1):
+        title = (a.get("display_title") or "").strip()
+        source = a.get("excerpt_source") or a.get("first_source") or ""
+        body = (a.get("summary") or a.get("excerpt") or "").strip()
+        n = a.get("source_count", 1)
+        lines.append(f"{i}. {title}（{source} / {n}媒体）")
+        if body:
+            lines.append(f"   {body[:300]}")
+
+    try:
+        response = client.messages.create(
+            model=cfg.get("summary", {}).get("model", "claude-haiku-4-5"),
+            max_tokens=400,
+            system=MOVE_ANALYSIS_PROMPT,
+            messages=[{"role": "user", "content": "\n".join(lines)}],
+        )
+    except Exception as e:
+        logger.warning("値動きの分析に失敗しました coin=%s error=%s", coin, e)
+        return None
+
+    if getattr(response, "stop_reason", None) == "refusal":
+        return None
+    text = "\n".join(b.text for b in response.content if b.type == "text").strip()
+    return text or None
+
+
+def investigate_move(
+    *, coin: str, analysis: dict, coin_change_24h: float | None, btc_change_24h: float | None,
+    recent_articles: list[dict], cfg: dict,
+) -> str | None:
+    """銘柄固有の値動きの原因を、直近の記事からHaikuに分析させる。
+
+    「乱高下があったら必ず調べる」ための処理。LLMが使えない場合は None を返し、
+    呼び出し側はキーワードで拾った記事の一覧だけを出す。
+    """
+    move_cfg = cfg.get("move_context", {})
+    if not move_cfg.get("llm_analysis", True) or not analysis.get("is_coin_specific"):
+        return None
+    if coin_change_24h is None or btc_change_24h is None:
+        return None
+    client = _build_client(cfg)
+    return analyze_move_with_llm(
+        client, coin=coin, coin_change_24h=coin_change_24h, btc_change_24h=btc_change_24h,
+        excess_pct=analysis.get("excess_pct") or 0.0, articles=recent_articles, cfg=cfg,
+    )

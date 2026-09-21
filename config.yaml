@@ -3,6 +3,17 @@
 
 btc_coingecko_id: bitcoin
 
+# BTCは相場全体の指標。急騰・急落したら一言告知する（BTC専用チャンネルは作らず、
+# 指定したチャンネルに流す）。あわせてBTCの記事も保存しておき、原因の分析に使う。
+btc_market_alert:
+  enabled: true
+  channel: ETH                 # 告知を流すチャンネル（coins のキー名）
+  change_pct_24h: 5            # 24時間でこの%以上動いたら告知
+  names:                       # 見出しにこれらが含まれる記事をBTC関連として保存する
+    - "Bitcoin"
+    - "BTC"
+    - "ビットコイン"
+
 # この日数より古い記事・価格・速報履歴は自動で削除する（データベースを小さく保つ）
 data_retention_days: 30
 
@@ -159,8 +170,14 @@ move_context:
   enabled: true
   # BTCの24h変化率との差がこの%以上なら「銘柄固有の動き」とみなし、背景ニュースを探す。
   # 小さくすると些細な差でもニュースを結びつけてしまい、大きくすると拾えなくなる。
+  # BTC自体は「相場全体の動きかどうか」を見分ける指標として使い続ける。
   coin_specific_pct: 3
   max_items: 3
+  # 銘柄固有の動きが出たときは、直近の記事をまとめてHaikuに渡し「何が起きたか」を
+  # 必ず分析させる（キーワードでは拾えない原因も読み取る）。原因が見当たらない場合も
+  # その旨を明記する。銘柄固有の動きのときだけ動くので費用はごく小さい。
+  llm_analysis: true
+  analysis_max_articles: 15
 
 # 「このリンクは読む価値がある」というアドバイス（キーワードとルールで判定）
 reading_advice:
@@ -327,6 +344,17 @@ arb:
     - tokenomics
     - staking
   price_levels: [0.14, 0.20]
+  # 円建ての節目。上抜けしたら全力でお祝いする速報を出す（本人の希望で利確ラインを公開）。
+  # message は Discord にそのまま出る。好きな文言に書き換えてよい。
+  # mention を書けばこの祝福だけ通知を飛ばせる（普段の速報はメンションなし）。
+  celebration_levels_jpy:
+    - price: 45
+      title: "🎉🎉🎉 ARB 45円突破！！ 🎉🎉🎉"
+      message: |
+        **利確ライン到達。原資分は全額回収。**
+        ここまで握り続けた自分を褒めていい。
+        おめでとう🍾
+      mention: "@here"
   # DefiLlama のスラッグ／チェーン名（実際に確認済み）
   defillama:
     robinhood_chain_fees_chain: "Robinhood Chain"
@@ -424,9 +452,14 @@ digest:
   max_news_items: 10
   # その日のニュースが1件も無い銘柄は、日次まとめ自体を投稿しない（空投稿を減らす）
   skip_when_no_news: true
-  # ニュースが無くても必ず毎日投稿する銘柄（価格・オンチェーンデータだけでも届く）
-  always_post:
-    - ARB
+  # ニュースが無くても必ず毎日投稿する銘柄。空にすれば全銘柄がニュースのある日だけになる
+  always_post: []
+  # 銘柄ごとに「この優先度以上の記事が無ければ投稿しない」を指定できる。
+  # ETH・SOLは低い記事ばかりの日が多いため、中以上が1件も無ければ見送る。
+  # 書いていない銘柄（ARB・WLD）は、記事が1件でもあれば投稿する。
+  minimum_priority_to_post:
+    ETH: "中"
+    SOL: "中"
   # 上位何件を「抜粋＋読む価値アドバイス付き」で詳しく載せるか。
   # 残りは1行のリスト表示になる（Discordの文字数上限を超えないための配分）。
   detailed_items: 5

@@ -275,12 +275,18 @@ def fetch_all_news(cfg: dict) -> list[NewsItem]:
     # 日本語メディアも含む。これらは本文抜粋が取れ、リンクも記事に直接つながる。
     excerpt_cfg = cfg.get("excerpt", {})
     excerpt_max_length = excerpt_cfg.get("max_length", 300)
+    # BTCは専用チャンネルを持たないが、急騰・急落の原因分析に使うため記事は保存する
+    matching_cfg = dict(coins_cfg)
+    btc_cfg = cfg.get("btc_market_alert", {})
+    if btc_cfg.get("enabled") and btc_cfg.get("names"):
+        matching_cfg["BTC"] = {"names": btc_cfg["names"]}
+
     for feed in sources_cfg.get("feeds", []):
         label, url = feed.get("name"), feed.get("url")
         if not url:
             continue
         for item in _fetch_generic_feed(url, label, excerpt_max_length):
-            item.coins = match_coins(item.title, coins_cfg)
+            item.coins = match_coins(item.title, matching_cfg)
             if item.coins:
                 all_items.append(item)
 
