@@ -157,12 +157,22 @@ excerpt:
 # 本文抜粋の表示に戻るので、有効にしたまま放置しても壊れない。
 summary:
   enabled: true
-  model: "claude-haiku-4-5"     # 入力$1 / 出力$5 per 1Mトークン
+  # 要約は「英語を日本語に正確に直す」作業で、一番回数が多い処理。ここは安いHaikuで十分。
+  # 品質を上げたければ "claude-sonnet-5"（費用は約2倍、月+200円程度）。
+  model: "claude-haiku-4-5"
   max_output_tokens: 500
   fetch_timeout_seconds: 10
   # 1回の実行で要約する最大件数（費用の上限）。要約は1記事1回だけで、
   # 結果はDBに保存して使い回すため、実際の課金は新着記事の分だけ。
   max_articles_per_run: 15
+
+# LLMの単価（USD / 100万トークン）。実行ごとの費用の目安をログに出すために使う。
+# 正確な請求額は https://console.anthropic.com の Usage で確認する。
+llm_pricing:
+  claude-haiku-4-5:  {input: 1.0, output: 5.0}
+  claude-sonnet-5:   {input: 2.0, output: 10.0}
+  claude-opus-5:     {input: 5.0, output: 25.0}
+  usd_jpy: 150
 
 # 値動きの背景になりそうなニュースの表示
 # BTCと一緒に動いただけの場合は個別ニュースのせいにせず、その旨だけ表示する。
@@ -178,6 +188,9 @@ move_context:
   # その旨を明記する。銘柄固有の動きのときだけ動くので費用はごく小さい。
   llm_analysis: true
   analysis_max_articles: 15
+  # 原因分析は「複数の記事から因果を判断し、無いときは無いと言う」高度な判断なので、
+  # 最上位のOpusを使う。銘柄固有の動きのときだけ動くため、回数が少なく費用は月数百円。
+  analysis_model: "claude-opus-5"
 
 # 「このリンクは読む価値がある」というアドバイス（キーワードとルールで判定）
 reading_advice:
@@ -354,7 +367,7 @@ arb:
         **利確ライン到達。原資分は全額回収。**
         ここまで握り続けた自分を褒めていい。
         おめでとう🍾
-      mention: "@here"
+      mention: ""
   # DefiLlama のスラッグ／チェーン名（実際に確認済み）
   defillama:
     robinhood_chain_fees_chain: "Robinhood Chain"

@@ -18,7 +18,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from src import alerts, config, db, digest, discord, fetch_news, onchain, prices, weekly
+from src import alerts, config, db, digest, discord, fetch_news, onchain, prices, summarize, weekly
 from src.utils import now_jst
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -367,6 +367,10 @@ def main() -> None:
             run_weekly(conn, cfg, args.dry_run)
         elif args.serve:
             run_serve(conn, cfg, args.dry_run, args.max_runtime)
+
+        report = summarize.usage_report(cfg)
+        if report:
+            logger.info(report)
 
         retention_days = cfg.get("data_retention_days", 30)
         removed = db.prune_old_data(conn, retention_days)

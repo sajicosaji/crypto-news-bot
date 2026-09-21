@@ -76,7 +76,7 @@ def test_celebrates_when_arb_crosses_45_yen_upward(conn, cfg, monkeypatch, capsy
     assert posted >= 1
     assert "45円突破" in out
     assert "利確ライン到達" in out
-    assert "@here" in out, "この祝福だけはメンション付き"
+    assert "@here" not in out, "本人が通知ONにしているためメンション不要"
 
 
 def test_no_celebration_when_still_below_45(conn, cfg, monkeypatch, capsys):

@@ -16,6 +16,46 @@ import requests
 
 logger = logging.getLogger("crypto_news_bot.summarize")
 
+# この実行で使ったトークン数（モデル別）。費用の目安をログに出すために集計する。
+_usage: dict[str, dict[str, int]] = {}
+
+
+def _record_usage(model: str, response) -> None:
+    usage = getattr(response, "usage", None)
+    if usage is None:
+        return
+    entry = _usage.setdefault(model, {"input": 0, "output": 0, "calls": 0})
+    entry["input"] += getattr(usage, "input_tokens", 0) or 0
+    entry["output"] += getattr(usage, "output_tokens", 0) or 0
+    entry["calls"] += 1
+
+
+def usage_report(cfg: dict) -> str | None:
+    """この実行でのLLM使用量と費用の目安（円）。何も使っていなければ None。"""
+    if not _usage:
+        return None
+    pricing = cfg.get("llm_pricing", {})
+    usd_jpy = pricing.get("usd_jpy", 150)
+    parts = []
+    total_usd = 0.0
+    for model, u in _usage.items():
+        p = pricing.get(model, {})
+        usd = (u["input"] * p.get("input", 0) + u["output"] * p.get("output", 0)) / 1_000_000
+        total_usd += usd
+        parts.append(f"{model}: {u['calls']}回 入力{u['input']:,}/出力{u['output']:,}トークン ≈ ¥{usd * usd_jpy:.1f}")
+    return f"LLM使用量 合計≈¥{total_usd * usd_jpy:.1f} | " + " | ".join(parts)
+
+
+def _model_kwargs(model: str, effort: str | None = None) -> dict:
+    """モデルごとの追加パラメータ。
+
+    Haiku 4.5 は effort を受け付けない（400になる）ので付けない。
+    Sonnet 5 / Opus 5 は既定で思考が走るため、効いてほしい強さを effort で指定する。
+    """
+    if "haiku" in model:
+        return {}
+    return {"output_config": {"effort": effort}} if effort else {}
+
 PAGE_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
@@ -105,17 +145,20 @@ def summarize_article(
 
     user_content = f"見出し: {title}\n\n本文:\n{source_text}"
 
+    model = summary_cfg.get("model", "claude-haiku-4-5")
     try:
         response = client.messages.create(
-            model=summary_cfg.get("model", "claude-haiku-4-5"),
+            model=model,
             max_tokens=summary_cfg.get("max_output_tokens", 500),
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_content}],
+            **_model_kwargs(model, effort="low"),
         )
     except Exception as e:
         # 要約が失敗してもBOT全体は止めない（抜粋表示に戻るだけ）
         logger.warning("要約に失敗しました title=%s error=%s", title[:40], e)
         return None
+    _record_usage(model, response)
 
     if getattr(response, "stop_reason", None) == "refusal":
         logger.info("要約が拒否されました title=%s", title[:40])
@@ -230,16 +273,20 @@ def analyze_move_with_llm(
         if body:
             lines.append(f"   {body[:300]}")
 
+    # 原因の特定は高度な判断なので、要約とは別に強いモデルを使う
+    model = move_cfg.get("analysis_model") or cfg.get("summary", {}).get("model", "claude-haiku-4-5")
     try:
         response = client.messages.create(
-            model=cfg.get("summary", {}).get("model", "claude-haiku-4-5"),
-            max_tokens=400,
+            model=model,
+            max_tokens=2000,  # 思考分を含む余裕（本文は2〜4行）
             system=MOVE_ANALYSIS_PROMPT,
             messages=[{"role": "user", "content": "\n".join(lines)}],
+            **_model_kwargs(model, effort="high"),
         )
     except Exception as e:
         logger.warning("値動きの分析に失敗しました coin=%s error=%s", coin, e)
         return None
+    _record_usage(model, response)
 
     if getattr(response, "stop_reason", None) == "refusal":
         return None
