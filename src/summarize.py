@@ -313,3 +313,79 @@ def investigate_move(
         client, coin=coin, coin_change_24h=coin_change_24h, btc_change_24h=btc_change_24h,
         excess_pct=analysis.get("excess_pct") or 0.0, articles=recent_articles, cfg=cfg,
     )
+
+
+RELEVANCE_PROMPT = """あなたは暗号資産ニュースの編集者です。渡された記事が、その銘柄を
+保有・監視している人にとって「読む意味があるか」を判定してください。
+
+落とすべき記事（KEEPしない）:
+{drop_reasons}
+
+残すべき記事（KEEP）:
+- 起きた事実が具体的に書かれていて、価格・供給量・利用状況・規制・セキュリティなど
+  保有者の判断材料になるもの。
+- 提携、上場、アップグレード、障害、ハッキング、規制当局の動き、トークンの供給変化など。
+
+必ず次の形式だけで答えてください。説明は書かないでください。
+KEEP
+または
+DROP: 落とす理由を10文字程度で"""
+
+
+def filter_relevant_articles(articles: list[dict], coin: str, cfg: dict) -> list[dict]:
+    """「読む意味がある」記事だけに絞る。
+
+    キーワードでは価格予測の言い換えやDAOの内輪ネタを追い切れないため、
+    最終判断をLLMに任せる。判定できない場合は落とさない（安全側に倒す）。
+    """
+    filter_cfg = cfg.get("relevance_filter", {})
+    if not filter_cfg.get("enabled") or not articles:
+        return articles
+
+    client = _build_client(cfg)
+    if client is None:
+        return articles
+
+    model = filter_cfg.get("model", "claude-haiku-4-5")
+    drop_reasons = "\n".join(f"- {r}" for r in filter_cfg.get("drop_reasons", []))
+    system = RELEVANCE_PROMPT.format(drop_reasons=drop_reasons)
+
+    from .utils import contains_term
+
+    always_keep = (filter_cfg.get("always_keep_keywords") or {}).get(coin, [])
+
+    kept = []
+    for article in articles:
+        title = (article.get("display_title") or "").strip()
+        body = (article.get("summary") or article.get("excerpt") or "").strip()
+
+        # 銘柄の中核に触れている記事は判定に回さず必ず残す
+        # （例: ARBにとってのRobinhood Chainは、見出しにARBが無くても重要）
+        if any(contains_term(title, kw) for kw in always_keep):
+            kept.append(article)
+            continue
+        content = f"銘柄: {coin}\n見出し: {title}"
+        if body:
+            content += f"\n本文: {body[:600]}"
+        try:
+            response = client.messages.create(
+                model=model, max_tokens=60, system=system,
+                messages=[{"role": "user", "content": content}],
+                **_model_kwargs(model, effort="low"),
+            )
+        except Exception as e:
+            logger.info("価値判定に失敗したため残します title=%s error=%s", title[:30], e)
+            kept.append(article)
+            continue
+        _record_usage(model, response)
+
+        verdict = "".join(b.text for b in response.content if b.type == "text").strip()
+        if verdict.upper().startswith("DROP"):
+            logger.info("%s 投稿する価値が低いため除外: %s（%s）", coin, title[:40], verdict[:40])
+            continue
+        kept.append(article)
+
+    dropped = len(articles) - len(kept)
+    if dropped:
+        logger.info("%s 価値の低い記事を%d件除外しました（残り%d件）", coin, dropped, len(kept))
+    return kept

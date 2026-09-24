@@ -192,6 +192,29 @@ move_context:
   # 最上位のOpusを使う。銘柄固有の動きのときだけ動くため、回数が少なく費用は月数百円。
   analysis_model: "claude-opus-5"
 
+# 投稿する価値があるかをLLMに判定させる（キーワードでは言い換えを追い切れないため）
+# 「読んでも行動が変わらない記事」を落とす。除外された記事はDBに残るが表示しない。
+relevance_filter:
+  enabled: true
+  model: "claude-haiku-4-5"   # 判定は短いのでHaikuで十分（1件あたり約0.1円）
+  # 落とす対象の目安。プロンプトに渡すのでそのまま文章で書いてよい。
+  drop_reasons:
+    - "価格予測・目標株価だけの記事（誰かが『いくらになる』と言っただけのもの）"
+    - "テクニカル分析・チャート解説だけの記事"
+    - "保有者の判断に関係しないDAO内部の手続き・助成金の配分・フォーラムの雑談"
+    - "具体的な事実が無く、憶測や一般論だけの記事"
+    - "他銘柄が主題で、この銘柄には影響しない記事（ただし下の『必ず残す』に当たるものは除く）"
+  # 銘柄ごとに「これに触れている記事は必ず残す」語。誤って落とすのを防ぐ。
+  # 銘柄名そのもの（Arbitrum等）は入れないこと。全記事が素通りしてしまう。
+  # 「銘柄名が出ていなくても重要」な固有名詞だけを入れる。
+  always_keep_keywords:
+    ARB:
+      - "Robinhood Chain"   # ARBの収益源。見出しにARBが無くても重要
+      - "Orbit"             # Arbitrum Orbit チェーン
+    WLD:
+      - "Morpho"            # WLD担保のDeFiリスク
+      - "World ID"
+
 # 「このリンクは読む価値がある」というアドバイス（キーワードとルールで判定）
 reading_advice:
   enabled: true
@@ -206,9 +229,23 @@ reading_advice:
 exclude_keywords:
   - "price prediction"
   - "price analysis"
+  - "price forecast"
   - "could reach"
+  - "could hit"
+  - "price target"
+  - "predicts"
+  - "forecasts"
+  - "to hit $"
+  - "rally to $"
+  - "surge to $"
+  - "by 2030"
+  - "by 2027"
+  - "x growth"
+  - "% growth by"
   - "予想"
+  - "予測"
   - "テクニカル分析"
+  - "見通し"
 
 # 見出しの判定に使うキーワード（差し替え自由）
 keywords:
@@ -349,13 +386,22 @@ arb:
     - "Arbitrum DAO"
     - "Arbitrum treasury"
   # DAOフォーラムの新規投稿タイトルにこれらの語を含めば記事として扱う（[DAO提案] として良い材料）
+  # フォーラムの雑談まで拾わないよう、提案のタイトルに付く語に絞る
+  # （Arbitrum DAOの提案は [AIP]/Proposal/RFC などが頭に付く慣習）
   dao_forum_keywords:
+    - "AIP"
+    - "Proposal"
+    - "RFC"
+    - "Snapshot"
+  # さらに、この語のどれかも含む投稿だけを対象にする（本当に効く提案だけ拾う）
+  dao_forum_topic_keywords:
     - buyback
     - burn
     - treasury
-    - fee
+    - "fee switch"
     - tokenomics
     - staking
+    - unlock
   price_levels: [0.14, 0.20]
   # 円建ての節目。上抜けしたら全力でお祝いする速報を出す（本人の希望で利確ラインを公開）。
   # message は Discord にそのまま出る。好きな文言に書き換えてよい。

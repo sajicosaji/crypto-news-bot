@@ -424,8 +424,13 @@ def run_alert_for_coin(
             # 同じ話題を直近で速報済み。見出しの言い回しが違うだけなので見送る
             logger.info("%s 同じ話題を速報済みのため見送り: %s", coin, row["display_title"][:40])
             continue
-        # 速報に出す記事だけ要約する（出さない記事には課金しない）
+        # 読む意味が無い記事（価格予測・内輪ネタ）は通知しない
         article = dict(row)
+        if not summarize.filter_relevant_articles([article], coin, cfg):
+            logger.info("%s 投稿する価値が低いため速報を見送り: %s", coin, row["display_title"][:40])
+            continue
+
+        # 速報に出す記事だけ要約する（出さない記事には課金しない）
         summarize.summarize_pending_articles(conn, [article], cfg)
         if article.get("summary"):
             row = article

@@ -222,13 +222,18 @@ def fetch_dao_forum_items(cfg: dict) -> list[NewsItem]:
     if not parsed:
         return []
     keywords = [k.lower() for k in cfg["arb"]["dao_forum_keywords"]]
+    topics = [k.lower() for k in cfg["arb"].get("dao_forum_topic_keywords", [])]
     items = []
     for entry in parsed.entries:
         raw_title = entry.get("title", "").strip()
         if not raw_title:
             continue
         lower = raw_title.lower()
+        # 提案であること（AIP/Proposal等）と、効く話題であること（buyback/burn等）の両方を要求する。
+        # 片方だけだとフォーラムの雑談スレッドまで拾ってしまう。
         if not any(kw in lower for kw in keywords):
+            continue
+        if topics and not any(t in lower for t in topics):
             continue
         items.append(
             NewsItem(

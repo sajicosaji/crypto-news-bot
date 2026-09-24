@@ -117,7 +117,7 @@ def drop_similar_for_display(articles: list[dict], min_shared_terms: int) -> lis
     return kept
 
 
-def build_news_lines(articles: list[dict], cfg: dict, char_budget: int = 3800, conn=None) -> list[str]:
+def build_news_lines(articles: list[dict], cfg: dict, char_budget: int = 3800, conn=None, coin: str = "") -> list[str]:
     """上位は抜粋＋アドバイス付き、残りは1行のリストで組み立てる。
 
     Discordの埋め込み本文には文字数上限があるため、予算を超える分は打ち切る。
@@ -141,7 +141,13 @@ def build_news_lines(articles: list[dict], cfg: dict, char_budget: int = 3800, c
         if (a.get("summary") or a.get("excerpt") or "").strip()
         and meets_minimum(a.get("priority", "低"), minimum)
     ]
-    detailed = with_body[:detailed_items]
+    # 詳しく載せる候補から「読む意味が無い記事」を落とす（価格予測・内輪ネタなど）。
+    # 要約より前に判定することで、落とす記事に要約の費用をかけない。
+    candidates = with_body[: detailed_items * 2]
+    candidates = summarize.filter_relevant_articles(candidates, coin, cfg)
+    dropped_ids = {id(a) for a in with_body} - {id(a) for a in candidates}
+
+    detailed = candidates[:detailed_items]
     detailed_ids = {id(a) for a in detailed}
 
     # 実際に詳しく載せる記事だけを要約する（表示しない記事に課金しない）
@@ -152,6 +158,8 @@ def build_news_lines(articles: list[dict], cfg: dict, char_budget: int = 3800, c
     used = 0
 
     for a in ordered:
+        if id(a) in dropped_ids:
+            continue  # 読む意味が無いと判定された記事は見出しも出さない
         prefix = "🚨" if a.get("alerted_at") else ""
         url = a.get("excerpt_url") or a["url"]
         source = a.get("excerpt_source") or a["first_source"]
@@ -346,7 +354,7 @@ def build_digest_embed(
 
     if articles:
         annotate_articles(articles, cfg, (price_data.get(coin) or {}).get("usd_24h_change"))
-        news_lines = build_news_lines(articles, cfg, conn=conn)
+        news_lines = build_news_lines(articles, cfg, conn=conn, coin=coin)
         description = "\n".join(news_lines).strip()
     else:
         description = "本日の主要ニュースはありません"
