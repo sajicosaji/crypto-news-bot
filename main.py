@@ -18,7 +18,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from src import alerts, config, db, digest, discord, fetch_news, onchain, prices, summarize, weekly
+from src import alerts, config, db, digest, discord, fetch_news, governance, onchain, prices, summarize, weekly
 from src.utils import now_jst
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -243,6 +243,11 @@ def run_alert(conn, cfg: dict, dry_run: bool) -> None:
             dry_run=dry_run,
         )
         logger.info("%s 速報投稿件数: %d", symbol, posted)
+
+    # DAOの投票（Snapshot）の開始・締切間近・結果を速報する
+    gov_posted = governance.run_governance_alerts(conn=conn, cfg=cfg, coins=coins, dry_run=dry_run)
+    if gov_posted:
+        logger.info("DAO投票の速報を%d件投稿しました", gov_posted)
 
     # BTCの急騰・急落は相場全体の指標として、指定チャンネルに一言告知する
     btc_cfg = cfg.get("btc_market_alert", {})

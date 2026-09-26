@@ -378,6 +378,40 @@ alert_thresholds:
   #   実行漏れも考慮して余裕を持たせている）
   news_alert_max_age_hours: 6
 
+# DAOの投票（Snapshot）の監視。APIキー不要・無料。
+# Arbitrumは Snapshot で先に投票してからオンチェーンに進むため、ここが一番早い。
+# （Tally は APIキーが必須で401になるため使わない。実際に確認済み）
+governance:
+  enabled: true
+  api_url: "https://hub.snapshot.org/graphql"
+  # 監視するスペースと、通知先のチャンネル
+  spaces:
+    - space: "arbitrumfoundation.eth"   # Arbitrum DAO（提案419件・フォロワー32万）
+      coin: ARB
+  # 投票のタイトルにこれらの語が含まれるものだけ通知する。
+  # 役員選挙や細かい助成金まで拾うとうるさいので絞る。
+  topic_keywords:
+    - buyback
+    - "buy back"
+    - burn
+    - treasury
+    - "fee switch"
+    - tokenomics
+    - staking
+    - unlock
+    - "value accrual"
+    - revenue
+    - "Timeboost"
+    - sequencer
+  # どの段階で通知するか
+  notify_on_start: true        # 投票が始まったとき
+  notify_before_end: true      # 締切が近いとき
+  hours_before_end: 24         # 締切の何時間前に知らせるか
+  notify_on_close: true        # 可決・否決が決まったとき
+  # 終了からこの時間を超えた投票は通知しない。
+  # これが無いと、初回実行や引き継ぎ失敗時に過去の結果を一斉に投稿してしまう。
+  max_age_hours_for_closed: 48
+
 # ARB 固有設定
 arb:
   extra_search_terms:
