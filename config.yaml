@@ -172,6 +172,7 @@ llm_pricing:
   claude-haiku-4-5:  {input: 1.0, output: 5.0}
   claude-sonnet-5:   {input: 2.0, output: 10.0}
   claude-opus-5:     {input: 5.0, output: 25.0}
+  claude-opus-5-5:   {input: 4.0, output: 20.0}
   usd_jpy: 150
 
 # 値動きの背景になりそうなニュースの表示
@@ -190,7 +191,9 @@ move_context:
   analysis_max_articles: 15
   # 原因分析は「複数の記事から因果を判断し、無いときは無いと言う」高度な判断なので、
   # 最上位のOpusを使う。銘柄固有の動きのときだけ動くため、回数が少なく費用は月数百円。
-  analysis_model: "claude-opus-5"
+  # Opus 5.5 は Opus 5 より高性能で2割安い（$4/$20 vs $5/$25、2026-09-26 公式料金表で確認）。
+  # 実測でも、媒体間で数字が食い違う点（ETF流入額など）を指摘できるようになった。
+  analysis_model: "claude-opus-5-5"
 
 # 投稿する価値があるかをLLMに判定させる（キーワードでは言い換えを追い切れないため）
 # 「読んでも行動が変わらない記事」を落とす。除外された記事はDBに残るが表示しない。
