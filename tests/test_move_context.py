@@ -124,20 +124,26 @@ def test_direction_mismatch_is_excluded_even_when_widely_reported():
 
 # --- 日次まとめへの表示 ------------------------------------------------------
 
-def test_digest_field_lists_news_when_move_is_coin_specific(cfg):
+def test_digest_field_shows_cached_investigation_with_sources(cfg, conn):
+    """速報時にWeb検索で調べた原因（出典つき）があれば、日次まとめにも載せる。"""
+    import json
+    from src import db
     from src.digest import build_move_context_field
 
-    articles = [
-        _article("大きく報じられた好材料", "good", hours_ago=3, sources=5),
-        _article("関係なさそうな悪材料", "bad", hours_ago=3, sources=5),
-    ]
+    db.set_state(conn, "investigation:ARB", json.dumps({
+        "verdict": "found", "confidence": "中", "headline": "L2全体の利益確定売り",
+        "cause": "1か月で2倍超に上がった反動で、L2銘柄がまとめて売られた。",
+        "evidence": [{"point": "OP・ZKも同時に下落", "url": "https://example.com/l2"}],
+        "comparison": [["BTC", -0.5], ["OP", -9.3]],
+        "at": datetime.now(timezone.utc).isoformat(),
+    }, ensure_ascii=False))
     field = build_move_context_field(
-        cfg=cfg, articles=articles, coin_change_24h=11.0, btc_change_24h=0.5
+        cfg=cfg, coin="ARB", conn=conn, coin_change_24h=-11.0, btc_change_24h=0.5
     )
-    assert "銘柄固有の動き" in field["value"]
-    assert "上昇の背景になりそうなニュース" in field["value"]
-    assert "大きく報じられた好材料" in field["value"]
-    assert "関係なさそうな悪材料" not in field["value"]
+    assert "L2全体の利益確定売り" in field["name"]
+    assert "https://example.com/l2" in field["value"]
+    assert "OP -9.3%" in field["value"]
+    assert "断定するものではありません" not in field["value"]
 
 
 def test_digest_field_is_omitted_when_following_btc(cfg):
@@ -151,16 +157,15 @@ def test_digest_field_is_omitted_when_following_btc(cfg):
     assert field is None
 
 
-def test_digest_field_stays_silent_when_no_matching_news(cfg):
-    """銘柄固有の動きなら、該当ニュースが無くてもその事実だけは伝える。"""
+def test_digest_field_is_omitted_when_cause_is_unknown(cfg, conn):
+    """原因が分からない動きは、記事を並べてごまかさず欄ごと出さない。"""
     from src.digest import build_move_context_field
 
+    articles = [_article("大きく報じられた好材料", "good", hours_ago=3, sources=5)]
     field = build_move_context_field(
-        cfg=cfg, articles=[], coin_change_24h=11.0, btc_change_24h=0.5
+        cfg=cfg, coin="ARB", conn=conn, articles=articles, coin_change_24h=11.0, btc_change_24h=0.5
     )
-    assert "見つかりません" not in field["value"]
-    assert "背景になりそうなニュース" not in field["value"]
-    assert "銘柄固有の動き" in field["value"]
+    assert field is None
 
 
 def test_digest_field_is_omitted_without_price_data(cfg):

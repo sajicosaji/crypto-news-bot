@@ -5,7 +5,8 @@ import pytest
 
 from src import db, governance
 
-NOW = datetime(2026, 9, 26, 12, 0, tzinfo=timezone.utc)
+# 実行処理は実際の現在時刻で判定するため、テストの基準時刻も現在時刻に合わせる
+NOW = datetime.now(timezone.utc).replace(microsecond=0)
 
 
 def _proposal(title, state, *, start_offset_h=-24, end_offset_h=48, scores=None, pid="0xabc"):

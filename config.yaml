@@ -173,6 +173,7 @@ llm_pricing:
   claude-sonnet-5:   {input: 2.0, output: 10.0}
   claude-opus-5:     {input: 5.0, output: 25.0}
   claude-opus-5-5:   {input: 4.0, output: 20.0}
+  web_search_per_search: 0.01  # $10 / 1000回
   usd_jpy: 150
 
 # 値動きの背景になりそうなニュースの表示
@@ -184,16 +185,31 @@ move_context:
   # BTC自体は「相場全体の動きかどうか」を見分ける指標として使い続ける。
   coin_specific_pct: 3
   max_items: 3
-  # 銘柄固有の動きが出たときは、直近の記事をまとめてHaikuに渡し「何が起きたか」を
-  # 必ず分析させる（キーワードでは拾えない原因も読み取る）。原因が見当たらない場合も
-  # その旨を明記する。銘柄固有の動きのときだけ動くので費用はごく小さい。
-  llm_analysis: true
-  analysis_max_articles: 15
-  # 原因分析は「複数の記事から因果を判断し、無いときは無いと言う」高度な判断なので、
-  # 最上位のOpusを使う。銘柄固有の動きのときだけ動くため、回数が少なく費用は月数百円。
-  # Opus 5.5 は Opus 5 より高性能で2割安い（$4/$20 vs $5/$25、2026-09-26 公式料金表で確認）。
-  # 実測でも、媒体間で数字が食い違う点（ETF流入額など）を指摘できるようになった。
-  analysis_model: "claude-opus-5-5"
+  # 記事一覧だけを渡す旧方式の分析は「可能性を並べるだけで使えない」と本人から指摘があり廃止
+  # （2026-09-29）。原因調査は下の investigation（Web検索つき）に一本化した。
+  llm_analysis: false
+
+# 価格急変の原因調査（Opus 5.5 + Web検索）。
+# 本人の方針: 「真面目に調べて原因をある程度断定する」「ソースを出す」
+# 「分からないなら通知しない」「要らない通知ばかりなら削除する」。
+# → 原因が確度「中」以上で出典URL付きのときだけ価格急変を通知する。それ以外は黙る。
+# 1回¥80〜120（実測: 入力17万トークン・検索8回で約¥120）と重いので、
+# 閾値超えの急変のときだけ動き、同じ銘柄は cache_hours の間、結果（不明も含む）を使い回す。
+investigation:
+  enabled: true
+  model: "claude-opus-5-5"
+  effort: high
+  max_searches: 6
+  max_tokens: 8000
+  min_confidence: "中"
+  cache_hours: 12
+  max_articles: 12
+  # 同業トークン（セクター全体の動きかを見分ける）。CoinGecko idは実際に確認済み。
+  peers:
+    ARB:
+      - {id: optimism, symbol: OP}
+      - {id: zksync, symbol: ZK}
+      - {id: starknet, symbol: STRK}
 
 # 投稿する価値があるかをLLMに判定させる（キーワードでは言い換えを追い切れないため）
 # 「読んでも行動が変わらない記事」を落とす。除外された記事はDBに残るが表示しない。

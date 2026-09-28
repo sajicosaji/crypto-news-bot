@@ -24,10 +24,12 @@ def _record_usage(model: str, response) -> None:
     usage = getattr(response, "usage", None)
     if usage is None:
         return
-    entry = _usage.setdefault(model, {"input": 0, "output": 0, "calls": 0})
+    entry = _usage.setdefault(model, {"input": 0, "output": 0, "calls": 0, "searches": 0})
     entry["input"] += getattr(usage, "input_tokens", 0) or 0
     entry["output"] += getattr(usage, "output_tokens", 0) or 0
     entry["calls"] += 1
+    server = getattr(usage, "server_tool_use", None)
+    entry["searches"] += (getattr(server, "web_search_requests", 0) or 0) if server else 0
 
 
 def usage_report(cfg: dict) -> str | None:
@@ -41,8 +43,11 @@ def usage_report(cfg: dict) -> str | None:
     for model, u in _usage.items():
         p = pricing.get(model, {})
         usd = (u["input"] * p.get("input", 0) + u["output"] * p.get("output", 0)) / 1_000_000
+        searches = u.get("searches", 0)
+        usd += searches * pricing.get("web_search_per_search", 0.01)
         total_usd += usd
-        parts.append(f"{model}: {u['calls']}回 入力{u['input']:,}/出力{u['output']:,}トークン ≈ ¥{usd * usd_jpy:.1f}")
+        extra = f" 検索{searches}回" if searches else ""
+        parts.append(f"{model}: {u['calls']}回 入力{u['input']:,}/出力{u['output']:,}トークン{extra} ≈ ¥{usd * usd_jpy:.1f}")
     return f"LLM使用量 合計≈¥{total_usd * usd_jpy:.1f} | " + " | ".join(parts)
 
 

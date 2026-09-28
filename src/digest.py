@@ -4,9 +4,9 @@ from __future__ import annotations
 import logging
 from datetime import date, datetime, time, timedelta, timezone
 
-from . import db, discord, summarize
+from . import db, discord, investigate, summarize
 from .advice import build_reading_advice, meets_minimum, priority_rank
-from .move_context import analyze_move, direction_label, pick_move_context
+from .move_context import analyze_move
 from .formatting import fmt_jpy, fmt_pct, fmt_usd, fmt_usd_compact
 from .utils import JST, is_same_story, normalize_title, now_jst
 
@@ -271,54 +271,33 @@ def fetch_articles_for_move_context(conn, coin: str, hours: int = 30) -> list[di
 
 
 def build_move_context_field(
-    *, cfg: dict, articles: list[dict], coin_change_24h: float | None, btc_change_24h: float | None,
-    coin: str = "",
+    *, cfg: dict, coin_change_24h: float | None, btc_change_24h: float | None,
+    coin: str = "", conn=None, articles: list[dict] | None = None,
 ) -> dict | None:
-    """値動きの背景になりそうなニュースを1つのフィールドにまとめる。
+    """値動きの原因を1つのフィールドにまとめる。
 
-    BTCにつられただけの動きなら、その旨だけを書いてニュースは挙げない。
+    速報のときにWeb検索で調べた結果（確度「中」以上・出典つき）がある場合だけ載せる。
+    BTCにつられただけの動きや、原因が分からない動きは欄ごと出さない
+    （「原因と断定するものではありません」付きの記事一覧は役に立たないため廃止）。
+    日次まとめのために新たな調査はしない（費用を抑えるため）。
     """
     move_cfg = cfg.get("move_context", {})
-    if not move_cfg.get("enabled", True) or coin_change_24h is None:
+    if not move_cfg.get("enabled", True) or coin_change_24h is None or conn is None:
         return None
 
     analysis = analyze_move(coin_change_24h, btc_change_24h, move_cfg.get("coin_specific_pct", 3))
-
-    # BTCにつられただけの動きは特筆することが無いので、欄ごと出さない
     if not analysis["is_coin_specific"]:
         return None
 
-    lines = [analysis["summary"]]
+    result = investigate.load_cached(conn, coin, datetime.now(timezone.utc), 24)
+    if not investigate.is_confident(result, cfg):
+        return None
 
-    if analysis["is_coin_specific"]:
-        # 銘柄固有の乱高下は「何が起きたか」を必ず調べる（Haikuで直近の記事を分析）
-        investigation = summarize.investigate_move(
-            coin=coin, analysis=analysis, coin_change_24h=coin_change_24h,
-            btc_change_24h=btc_change_24h, recent_articles=articles, cfg=cfg,
-        )
-        if investigation:
-            lines.append("")
-            lines.append("何が起きたか（直近のニュースから分析）:")
-            lines.append(investigation)
-
-        picked = pick_move_context(
-            articles, analysis["direction"], datetime.now(timezone.utc),
-            move_cfg.get("max_items", 3),
-        )
-        # 該当が無ければ何も書かない（「見つかりませんでした」は書かない）
-        if picked:
-            label = direction_label(analysis["direction"])
-            lines.append("")
-            lines.append(f"{label}の背景になりそうなニュース（原因と断定するものではありません）:")
-            for a in picked:
-                url = a.get("excerpt_url") or a["url"]
-                lines.append(f"{a['emoji']} [{a['display_title']}]({url})")
-
-    value = "\n".join(lines)
+    value = "\n".join([analysis["summary"], ""] + investigate.format_lines(result))
     # Discordのフィールド値は1024文字まで
     if len(value) > 1000:
         value = value[:1000].rstrip() + "…"
-    return {"name": "値動きの背景", "value": value, "inline": False}
+    return {"name": f"値動きの原因: {result['headline']}", "value": value, "inline": False}
 
 
 def build_digest_embed(
@@ -340,6 +319,7 @@ def build_digest_embed(
     move_field = build_move_context_field(
         cfg=cfg,
         coin=coin,
+        conn=conn,
         articles=move_articles,
         coin_change_24h=(price_data.get(coin) or {}).get("usd_24h_change"),
         btc_change_24h=btc_change_24h,

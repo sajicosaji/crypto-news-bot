@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timedelta, timezone
 
-from . import db, discord, summarize
+from . import db, discord, investigate, summarize
 from .formatting import fmt_level, fmt_pct, fmt_usd
 from .advice import build_reading_advice, meets_minimum
 from .move_context import analyze_move, direction_label, pick_move_context
@@ -298,41 +298,28 @@ def _todays_macro_events(cfg: dict, now_jst_dt: datetime) -> list[str]:
 
 def _post_data_alert(
     *, webhook_url, username, title_text, reason, coin, btc_change_24h, coin_change_24h,
-    cfg, conn, now, dry_run,
+    cfg, conn, now, dry_run, investigation_result: dict | None = None,
 ):
+    """データ系の速報を投稿する。
+
+    「原因と断定するものではありません」付きの記事一覧は、読んでも役に立たないと
+    本人から指摘があったので出さない（2026-09-29）。原因は investigate で調べ、
+    確度のある結果が渡されたときだけ出典付きで載せる。
+    """
     emojis = cfg["emojis"]
-    move_cfg = cfg.get("move_context", {})
-    analysis = analyze_move(coin_change_24h, btc_change_24h, move_cfg.get("coin_specific_pct", 3))
-    lines = [reason, analysis["summary"]]
+    lines = [reason]
+    if investigation_result and investigate.is_confident(investigation_result, cfg):
+        lines.append("")
+        lines.extend(investigate.format_lines(investigation_result))
+    else:
+        move_cfg = cfg.get("move_context", {})
+        analysis = analyze_move(coin_change_24h, btc_change_24h, move_cfg.get("coin_specific_pct", 3))
+        lines.append(analysis["summary"])
 
     macro = _todays_macro_events(cfg, now_jst())
     if macro:
-        lines.append("本日のマクロ予定: " + " / ".join(macro))
-
-    if move_cfg.get("enabled", True) and analysis["is_coin_specific"]:
-        # 銘柄固有の乱高下は「何が起きたか」を必ず調べる。
-        # まずHaikuに直近の記事をまとめて渡して原因を分析させ、その下に根拠記事を並べる。
-        recent = _recent_articles(conn, coin, now)
-        investigation = summarize.investigate_move(
-            coin=coin, analysis=analysis, coin_change_24h=coin_change_24h,
-            btc_change_24h=btc_change_24h, recent_articles=recent, cfg=cfg,
-        )
-        if investigation:
-            lines.append("")
-            lines.append("何が起きたか（直近のニュースから分析）:")
-            lines.append(investigation)
-        picked = pick_move_context(recent, analysis["direction"], now, move_cfg.get("max_items", 3))
-        if picked:
-            label = direction_label(analysis["direction"])
-            lines.append("")
-            lines.append(f"{label}の背景になりそうなニュース（原因と断定するものではありません）:")
-            lines.extend(_article_lines(picked))
-
-    recent = _recent_news_lines(conn, coin, now)
-    if recent:
         lines.append("")
-        lines.append("直前のニュース（速報の原因と断定するものではありません）:")
-        lines.extend(recent)
+        lines.append("本日のマクロ予定: " + " / ".join(macro))
 
     alert_emoji = emojis["alert"]
     if discord.is_custom_emoji(alert_emoji):
@@ -449,14 +436,27 @@ def run_alert_for_coin(
         pct24 = (price_data.get(coin) or {}).get("usd_24h_change")
         reason = check_price_change_alert(coin, pct24, cfg)
         if reason and not is_in_cooldown(conn, coin, "price_change", "24h", cooldown_hours, now):
-            title_text = f"価格急変 {coin} {fmt_pct(pct24)}（24h）"
-            if _post_data_alert(
-                webhook_url=webhook_url, username=username, title_text=title_text, reason=reason,
-                coin=coin, btc_change_24h=btc_change_24h, coin_change_24h=coin_change_24h,
-                cfg=cfg, conn=conn, now=now, dry_run=dry_run,
-            ):
-                db.log_alert(conn, coin, "price_change", "24h", reason, now.isoformat())
-                posted += 1
+            move = analyze_move(pct24, btc_change_24h, cfg.get("move_context", {}).get("coin_specific_pct", 3))
+            if not move["is_coin_specific"]:
+                # BTCにつられただけ。相場全体の急変はBTC告知が出るので、銘柄側では黙る
+                logger.info("%s の急変はBTC連動のため個別には通知しません", coin)
+            else:
+                result = investigate.investigate(
+                    conn=conn, coin=coin, coingecko_id=coin_cfg.get("coingecko_id"),
+                    change_24h=pct24, price_data=price_data, cfg=cfg, now=now,
+                )
+                if not investigate.is_confident(result, cfg):
+                    # 原因が特定できない急変は通知しない（本人の方針）
+                    logger.info("%s の急変は原因を特定できなかったため通知しません", coin)
+                else:
+                    title_text = f"価格急変 {coin} {fmt_pct(pct24)}（24h）: {result['headline']}"
+                    if _post_data_alert(
+                        webhook_url=webhook_url, username=username, title_text=title_text, reason=reason,
+                        coin=coin, btc_change_24h=btc_change_24h, coin_change_24h=coin_change_24h,
+                        cfg=cfg, conn=conn, now=now, dry_run=dry_run, investigation_result=result,
+                    ):
+                        db.log_alert(conn, coin, "price_change", "24h", reason, now.isoformat())
+                        posted += 1
 
     # 3) 価格の節目
     if posted < max_alerts:
@@ -476,10 +476,14 @@ def run_alert_for_coin(
                     verb = "上抜け" if direction == "up" else "下抜け"
                     title_text = f"{coin} {fmt_level(level)}ドルを{verb}"
                     reason = f"{coin}が{fmt_usd(level)}を{verb}しました（現在値 {fmt_usd(curr_price)}）"
+                    # 節目は事実として知らせる。調査済みの原因があれば添える（新たには調べない）
+                    cached = investigate.load_cached(
+                        conn, coin, now, cfg.get("investigation", {}).get("cache_hours", 12)
+                    )
                     if _post_data_alert(
                         webhook_url=webhook_url, username=username, title_text=title_text, reason=reason,
                         coin=coin, btc_change_24h=btc_change_24h, coin_change_24h=coin_change_24h,
-                cfg=cfg, conn=conn, now=now, dry_run=dry_run,
+                        cfg=cfg, conn=conn, now=now, dry_run=dry_run, investigation_result=cached,
                     ):
                         db.log_alert(conn, coin, "price_level", dedupe_key, reason, now.isoformat())
                         posted += 1
@@ -525,14 +529,23 @@ def run_alert_for_coin(
         if posted < max_alerts:
             hourly_reason = check_hourly_change_alert(coin, hourly_change, sol_cfg["hourly_change_alert_pct"])
             if hourly_reason and not is_in_cooldown(conn, coin, "hourly_change", "1h", cooldown_hours, now):
-                title_text = f"価格急変 {coin} {fmt_pct(hourly_change)}（1h）"
-                if _post_data_alert(
-                    webhook_url=webhook_url, username=username, title_text=title_text, reason=hourly_reason,
-                    coin=coin, btc_change_24h=btc_change_24h, coin_change_24h=coin_change_24h,
-                cfg=cfg, conn=conn, now=now, dry_run=dry_run,
-                ):
-                    db.log_alert(conn, coin, "hourly_change", "1h", hourly_reason, now.isoformat())
-                    posted += 1
+                result = None
+                if coin_change_24h is not None:
+                    result = investigate.investigate(
+                        conn=conn, coin=coin, coingecko_id=coin_cfg.get("coingecko_id"),
+                        change_24h=coin_change_24h, price_data=price_data, cfg=cfg, now=now,
+                    )
+                if not investigate.is_confident(result, cfg):
+                    logger.info("%s の1時間急変は原因を特定できなかったため通知しません", coin)
+                else:
+                    title_text = f"価格急変 {coin} {fmt_pct(hourly_change)}（1h）: {result['headline']}"
+                    if _post_data_alert(
+                        webhook_url=webhook_url, username=username, title_text=title_text, reason=hourly_reason,
+                        coin=coin, btc_change_24h=btc_change_24h, coin_change_24h=coin_change_24h,
+                        cfg=cfg, conn=conn, now=now, dry_run=dry_run, investigation_result=result,
+                    ):
+                        db.log_alert(conn, coin, "hourly_change", "1h", hourly_reason, now.isoformat())
+                        posted += 1
 
     # 5) ARBのオンチェーン変化
     if coin == "ARB" and posted < max_alerts:
@@ -599,22 +612,17 @@ def run_btc_market_alert(
         if p.get("usd_24h_change") is not None:
             lines.append(f"　{symbol}: {fmt_pct(p['usd_24h_change'])}")
 
-    # 何が起きたかを直近のBTC記事から分析する（乱高下は必ず調べる）
-    recent = _recent_articles(conn, "BTC", now)
-    analysis = {"is_coin_specific": True, "excess_pct": btc_change, "direction": "up" if btc_change > 0 else "down"}
-    investigation = summarize.investigate_move(
-        coin="BTC", analysis=analysis, coin_change_24h=btc_change, btc_change_24h=0.0,
-        recent_articles=recent, cfg=cfg,
+    # 何が起きたかをWeb検索で調べる。確度のある原因が出たときだけ出典付きで添える
+    # （BTC告知自体は本人の要望なので、原因が不明でも一言は出す）
+    result = investigate.investigate(
+        conn=conn, coin="BTC", coingecko_id=cfg.get("btc_coingecko_id", "bitcoin"),
+        change_24h=btc_change, price_data=price_data, cfg=cfg, now=now,
     )
-    if investigation:
+    headline = ""
+    if investigate.is_confident(result, cfg):
+        headline = f": {result['headline']}"
         lines.append("")
-        lines.append("何が起きたか（直近のニュースから分析）:")
-        lines.append(investigation)
-    picked = pick_move_context(recent, analysis["direction"], now, cfg.get("move_context", {}).get("max_items", 3))
-    if picked:
-        lines.append("")
-        lines.append("関連しそうなニュース（原因と断定するものではありません）:")
-        lines.extend(_article_lines(picked))
+        lines.extend(investigate.format_lines(result))
 
     macro = _todays_macro_events(cfg, now_jst())
     if macro:
@@ -622,7 +630,7 @@ def run_btc_market_alert(
         lines.append("本日のマクロ予定: " + " / ".join(macro))
 
     embed = {
-        "title": f"{cfg['emojis']['alert']} BTC {direction} {fmt_pct(btc_change)}（24h）",
+        "title": f"{cfg['emojis']['alert']} BTC {direction} {fmt_pct(btc_change)}（24h）{headline}",
         "description": "\n".join(lines),
         "color": discord.COLOR_ALERT_GOOD if btc_change > 0 else discord.COLOR_ALERT_BAD,
     }
