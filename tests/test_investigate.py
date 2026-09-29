@@ -52,7 +52,7 @@ def _no_network(monkeypatch):
         "optimism": {"usd_24h_change": -9.3}, "zksync": {"usd_24h_change": -7.1},
         "starknet": {"usd_24h_change": -8.0},
     })
-    monkeypatch.setattr(investigate, "fetch_hourly_prices", lambda cid, days=2: [
+    monkeypatch.setattr(investigate, "fetch_hourly_candles", lambda symbol, hours=48: [
         (NOW - timedelta(hours=h), 0.23 - 0.001 * (48 - h)) for h in range(48, -1, -1)
     ])
 
@@ -109,13 +109,38 @@ def test_pause_turn_is_continued(conn, cfg):
 # --- 費用を抑える使い回し ------------------------------------------------------
 
 def test_result_is_reused_within_cache_window(conn, cfg):
-    """30分ごとの監視で毎回調べ直さない（1回¥80〜120のため）。"""
+    """30分ごとの監視で毎回調べ直さない（調査は他の処理より桁違いに高いため）。"""
     client = FakeClient(UNKNOWN)
     _investigate(conn, cfg, client)
-    _investigate(conn, cfg, client, now=NOW + timedelta(hours=6))
-    assert client.calls == 1, "「不明」も含めて12時間は使い回す"
-    _investigate(conn, cfg, client, now=NOW + timedelta(hours=13))
+    _investigate(conn, cfg, client, now=NOW + timedelta(hours=20))
+    assert client.calls == 1, "「不明」も含めて24時間は使い回す"
+    _investigate(conn, cfg, client, now=NOW + timedelta(hours=25))
     assert client.calls == 2
+
+
+def test_monthly_cap_stops_investigations(conn, cfg):
+    """月の上限に達したら調べない（費用の天井）。上限は翌月にリセット。"""
+    capped = {**cfg, "investigation": {**cfg["investigation"], "max_per_month": 2}}
+    client = FakeClient(UNKNOWN)
+    mid_september = datetime(2026, 9, 10, 3, 0, tzinfo=timezone.utc)
+    for day in range(3):
+        _investigate(conn, capped, client, now=mid_september + timedelta(days=day * 2))
+    assert client.calls == 2
+    next_month = datetime(2026, 10, 1, 3, 0, tzinfo=timezone.utc)
+    _investigate(conn, capped, client, now=next_month)
+    assert client.calls == 3
+
+
+def test_btc_market_alert_does_not_investigate(conn, cfg, monkeypatch):
+    """BTC急変は一言告知だけ。調査費用はかけない。"""
+    client = FakeClient(FOUND)
+    monkeypatch.setattr(investigate.summarize, "_build_client", lambda cfg: client)
+    prices = {**PRICES, "BTC": {**PRICES["BTC"], "usd_24h_change": -7.0}}
+    assert alerts.run_btc_market_alert(
+        conn=conn, cfg=cfg, price_data=prices, webhook_url="https://discord.example/eth",
+        username="BTC Market", dry_run=True,
+    ) is True
+    assert client.calls == 0
 
 
 # --- 通知するかどうか ----------------------------------------------------------
@@ -150,6 +175,13 @@ def test_price_alert_following_btc_is_not_investigated(conn, cfg, monkeypatch):
     client = FakeClient(FOUND)
     assert _run(conn, cfg, monkeypatch, client, btc_change=-9.0, arb_change=-11.0) == 0
     assert client.calls == 0
+
+
+def test_investigation_is_cheap_by_default(cfg):
+    """節約設定（本人の要望）: 検索は3回まで、月10回まで。"""
+    inv = cfg["investigation"]
+    assert inv["max_searches"] <= 3
+    assert inv["max_per_month"] <= 10
 
 
 def test_web_search_cost_is_reported(conn, cfg):

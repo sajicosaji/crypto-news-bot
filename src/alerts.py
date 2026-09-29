@@ -612,17 +612,9 @@ def run_btc_market_alert(
         if p.get("usd_24h_change") is not None:
             lines.append(f"　{symbol}: {fmt_pct(p['usd_24h_change'])}")
 
-    # 何が起きたかをWeb検索で調べる。確度のある原因が出たときだけ出典付きで添える
-    # （BTC告知自体は本人の要望なので、原因が不明でも一言は出す）
-    result = investigate.investigate(
-        conn=conn, coin="BTC", coingecko_id=cfg.get("btc_coingecko_id", "bitcoin"),
-        change_24h=btc_change, price_data=price_data, cfg=cfg, now=now,
-    )
+    # BTCは「相場全体が動いた」という一言告知だけにし、原因のWeb調査はしない
+    # （節約のため。調査の予算は保有銘柄が単独で動いたときに回す）
     headline = ""
-    if investigate.is_confident(result, cfg):
-        headline = f": {result['headline']}"
-        lines.append("")
-        lines.extend(investigate.format_lines(result))
 
     macro = _todays_macro_events(cfg, now_jst())
     if macro:

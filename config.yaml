@@ -191,20 +191,23 @@ move_context:
 
 # 価格急変の原因調査（Opus 5.5 + Web検索）。
 # 本人の方針: 「真面目に調べて原因をある程度断定する」「ソースを出す」
-# 「分からないなら通知しない」「要らない通知ばかりなら削除する」。
+# 「分からないなら通知しない」「要らない通知ばかりなら削除する」「もう少し節約して」。
 # → 原因が確度「中」以上で出典URL付きのときだけ価格急変を通知する。それ以外は黙る。
-# 1回¥80〜120（実測: 入力17万トークン・検索8回で約¥120）と重いので、
-# 閾値超えの急変のときだけ動き、同じ銘柄は cache_hours の間、結果（不明も含む）を使い回す。
+# 費用は検索回数でほぼ決まる（検索結果がそのまま入力トークンになる）。実測: 検索6回で¥64。
+# 検索3回・effort medium にして、月の回数に上限を設けた。BTC急変は一言告知だけで調査しない。
 investigation:
   enabled: true
   model: "claude-opus-5-5"
-  effort: high
-  max_searches: 6
-  max_tokens: 8000
+  effort: medium
+  max_searches: 3
+  max_tokens: 6000
   min_confidence: "中"
-  cache_hours: 12
+  # 同じ銘柄は24時間、結果（不明も含む）を使い回して調べ直さない
+  cache_hours: 24
+  # 月あたりの調査回数の上限。超えたら急変は通知しない（費用の天井）
+  max_per_month: 10
   max_articles: 12
-  # 同業トークン（セクター全体の動きかを見分ける）。CoinGecko idは実際に確認済み。
+  # 同業トークン（セクター全体の動きかを見分ける）。価格は prices.PAPRIKA_IDS で読み替える。
   peers:
     ARB:
       - {id: optimism, symbol: OP}

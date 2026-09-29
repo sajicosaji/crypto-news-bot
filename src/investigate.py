@@ -5,8 +5,9 @@
 - 根拠のURLを必ず付ける。
 - 原因が分からない・確度が低いなら通知しない。
 
-調査は1回¥80〜120と重いので、同じ銘柄は cache_hours の間、結果（「不明」も含む）を
-kv_state に保存して使い回す。30分ごとの監視で毎回調べ直さないため。
+調査は1回¥30前後（検索3回）と他の処理より桁違いに重いので、
+- 同じ銘柄は cache_hours の間、結果（「不明」も含む）を kv_state に保存して使い回す
+- 月あたりの回数に上限（max_per_month）を設け、費用の天井を固定する
 """
 from __future__ import annotations
 
@@ -16,10 +17,8 @@ import re
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
 
-import requests
-
 from . import db, summarize
-from .prices import COINGECKO_BASE, REQUEST_TIMEOUT, fetch_prices
+from .prices import fetch_hourly_candles, fetch_prices
 
 logger = logging.getLogger("crypto_news_bot.investigate")
 
@@ -56,19 +55,6 @@ evidence には実際に検索で確認したページのURLだけを1〜4件入
 
 
 # --- 価格データ -------------------------------------------------------------
-
-def fetch_hourly_prices(coingecko_id: str, days: int = 2) -> list[tuple[datetime, float]]:
-    """直近の1時間足（CoinGeckoは days=2 で1時間ごとの点を返す）。失敗時は空。"""
-    url = f"{COINGECKO_BASE}/coins/{coingecko_id}/market_chart"
-    try:
-        resp = requests.get(url, params={"vs_currency": "usd", "days": str(days)}, timeout=REQUEST_TIMEOUT)
-        resp.raise_for_status()
-        points = resp.json().get("prices", [])
-    except (requests.RequestException, ValueError) as e:
-        logger.warning("時間足の取得に失敗しました id=%s error=%s", coingecko_id, e)
-        return []
-    return [(datetime.fromtimestamp(ts / 1000, tz=timezone.utc), p) for ts, p in points if p]
-
 
 def describe_timeline(points: list[tuple[datetime, float]], step_hours: int = 4) -> list[str]:
     """いつ動いたかをLLMが読める形にする（JSTで4時間ごと＋1時間で最も動いた時間）。"""
@@ -162,7 +148,7 @@ def run_web_investigation(client, *, coin: str, facts: list[str], cfg: dict) -> 
     tools = [{
         "type": "web_search_20260209",
         "name": "web_search",
-        "max_uses": inv_cfg.get("max_searches", 6),
+        "max_uses": inv_cfg.get("max_searches", 3),
     }]
     messages = [{"role": "user", "content": "\n".join(facts)}]
     text = ""
@@ -217,10 +203,18 @@ def investigate(
     if not inv_cfg.get("enabled", True):
         return None
 
-    cached = load_cached(conn, coin, now, inv_cfg.get("cache_hours", 12))
+    cached = load_cached(conn, coin, now, inv_cfg.get("cache_hours", 24))
     if cached:
         logger.info("%s の値動き調査は%sに実施済みのため使い回します", coin, cached["at"])
         return cached
+
+    # 月あたりの調査回数の上限。これで費用の天井が決まる（上限に達したら急変は通知しない）
+    month_key = f"investigation_count:{now:%Y-%m}"
+    used = int(db.get_state(conn, month_key, "0") or 0)
+    limit = inv_cfg.get("max_per_month", 10)
+    if used >= limit:
+        logger.info("今月の値動き調査は上限%d回に達したため、%s は調べません", limit, coin)
+        return None
 
     client = client or summarize._build_client(cfg)
     if client is None:
@@ -236,7 +230,7 @@ def investigate(
     ]
     facts += [f"　{name}: {pct:+.1f}%" for name, pct in comparison] or ["　（取得できず）"]
     if coingecko_id:
-        timeline = describe_timeline(fetch_hourly_prices(coingecko_id))
+        timeline = describe_timeline(fetch_hourly_candles(coin))
         if timeline:
             facts += ["", f"{coin} の直近48時間の推移:"] + [f"　{line}" for line in timeline]
 
@@ -252,6 +246,7 @@ def investigate(
         facts += ["", f"補足: {notes}"]
 
     result = run_web_investigation(client, coin=coin, facts=facts, cfg=cfg)
+    db.set_state(conn, month_key, str(used + 1))
     result["comparison"] = comparison
     result["change_24h"] = change_24h
     result["at"] = now.isoformat()

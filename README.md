@@ -43,7 +43,7 @@ Webhookで通知するツールです。有料API・LLM APIは一切使わず、
 
 1. BTCの24h変化率との差が小さい（`move_context.coin_specific_pct`、既定3%未満）なら
    相場全体の動きなので、銘柄側では通知しない（BTC急変の告知に任せる）。調査もしない。
-2. 銘柄固有の動きなら、Claude Opus 5.5 に Web検索（最大6回）で原因を調べさせる。
+2. 銘柄固有の動きなら、Claude Opus 5.5 に Web検索（最大3回）で原因を調べさせる。
    BTC・ETH・同業トークン（ARBならOP/ZK/STRK）の変化率と、直近48時間の推移も渡し、
    銘柄固有／セクター全体／相場全体を見分けさせる。
 3. 確度「中」以上で、出典URLが1件以上あるときだけ投稿する（`investigation.min_confidence`）。
@@ -57,8 +57,10 @@ Webhookで通知するツールです。有料API・LLM APIは一切使わず、
 ・…（coinbase.com）
 ```
 
-費用は1回¥60〜120（実測¥64: 入力7.4万トークン・検索6回）。同じ銘柄は結果（「不明」も含む）を
-12時間使い回すので、30分ごとの監視で調べ直すことはありません（`investigation.cache_hours`）。
+費用は検索回数でほぼ決まります（検索6回で実測¥64 → 検索3回に絞って1回¥30前後の見込み）。
+同じ銘柄は結果（「不明」も含む）を24時間使い回し（`investigation.cache_hours`）、
+調査は**月10回まで**（`investigation.max_per_month`）なので、最大でも月¥300程度です。
+BTCの急変は一言告知だけで、原因調査はしません。
 調査結果は日次まとめの「値動きの原因」欄にも載ります（日次まとめのために新たに調べることはしません）。
 
 ### 日本語要約（Claude Haiku）
@@ -182,6 +184,11 @@ Webhookの作り方: Discordの対象チャンネル → 歯車（チャンネ�
 `coingecko_id` は [CoinGecko](https://www.coingecko.com/) の該当コインのページURLで実際に
 確認してください（開発時、`worldcoin` は別の古いトークンを指しており、正しいWLDのIDは
 `worldcoin-wld` でした。似た名前の別トークンに注意）。
+
+価格の取得先は 2026-09-29 に CoinGecko から CoinPaprika に切り替えました（CoinGecko がキー無しの
+価格リクエストを403で拒否するようになったため）。`coingecko_id` は識別子としてそのまま使い、
+`src/prices.py` の `PAPRIKA_IDS` で CoinPaprika の id に読み替えています。銘柄を追加したら
+ここにも1行足し、`https://api.coinpaprika.com/v1/tickers/<id>` で価格が合っているか確認してください。
 
 ### ニュースの取得元
 
@@ -339,7 +346,7 @@ Tally（オンチェーン投票）はAPIキーが必須で401になるため使
 
 確認済みで動作しているAPI:
 
-- CoinGecko 無料API（WLD = `worldcoin-wld`、USD1 = `usd1-wlfi`）
+- CoinPaprika 無料API（WLD = `worldcoin-wld`、USD1 = `usd1-wlfi`）
 - DefiLlama 手数料API（Robinhood Chain・Arbitrum Oneの日次収益）
 - DefiLlama DEX出来高API（Robinhood ChainのDEX出来高）
 - DefiLlama トレジャリーAPI（`treasury/arbitrum-dao`）

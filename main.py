@@ -230,7 +230,8 @@ def run_alert(conn, cfg: dict, dry_run: bool) -> None:
     wld_onchain = fetch_wld_onchain(cfg) if "WLD" in coins else None
     hourly_change = None
     if "SOL" in coins:
-        hourly_change = prices.fetch_hourly_change_pct(cfg["coins"]["SOL"]["coingecko_id"], hours=1)
+        # 価格取得の応答に1時間の変化率も入っているので、追加のリクエストはしない
+        hourly_change = raw_prices.get(cfg["coins"]["SOL"]["coingecko_id"], {}).get("usd_1h_change")
 
     for symbol, (coin_cfg, url) in coins.items():
         posted = alerts.run_alert_for_coin(
