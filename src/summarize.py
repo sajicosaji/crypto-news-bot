@@ -337,6 +337,11 @@ KEEP
 DROP: 落とす理由を10文字程度で"""
 
 
+# 価値判定の結果（銘柄, 見出し）→ 残すか。自走モードは1プロセスで5.5時間動くので、
+# 30分ごとに同じ記事をLLMで判定し直さないよう覚えておく（実測で同じ記事を30回判定していた）。
+_relevance_verdicts: dict[tuple[str, str], bool] = {}
+
+
 def filter_relevant_articles(articles: list[dict], coin: str, cfg: dict) -> list[dict]:
     """「読む意味がある」記事だけに絞る。
 
@@ -369,6 +374,11 @@ def filter_relevant_articles(articles: list[dict], coin: str, cfg: dict) -> list
         if any(contains_term(title, kw) for kw in always_keep):
             kept.append(article)
             continue
+        remembered = _relevance_verdicts.get((coin, title))
+        if remembered is not None:
+            if remembered:
+                kept.append(article)
+            continue
         content = f"銘柄: {coin}\n見出し: {title}"
         if body:
             content += f"\n本文: {body[:600]}"
@@ -386,8 +396,10 @@ def filter_relevant_articles(articles: list[dict], coin: str, cfg: dict) -> list
 
         verdict = "".join(b.text for b in response.content if b.type == "text").strip()
         if verdict.upper().startswith("DROP"):
+            _relevance_verdicts[(coin, title)] = False
             logger.info("%s 投稿する価値が低いため除外: %s（%s）", coin, title[:40], verdict[:40])
             continue
+        _relevance_verdicts[(coin, title)] = True
         kept.append(article)
 
     dropped = len(articles) - len(kept)

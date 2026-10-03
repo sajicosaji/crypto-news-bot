@@ -19,3 +19,12 @@ def conn():
     connection = db_module.connect(":memory:")
     yield connection
     connection.close()
+
+
+@pytest.fixture(autouse=True)
+def _fresh_relevance_memory():
+    """価値判定の記憶はプロセス内で共有されるので、テストごとに空にする。"""
+    from src import summarize
+    summarize._relevance_verdicts.clear()
+    yield
+    summarize._relevance_verdicts.clear()

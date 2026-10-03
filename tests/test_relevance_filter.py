@@ -39,6 +39,15 @@ def test_drops_articles_the_model_rejects(cfg, monkeypatch):
     assert [a["display_title"] for a in kept] == ["Bridge exploited for $24M"]
 
 
+def test_same_article_is_judged_only_once(cfg, monkeypatch):
+    """30分ごとの監視で同じ記事をLLMに判定し直さない（実測で同じ記事を30回判定していた）。"""
+    client = _Client(["DROP: 価格予測のみ"])
+    monkeypatch.setattr(summarize, "_build_client", lambda cfg: client)
+    for _ in range(3):
+        assert summarize.filter_relevant_articles(_articles("Bitcoin Needs $29,000 More"), "ETH", cfg) == []
+    assert len(client.calls) == 1
+
+
 def test_core_topics_skip_the_judgement_entirely(cfg, monkeypatch):
     """ARBにとってのRobinhood Chainのように、銘柄名が無くても重要な話題は必ず残す。"""
     client = _Client(["DROP: 他銘柄が主題"])
