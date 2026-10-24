@@ -70,6 +70,11 @@ THEME_LABELS = {
 }
 WEEKDAY_JA = "月火水木金土日"
 OFFICIAL_KINDS = {"official", "forum", "release"}
+KIND_LABELS = {"official": "Kaia公式", "forum": "Kaia公式", "release": "Kaia公式", "partner": "提携先の公式発表"}
+
+
+def _kind_label(kind: str) -> str:
+    return KIND_LABELS.get(kind, "報道")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS kaia_items (
@@ -457,9 +462,8 @@ def news_material(story: dict) -> tuple[str, list[str]]:
         text = _item_text(item)
         if not text:
             continue
-        kind = "公式発表" if item["kind"] in OFFICIAL_KINDS else "報道"
         pub = _parse_iso(item["published_at"])
-        parts.append(f"[資料{n}] {item['source']}（{kind}） 公開日: {_ja_date(pub)}\n"
+        parts.append(f"[資料{n}] {item['source']}（{_kind_label(item['kind'])}） 公開日: {_ja_date(pub)}\n"
                      f"見出し: {item['title']}\nURL: {item['url']}\n本文: {text}")
         urls.append(item["url"])
     return "\n\n".join(parts), urls
@@ -469,9 +473,8 @@ def recap_material(stories: list[dict]) -> tuple[str, list[str]]:
     parts, urls = [], []
     for n, g in enumerate(stories, 1):
         item = sorted(g["items"], key=lambda i: (i["kind"] not in OFFICIAL_KINDS, i["lang"] != "ja"))[0]
-        kind = "公式発表" if item["kind"] in OFFICIAL_KINDS else "報道"
         text = (item.get("body") or item.get("summary") or "")[:800]
-        parts.append(f"[話題{n}] {g['ja_title']}\n出典: {item['source']}（{kind}） 公開日: "
+        parts.append(f"[話題{n}] {g['ja_title']}\n出典: {item['source']}（{_kind_label(item['kind'])}） 公開日: "
                      f"{_ja_date(_parse_iso(item['published_at']))}\n見出し: {item['title']}\n概要: {text}")
         urls.append(item["url"])
     return "\n\n".join(parts), urls
@@ -549,7 +552,7 @@ Kaiaの動きや仕組みを、正確に・わかりやすく伝え、Kaiaに興
 守ること:
 - 事実は「材料」に書かれていることだけを使う。材料に無い数字・日付・社名・機能は書かない。推測で補わない。
 - 数字・日付・社名・プロジェクト名は材料どおり正確に書く。
-- 公式発表（Kaia公式ブログ・KAIA DLT Foundation・公式ドキュメント・ガバナンスフォーラム）以外の報道は「〜と報じられています」のように伝聞で書く。
+- 「Kaia公式」「提携先の公式発表」の資料は「◯◯が発表しました」と発表元を書く。「報道」の資料は「〜と報じられています」のように伝聞で書く。
 - 材料の公開日が今日より前なら「◯月◯日に発表」のように時点を書き、古い情報を最新のように書かない。
 - 価格・値上がり・投資判断の話はしない。「買い」「爆上げ」「儲かる」「今がチャンス」のような煽る表現は使わない。
 - 専門用語には短い言い換えを添える（例: ガス代（取引手数料））。
@@ -751,7 +754,7 @@ def build_plan(conn, cfg: dict, now: datetime, theme: str | None = None) -> tupl
         if story is not None:
             material, urls = news_material(story)
             if len(material) >= 300:
-                kinds = "公式発表" if story["official"] else "報道"
+                kinds = "Kaia公式の発表" if story["official"] else _kind_label(story["items"][0]["kind"])
                 reason = (f"{_ja_date(story['latest_at'])}の{kinds}（{story['items'][0]['source']}ほか、"
                           f"{story['sources']}媒体）・大事さ{story['importance']}/5"
                           + ("・日本に関係" if story["japan"] else ""))
