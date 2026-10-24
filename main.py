@@ -4,6 +4,7 @@
     python main.py --digest       # 毎朝8:00（日次まとめ）
     python main.py --alert        # 30分ごと（速報）
     python main.py --weekly       # 毎週月曜8:00（週次振り返り）
+    python main.py --kaia         # Kaia投稿案を今すぐ1本作る（--kaia-theme で枠を指定）
     python main.py --test-webhooks
 オプション:
     --dry-run  投稿せずに内容をコンソールに表示する
@@ -18,7 +19,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from src import alerts, config, db, digest, discord, fetch_news, governance, onchain, prices, summarize, weekly
+from src import alerts, config, db, digest, discord, fetch_news, governance, kaia_daily, onchain, prices, summarize, weekly
 from src.utils import now_jst
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -56,12 +57,15 @@ def parse_args() -> argparse.Namespace:
     mode.add_argument("--alert", action="store_true", help="速報をチェックする")
     mode.add_argument("--weekly", action="store_true", help="週次振り返りを投稿する")
     mode.add_argument("--serve", action="store_true", help="自走モード（指定時間ループして各モードを実行）")
+    mode.add_argument("--kaia", action="store_true", help="Kaia投稿案を今すぐ1本作る")
+    parser.add_argument("--kaia-theme", default=None,
+                        help="Kaia投稿案の枠（news/recap/howto/data/ecosystem/tech/japan/basics。省略で曜日どおり）")
     parser.add_argument("--dry-run", action="store_true", help="投稿せず内容を表示する")
     parser.add_argument("--test-webhooks", action="store_true", help="各チャンネルにテスト投稿する")
     parser.add_argument("--max-runtime", type=int, default=330, help="自走モードの最大実行時間（分）")
     args = parser.parse_args()
-    if not (args.digest or args.alert or args.weekly or args.serve or args.test_webhooks):
-        parser.error("--digest / --alert / --weekly / --serve / --test-webhooks のいずれかを指定してください")
+    if not (args.digest or args.alert or args.weekly or args.serve or args.kaia or args.test_webhooks):
+        parser.error("--digest / --alert / --weekly / --serve / --kaia / --test-webhooks のいずれかを指定してください")
     return args
 
 
@@ -323,6 +327,7 @@ def run_serve(conn, cfg: dict, dry_run: bool, max_runtime_minutes: int) -> None:
     interval_seconds = sched.get("alert_interval_minutes", 30) * 60
     deadline = time.monotonic() + max_runtime_minutes * 60
     logger.info("自走モードを開始します（最大%d分、%d分間隔）", max_runtime_minutes, interval_seconds // 60)
+    kaia_done_in_dry_run = False  # dry-runでは記録を残さないので、同じジョブ内で何度も作らないようにする
 
     while True:
         now = now_jst()
@@ -340,6 +345,12 @@ def run_serve(conn, cfg: dict, dry_run: bool, max_runtime_minutes: int) -> None:
                 if not dry_run:
                     iso = now.isocalendar()
                     db.set_state(conn, "last_weekly_week", f"{iso.year}-W{iso.week}")
+
+            # Kaiaアンバサダーの投稿案（1日1本。失敗したら次の巡回でやり直す）
+            if kaia_daily.should_run(conn, cfg, now) and not (dry_run and kaia_done_in_dry_run):
+                logger.info("Kaia投稿案の時刻になりました（%s）", now.strftime("%m/%d %H:%M"))
+                kaia_daily.run(conn, cfg, dry_run, now=now)
+                kaia_done_in_dry_run = True
 
             run_alert(conn, cfg, dry_run)
         except Exception:
@@ -373,6 +384,8 @@ def main() -> None:
             run_weekly(conn, cfg, args.dry_run)
         elif args.serve:
             run_serve(conn, cfg, args.dry_run, args.max_runtime)
+        elif args.kaia:
+            kaia_daily.run(conn, cfg, args.dry_run, theme=args.kaia_theme)
 
         report = summarize.usage_report(cfg)
         if report:

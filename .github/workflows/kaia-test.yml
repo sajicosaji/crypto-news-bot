@@ -1,0 +1,53 @@
+name: kaia-test
+
+# Kaia投稿案を「今すぐ1本」作る手動実行。
+# 本番（毎朝7時）は crypto-news-bot の自走ジョブの中で動く。こちらは試し用で、
+# 本番のデータベースには触らない（使った話題の記録も残さない）ので、何度動かしても本番に影響しない。
+on:
+  workflow_dispatch:
+    inputs:
+      theme:
+        description: "枠（auto=曜日どおり）"
+        required: true
+        default: auto
+        type: choice
+        options: [auto, news, recap, howto, data, ecosystem, tech, japan, basics]
+      post:
+        description: "Discordに届ける（オフならログに表示するだけ）"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: kaia-test
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: ライブラリのインストール
+        run: pip install -r requirements.txt
+
+      - name: 投稿案を作る
+        env:
+          WEBHOOK_KAIA: ${{ secrets.WEBHOOK_KAIA }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_WORKSPACE_ID: ${{ secrets.ANTHROPIC_WORKSPACE_ID }}
+          PYTHONIOENCODING: utf-8
+        run: |
+          THEME=""
+          if [ "${{ inputs.theme }}" != "auto" ]; then THEME="--kaia-theme ${{ inputs.theme }}"; fi
+          DRY="--dry-run"
+          if [ "${{ inputs.post }}" = "true" ]; then DRY=""; fi
+          # 本番のDBは使わず、毎回まっさらなDBで動かす
+          rm -f data/bot.db
+          python main.py --kaia $THEME $DRY

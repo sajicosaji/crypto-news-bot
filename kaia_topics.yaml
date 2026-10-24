@@ -1,0 +1,176 @@
+# Kaia投稿案の「定番ネタ」一覧（kaia_daily が使う）
+#
+# 大きなニュースが無い日は、曜日ごとのテーマ（config.yaml の kaia_daily.weekday_themes）から
+# 一番長く使っていないネタを選んで書く。材料は urls のページ本文だけ（書いてないことは書かせない）。
+#
+# ネタを足すときは、テーマ(theme)・見出し(title)・切り口(angle)・材料のURL(urls)を書くだけでよい。
+# URLは公式ドキュメント・公式ブログ・公式プレスリリースを優先する（間違いを広めないため）。
+# theme: howto(使い方) / ecosystem(エコシステム) / tech(仕組み) / japan(日本とKaia) / basics(Kaiaの基本)
+# data(数字で見るKaia) は数字を自動で集めるのでここには書かない。
+
+topics:
+  # ---- 🔰 使い方 ----
+  - id: howto-cr-mission1
+    theme: howto
+    title: "CR Mission 1（貢献報酬）の参加方法"
+    angle: "参加の流れを3ステップ程度にまとめ、初めての人でも何をすればいいか分かるようにする"
+    urls:
+      - "https://blog.kaia.io/the-complete-guide-to-cr-mission-1-deposit-stake-and-earn-jp/"
+  - id: howto-kaia-wallet
+    theme: howto
+    title: "Kaia Walletってどんなウォレット？"
+    angle: "Kaia Walletでできることを、初めての人向けに紹介する。秘密鍵・復元フレーズを人に教えない注意も一言添える"
+    urls:
+      - "https://docs.kaia.io/build/wallets/overview/kaia-wallet/"
+  - id: howto-kaiascan
+    theme: howto
+    title: "Kaiascanで取引を確かめる"
+    angle: "ブロックエクスプローラーのKaiascanで何が見られるか、どんな時に便利かを紹介する"
+    urls:
+      - "https://docs.kaia.io/build/tools/block-explorers/kaiascan/"
+  - id: howto-wklay-unwrap
+    theme: howto
+    title: "旧WKLAYをKAIAに戻す方法"
+    angle: "Klaytn時代のWKLAYを持っている人向けに、何が必要でどうすればいいかを短く案内する"
+    urls:
+      - "https://blog.kaia.io/guide-how-to-unwrap-legacy-wklay-to-kaia/"
+
+  # ---- 🌱 エコシステム ----
+  - id: eco-q3-2026
+    theme: ecosystem
+    title: "2026年7〜9月のKaiaエコシステム"
+    angle: "四半期のふり返り記事から、一般の人にも伝わる注目ポイントを3つ選んで紹介する"
+    urls:
+      - "https://blog.kaia.io/kaia-q3-2026-ecosystem-round-up-bridging-real-world-utility-with-institutional-infrastructure/"
+  - id: eco-q2-2026
+    theme: ecosystem
+    title: "2026年4〜6月のKaiaエコシステム"
+    angle: "四半期のふり返り記事から、RWA（現実資産のトークン化）やオンチェーン金融の動きを中心に紹介する"
+    urls:
+      - "https://blog.kaia.io/kaia-q2-2026-ecosystem-round-up-scaling-onchain-finance-and-rwas/"
+  - id: eco-minidapp
+    theme: ecosystem
+    title: "LINEの中で動くMini Dappとは"
+    angle: "Mini Dappが何か、普段使っているLINEとどうつながるのかを、初めての人向けに紹介する"
+    urls:
+      - "https://docs.kaia.io/minidapps/"
+  - id: eco-credit-layer
+    theme: ecosystem
+    title: "Kaiaの貸し借り（レンディング）の広がり"
+    angle: "Feather・Morpho・Merklの取り組みで何ができるようになったかを、専門用語を言い換えながら紹介する"
+    urls:
+      - "https://blog.kaia.io/the-great-capital-unlock-bootstrapping-kaias-credit-layer-with-feather-morpho-and-merkl/"
+  - id: eco-libeara
+    theme: ecosystem
+    title: "トークン化の企業Libearaへの出資"
+    angle: "Kaia Investment Partnersが参加した出資の内容と、トークン化（現実の資産をブロックチェーンで扱う）の意味を紹介する"
+    urls:
+      - "https://blog.kaia.io/kaia-investment-partners-joins-13-6m-strategic-round-for-tokenization-leader-libeara/"
+  - id: eco-yield8
+    theme: ecosystem
+    title: "Yield8ファンドと8percentの連携"
+    angle: "どんな取り組みかを短く紹介する。利回りの数字が出ても投資を勧める書き方はしない"
+    urls:
+      - "https://blog.kaia.io/expanding-the-kaia-ecosystem-kips-yield8-fund-integrates-8percent/"
+  - id: eco-krw-stablecoin
+    theme: ecosystem
+    title: "Kaiaとウォン建てステーブルコイン"
+    angle: "公式ドキュメントにあるウォン建てステーブルコインの取り組みを、日本円のJPYCとの比較が無理なくできる範囲で紹介する"
+    urls:
+      - "https://docs.kaia.io/krw-stablecoin/overview/"
+
+  # ---- ⚙️ 仕組み ----
+  - id: tech-fee-delegation
+    theme: tech
+    title: "ガス代をアプリが肩代わり（手数料の委任）"
+    angle: "利用者がガス代（取引手数料）を持っていなくても使える仕組みを、身近なたとえで紹介する"
+    urls:
+      - "https://docs.kaia.io/build/transactions/fee-delegation/"
+  - id: tech-accounts
+    theme: tech
+    title: "Kaiaのアカウントは鍵を変えられる"
+    angle: "アドレスと鍵が切り離されていて鍵を変更できる、役割ごとに鍵を分けられる、といった特徴を紹介する"
+    urls:
+      - "https://docs.kaia.io/learn/accounts/"
+  - id: tech-consensus
+    theme: tech
+    title: "Kaiaの合意の仕組み"
+    angle: "ブロックがどうやって作られ確定するのかを、専門用語を言い換えながら紹介する"
+    urls:
+      - "https://docs.kaia.io/learn/consensus-mechanism/"
+  - id: tech-vs-ethereum
+    theme: tech
+    title: "KaiaとEthereumのちがい"
+    angle: "材料の比較表から、使う人にとって分かりやすい違いを2〜3点選んで紹介する"
+    urls:
+      - "https://docs.kaia.io/learn/kaia-vs-ethereum/"
+  - id: tech-kaiabft
+    theme: tech
+    title: "次の仕組みKaiaBFT"
+    angle: "KaiaBFTで何がよくなるのかを、技術に詳しくない人にも分かるように紹介する"
+    urls:
+      - "https://blog.kaia.io/scalable-kaia-kaiabft/"
+  - id: tech-transaction-fees
+    theme: tech
+    title: "Kaiaのガス代の決まり方"
+    angle: "ガス代（取引手数料）がどう決まるのかを、たとえを使って短く紹介する"
+    urls:
+      - "https://docs.kaia.io/learn/transaction-fees/"
+
+  # ---- 🗾 日本とKaia ----
+  - id: jp-jpyc-cr
+    theme: japan
+    title: "貢献報酬CRにJPYCが入った"
+    angle: "日本円ステーブルコインJPYCがKaiaの貢献報酬プログラムの対象になったことを、発表日を明記して紹介する"
+    urls:
+      - "https://prtimes.jp/main/html/rd/p/000000029.000154579.html"
+  - id: jp-netstars
+    theme: japan
+    title: "ネットスターズとの提携"
+    angle: "日本の決済会社ネットスターズとのMOUで何を目指しているのかを、発表日を明記して紹介する"
+    urls:
+      - "https://prtimes.jp/main/html/rd/p/000000028.000154579.html"
+  - id: jp-finoject
+    theme: japan
+    title: "finojectとの提携"
+    angle: "日本市場での取り組みとしてfinojectと何をするのかを、発表日を明記して紹介する"
+    urls:
+      - "https://prtimes.jp/main/html/rd/p/000000027.000154579.html"
+  - id: jp-jpyc-share
+    theme: japan
+    title: "JPYCとKaia"
+    angle: "JPYCの流通額に関する発表を、発表日と当時の数字を明記して紹介する（今の数字のように書かない）"
+    urls:
+      - "https://prtimes.jp/main/html/rd/p/000000023.000154579.html"
+
+  # ---- 📘 Kaiaの基本 ----
+  - id: basics-why-kaia
+    theme: basics
+    title: "Kaiaが選ばれる理由"
+    angle: "公式ドキュメントが挙げるKaiaの強みを2〜3点、初めての人向けに紹介する"
+    urls:
+      - "https://docs.kaia.io/learn/why-kaia/"
+  - id: basics-native-token
+    theme: basics
+    title: "KAIAトークンの役割"
+    angle: "KAIAが何に使われるのか（手数料・ステーキングなど）を紹介する。値段の話はしない"
+    urls:
+      - "https://docs.kaia.io/learn/token-economics/kaia-native-token/"
+  - id: basics-token-economy
+    theme: basics
+    title: "KAIAの発行と配分のしくみ"
+    angle: "新しく発行されるKAIAがどこに配られるのかを、数字は材料どおりに紹介する"
+    urls:
+      - "https://docs.kaia.io/learn/token-economics/token-economy/"
+  - id: basics-governance
+    theme: basics
+    title: "Kaiaはどうやって物事を決める？"
+    angle: "ガバナンス（意思決定）の仕組みと、誰が参加しているのかを紹介する"
+    urls:
+      - "https://docs.kaia.io/learn/governance/"
+  - id: basics-dlt-framework
+    theme: basics
+    title: "Kaiaの全体像"
+    angle: "Kaiaがどんな目的で作られ、どんな構成になっているのかを、ひとことで分かるように紹介する"
+    urls:
+      - "https://docs.kaia.io/kaiatech/kaia-dlt-framework/"

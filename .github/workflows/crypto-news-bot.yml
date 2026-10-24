@@ -16,7 +16,7 @@ on:
         required: true
         default: serve
         type: choice
-        options: [serve, alert, digest, weekly, test-webhooks]
+        options: [serve, alert, digest, weekly, kaia, test-webhooks]
       max_runtime:
         description: "自走モードの最大実行時間（分）"
         required: false
@@ -81,6 +81,8 @@ jobs:
           WEBHOOK_ETH: ${{ secrets.WEBHOOK_ETH }}
           WEBHOOK_SOL: ${{ secrets.WEBHOOK_SOL }}
           WEBHOOK_WLD: ${{ secrets.WEBHOOK_WLD }}
+          # Kaiaアンバサダーの投稿案を届ける専用チャンネル（未設定なら投稿案づくりはお休み）
+          WEBHOOK_KAIA: ${{ secrets.WEBHOOK_KAIA }}
           # 日本語要約に使う。未設定でも動く（抜粋表示に自動で戻る）
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # ワークスペースに紐づいていないAPIキーの場合だけ必要（未設定なら無視される）
