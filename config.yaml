@@ -589,19 +589,28 @@ discord:
   post_interval_seconds: 1.2
 
 # ------------------------------------------------------------------
-# Kaiaアンバサダーの毎日の投稿案（src/kaia_daily.py、2026-10-24追加）
-# 毎朝、Kaiaの新しい話題を集めて「その日に投稿する1本」を選び、X用の本文・リプ欄用・長文版を作って
-# 専用のDiscordチャンネルへ届ける。Xへの投稿は本人が確認してから行う（自動投稿はしない）。
-# 大きなニュースが無い日は曜日ごとの定番テーマ（kaia_topics.yaml）から書く。
+# Kaiaアンバサダーの毎日の発信案（src/kaia_daily.py、2026-10-24追加・10-25にコミュニティ向けへ拡張）
+# 毎朝、Kaia・JPYC・円建てステーブルコインの新しい話題を集めて、
+#   ① コミュニティ（LINEオープンチャット・Telegram・Discord）にそのまま貼れる「ニュースまとめ」
+#   ② その中の1本を使ったXの投稿文（＋リプ欄用リンク）
+# を作り、本人専用のDiscordチャンネルへ届ける。コミュニティやXへは本人が確認してから貼る（自動投稿はしない）。
+# 新しい話題が無い日は、曜日ごとの定番テーマ（kaia_topics.yaml）で「今日の豆知識」を作る。
 kaia_daily:
   enabled: true
   webhook_env: WEBHOOK_KAIA      # GitHub Secrets。未設定の間は何もしない
-  username: "Kaia 投稿係"
+  username: "Kaia 発信係"
   hour_jst: 7                    # 届ける時刻（自走ジョブが動いている時間帯にすること）
   window_hours: 6                # 失敗したら30分ごとに最大3回やり直す
   max_attempts: 3
+  # ニュースまとめ
+  digest_max_items: 5            # 1日に載せる話題の上限
+  digest_window_hours: 72        # この時間内に出た、まだ届けていない話題から選ぶ
+  digest_first_window_hours: 168 # 初回だけは直近1週間から選ぶ
+  digest_min_importance: 2       # 大事さ（1〜5）がこれ未満の小ネタは載せない
+  digest_topic_limits: {stablecoin: 2}   # JPYC以外の円ステーブルコインの話は2件まで
+  community_footer: "※情報共有が目的です。投資を勧めるものではありません。"
   # 書く係は上位モデル（本人の名前で公開される文章なので品質優先）。仕分け係は安いモデル。
-  # 目安: 1日 ¥10〜15 → 月 ¥300〜450
+  # 1日1回の呼び出しで、まとめとX本文を一緒に書く。目安: 1日 ¥10〜20 → 月 ¥300〜600
   writer_model: "claude-opus-5-5"
   writer_effort: "medium"
   triage_model: "claude-haiku-5-5"
@@ -618,9 +627,9 @@ kaia_daily:
   # 曜日ごとの枠（0=月曜）。recap=先週のまとめ / howto=使い方 / data=数字で見るKaia /
   # ecosystem=エコシステム / tech=仕組み / japan=日本とKaia / basics=Kaiaの基本
   weekday_themes: {0: recap, 1: howto, 2: data, 3: ecosystem, 4: tech, 5: japan, 6: basics}
-  # 上の sources.feeds（一般のニュース媒体）も見出しにKaiaがあれば拾う
+  # 上の sources.feeds（一般のニュース媒体）も見出しにKaia・JPYC・円ステーブルコインがあれば拾う
   include_general_feeds: true
-  # Kaia専用の情報源（すべて実際に取得できることを確認済み）
+  # Kaia・JPYC専用の情報源（すべて実際に取得できることを確認済み）
   sources:
     - name: "Kaia公式ブログ"
       url: "https://blog.kaia.io/rss/"
@@ -643,11 +652,28 @@ kaia_daily:
       lang: en
       max_age_days: 14
       title_pattern: '^v?\d+\.\d+\.\d+'
+    # JPYCの公式発表はすべて拾う（コミュニティ向けまとめの柱）
     - name: "JPYC（PR TIMES）"
       url: "https://prtimes.jp/companyrdf.php?company_id=54018"
       kind: partner
       lang: ja
       max_age_days: 14
+    - name: "JPYC公式note"
+      url: "https://note.com/jpyc/rss"
+      kind: partner
+      lang: ja
+      max_age_days: 10
+    - name: "ニュース検索（JPYC）"
+      url: "https://www.bing.com/news/search?q=JPYC&format=rss&setlang=ja&cc=JP"
+      kind: media
+      lang: ja
+      max_age_days: 7
+      require_keywords: true
+    - name: "ニュース検索（円建てステーブルコイン）"
+      url: "https://www.bing.com/news/search?q=%E5%86%86%E5%BB%BA%E3%81%A6%E3%82%B9%E3%83%86%E3%83%BC%E3%83%96%E3%83%AB%E3%82%B3%E3%82%A4%E3%83%B3&format=rss&setlang=ja&cc=JP"
+      kind: media
+      lang: ja
+      max_age_days: 7
       require_keywords: true
     - name: "ニュース検索（英語）"
       url: "https://www.bing.com/news/search?q=%22Kaia%22+blockchain&format=rss"

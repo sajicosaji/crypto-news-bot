@@ -13,16 +13,91 @@ def _kcfg():
 
 
 def _add(conn, url, *, title="Kaia news", kind="media", lang="en", hours_ago=10, story="s1",
-         importance=4, sentiment="positive", price_talk=0, japan=0, used_on=None, source="Media"):
+         importance=4, sentiment="positive", price_talk=0, japan=0, used_on=None, source="Media",
+         topic="kaia", digest_on=None):
     pub = (NOW - timedelta(hours=hours_ago)).astimezone(timezone.utc).isoformat()
     conn.execute(
         "INSERT INTO kaia_items(url, source, kind, lang, title, summary, body, published_at, first_seen, triaged, "
-        "relevant, story, ja_title, importance, sentiment, price_talk, japan, used_on) "
-        "VALUES (?, ?, ?, ?, ?, ?, '', ?, ?, 1, 1, ?, ?, ?, ?, ?, ?, ?)",
+        "relevant, story, ja_title, importance, sentiment, price_talk, japan, used_on, topic, digest_on) "
+        "VALUES (?, ?, ?, ?, ?, ?, '', ?, ?, 1, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (url, source, kind, lang, title, "x" * 500, pub, pub, story, title, importance, sentiment,
-         price_talk, japan, used_on),
+         price_talk, japan, used_on, topic, digest_on),
     )
     conn.commit()
+
+
+def _digest_cfg(**overrides):
+    return {"kaia_daily": {**_kcfg(), "digest_max_items": 5, "digest_window_hours": 72,
+                           "digest_first_window_hours": 168, "digest_min_importance": 2,
+                           "digest_topic_limits": {"stablecoin": 2}, **overrides}}
+
+
+def test_digest_picks_new_stories_in_section_order(conn):
+    k.ensure_schema(conn)
+    # 前回のまとめがある（初回扱いにしない）
+    conn.execute("INSERT INTO kaia_posts(date, kind, created_at) VALUES ('2026-10-23', 'digest', 'x')")
+    _add(conn, "https://sc1", story="sc1", topic="stablecoin", importance=4, lang="ja", japan=1, hours_ago=5)
+    _add(conn, "https://sc2", story="sc2", topic="stablecoin", importance=4, lang="ja", japan=1, hours_ago=6)
+    _add(conn, "https://sc3", story="sc3", topic="stablecoin", importance=4, lang="ja", japan=1, hours_ago=7)
+    _add(conn, "https://j1", story="jpyc1", topic="jpyc", importance=3, kind="partner", lang="ja", hours_ago=20)
+    _add(conn, "https://k1", story="kaia1", topic="kaia", importance=3, kind="official", hours_ago=30)
+    _add(conn, "https://b1", story="both1", topic="both", importance=4, kind="partner", lang="ja", hours_ago=40)
+    _add(conn, "https://old", story="old", topic="kaia", importance=5, hours_ago=24 * 4)       # 72時間より前
+    _add(conn, "https://done", story="done", topic="jpyc", importance=5, hours_ago=3, digest_on="2026-10-23")
+    _add(conn, "https://bad", story="bad", topic="kaia", importance=5, sentiment="negative", hours_ago=3)
+    _add(conn, "https://price", story="price", topic="jpyc", importance=5, price_talk=1, hours_ago=3)
+    _add(conn, "https://tiny", story="tiny", topic="kaia", importance=1, hours_ago=3)
+    picked = k.digest_stories(conn, _digest_cfg(), NOW)
+    assert [g["story"] for g in picked][:4] == ["both1", "kaia1", "jpyc1", "sc1"]
+    assert len(picked) == 5
+    assert sum(g["topic"] == "stablecoin" for g in picked) == 2  # 円ステーブルコインは2件まで
+
+
+def test_digest_first_run_looks_back_one_week(conn):
+    k.ensure_schema(conn)
+    _add(conn, "https://w", story="week-old", topic="jpyc", importance=4, hours_ago=24 * 5)
+    assert [g["story"] for g in k.digest_stories(conn, _digest_cfg(), NOW)] == ["week-old"]
+    conn.execute("INSERT INTO kaia_posts(date, kind, created_at) VALUES ('2026-10-23', 'digest', 'x')")
+    assert k.digest_stories(conn, _digest_cfg(), NOW) == []
+
+
+def test_compose_community_inserts_sources_and_urls_by_program(conn):
+    k.ensure_schema(conn)
+    conn.execute("INSERT INTO kaia_posts(date, kind, created_at) VALUES ('2026-10-23', 'digest', 'x')")
+    _add(conn, "https://prtimes.jp/a", story="both1", topic="both", kind="partner", source="JPYC（PR TIMES）",
+         importance=4, hours_ago=5)
+    _add(conn, "https://news.example/b", story="jpyc1", topic="jpyc", source="ニュース", importance=3, hours_ago=5)
+    stories = k.digest_stories(conn, _digest_cfg(), NOW)
+    digest = {"intro": "今日は2件です。", "closing": "", "items": [
+        {"id": 1, "title": "JPYCとLINE NEXTが提携", "summary": "覚書を結びました。", "point": "チャージが便利に"},
+        {"id": 2, "title": "空の話題", "summary": "", "point": ""},
+    ]}
+    text = k.compose_community(digest, stories, {"community_footer": "※投資助言ではありません"}, NOW)
+    assert text.startswith("📰 Kaia・JPYCニュース｜10/24（土）")
+    assert "【🤝 Kaia × JPYC】" in text and "1️⃣ JPYCとLINE NEXTが提携" in text
+    assert "🔗 JPYC（PR TIMES）｜提携先の公式発表\nhttps://prtimes.jp/a" in text
+    assert "空の話題" not in text and "【💴 JPYC】" not in text  # 要約が空の話題は載せない
+    assert text.endswith("※投資助言ではありません")
+
+
+def test_keyword_topic():
+    assert k._keyword_topic("JPYC、LINE NEXTと覚書") == "both"
+    assert k._keyword_topic("Kaia launches X") == "kaia"
+    assert k._keyword_topic("JPYC累計発行額100億円") == "jpyc"
+    assert k._keyword_topic("3メガバンクが円建てステーブルコイン") == "stablecoin"
+
+
+def test_split_message_keeps_blocks_under_limit():
+    text = "\n\n".join(["あ" * 800, "い" * 800, "う" * 800])
+    parts = k._split_message(text, limit=1900)
+    assert len(parts) == 2 and all(len(p) <= 1900 for p in parts)
+    assert parts[1] == "う" * 800
+
+
+def test_check_texts_ignores_numbers_in_urls():
+    warnings = k.check_texts("JPYCの発表\n\n#Kaia", "詳しくは https://prtimes.jp/main/html/rd/p/000000333.000054018.html",
+                             _kcfg(), "JPYCの発表", NOW)
+    assert warnings == []
 
 
 def test_x_weight_counts_japanese_as_two():
