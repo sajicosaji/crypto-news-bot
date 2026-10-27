@@ -294,3 +294,19 @@ def test_easy_title_rules_for_governance_forum():
     assert k.easy_title_rule("Update on GC Member: Bughole") == "Kaiaの運営メンバー（GC）についてのお知らせ：Bughole"
     assert k.easy_title_rule("[CR] Contribution Reward Monthly Report - Epoch 2") == "貢献報酬（CR）の月ごとの報告（第2期）"
     assert k.easy_title_rule("JPYC、累計発行額100億円を突破") == "JPYC、累計発行額100億円を突破"
+
+
+def test_detect_lang_from_title():
+    assert k.detect_lang("JPYC stablecoin falls short of targets", "ja") == "en"
+    assert k.detect_lang("JPYC、累計発行額100億円を突破", "en") == "ja"
+    assert k.detect_lang("카이아, 업비트 상장", "ja") == "ko"
+    assert k.detect_lang("円建て決済実証開始", "ja") == "ja"
+
+
+def test_headline_mode_skips_english_article_from_japanese_search(conn):
+    k.ensure_schema(conn)
+    # 日本語のニュース検索から来た英語の記事（設定上は lang=ja）
+    _add(conn, "https://en", story="en", topic="jpyc", lang="ja", title="JPYC stablecoin falls short of targets", hours_ago=3)
+    _add(conn, "https://ja", story="ja", topic="jpyc", lang="ja", title="JPYC、累計発行額100億円を突破", hours_ago=3)
+    picked = k.digest_stories(conn, _digest_cfg(), NOW, japanese_only=True)
+    assert [g["story"] for g in picked] == ["ja"]

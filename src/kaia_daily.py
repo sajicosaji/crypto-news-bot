@@ -278,7 +278,9 @@ def collect(conn, cfg: dict, now: datetime) -> int:
             cur = conn.execute(
                 "INSERT OR IGNORE INTO kaia_items(url, source, kind, lang, title, summary, body, published_at, first_seen) "
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (link, source_name, src.get("kind", "media"), src.get("lang", "en"), title, summary, body,
+                (link, source_name, src.get("kind", "media"),
+                 src.get("lang", "en") if src.get("lang") == "multi" else detect_lang(title, src.get("lang", "en")),
+                 title, summary, body,
                  published.isoformat() if published else None, now.astimezone(timezone.utc).isoformat()),
             )
             added += cur.rowcount
@@ -477,6 +479,17 @@ def _low_quality(item: dict) -> bool:
     return any(h in host for h in LOW_QUALITY_HOSTS)
 
 
+def detect_lang(title: str, default: str = "en") -> str:
+    """見出しの文字から言語を決める（日本語のニュース検索でも英語の記事が返ってくるため）。"""
+    if re.search(r"[぀-ヿ]", title):
+        return "ja"
+    if re.search(r"[가-힯]", title):
+        return "ko"
+    if re.search(r"[一-鿿]", title):
+        return default if default in ("ja", "zh") else "ja"
+    return "en"
+
+
 def _rep_key(item: dict):
     """同じ出来事の記事のうち、代表にする順（公式 → 提携先の発表 → 日本語 → 媒体の記事 → URLが短い）。"""
     return (item["kind"] not in OFFICIAL_KINDS, item["kind"] != "partner", item["lang"] != "ja",
@@ -497,7 +510,10 @@ def _stories(conn, now: datetime, days: float) -> list[dict]:
                                            "negative": False, "price_talk": False, "japan": False,
                                            "official": False, "used": False, "digested": False,
                                            "ja_title": r["ja_title"], "topic": r["topic"] or "kaia"})
-        g["items"].append(dict(r))
+        item = dict(r)
+        if item["lang"] != "multi":
+            item["lang"] = detect_lang(item["title"], item["lang"] or "en")
+        g["items"].append(item)
         if (r["importance"] or 0) > g["importance"]:
             g["importance"] = r["importance"] or 0
             g["ja_title"] = r["ja_title"]
