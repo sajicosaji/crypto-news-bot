@@ -29,6 +29,10 @@ on:
 
 # 同時に走るとデータベースの引き継ぎが壊れるため、必ず1つずつ実行する。
 # 新しいジョブが来たら古いジョブを止めて引き継ぐ（長時間ジョブが居座らないように）。
+# Kaia・JPYCのWebページ用データ（kaia-data ブランチ）を書き出すために書き込み権限が要る
+permissions:
+  contents: write
+
 concurrency:
   group: crypto-news-bot
   cancel-in-progress: true
@@ -83,6 +87,8 @@ jobs:
           WEBHOOK_WLD: ${{ secrets.WEBHOOK_WLD }}
           # Kaiaアンバサダーの投稿案を届ける専用チャンネル（未設定なら投稿案づくりはお休み）
           WEBHOOK_KAIA: ${{ secrets.WEBHOOK_KAIA }}
+          # Kaia・JPYCのWebページ用データを kaia-data ブランチへ書き出す
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # 日本語要約に使う。未設定でも動く（抜粋表示に自動で戻る）
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # ワークスペースに紐づいていないAPIキーの場合だけ必要（未設定なら無視される）

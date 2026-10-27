@@ -1,0 +1,5 @@
+{
+  "name": "kaia-jpyc-desk",
+  "private": true,
+  "description": "Kaia・JPYC デスク（Cloudflare Pagesで公開する静的ページ。データはGitHubの kaia-data ブランチ）"
+}

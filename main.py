@@ -57,15 +57,18 @@ def parse_args() -> argparse.Namespace:
     mode.add_argument("--alert", action="store_true", help="速報をチェックする")
     mode.add_argument("--weekly", action="store_true", help="週次振り返りを投稿する")
     mode.add_argument("--serve", action="store_true", help="自走モード（指定時間ループして各モードを実行）")
-    mode.add_argument("--kaia", action="store_true", help="Kaia投稿案を今すぐ1本作る")
+    mode.add_argument("--kaia", action="store_true", help="Kaia発信案（まとめ）を今すぐ作る")
+    mode.add_argument("--kaia-refresh", action="store_true", help="Kaia・JPYCのニュース一覧だけWebに更新する")
     parser.add_argument("--kaia-theme", default=None,
                         help="Kaia投稿案の枠（news/recap/howto/data/ecosystem/tech/japan/basics。省略で曜日どおり）")
     parser.add_argument("--dry-run", action="store_true", help="投稿せず内容を表示する")
     parser.add_argument("--test-webhooks", action="store_true", help="各チャンネルにテスト投稿する")
     parser.add_argument("--max-runtime", type=int, default=330, help="自走モードの最大実行時間（分）")
     args = parser.parse_args()
-    if not (args.digest or args.alert or args.weekly or args.serve or args.kaia or args.test_webhooks):
-        parser.error("--digest / --alert / --weekly / --serve / --kaia / --test-webhooks のいずれかを指定してください")
+    if not (args.digest or args.alert or args.weekly or args.serve or args.kaia or args.kaia_refresh
+            or args.test_webhooks):
+        parser.error("--digest / --alert / --weekly / --serve / --kaia / --kaia-refresh / --test-webhooks "
+                     "のいずれかを指定してください")
     return args
 
 
@@ -346,11 +349,14 @@ def run_serve(conn, cfg: dict, dry_run: bool, max_runtime_minutes: int) -> None:
                     iso = now.isocalendar()
                     db.set_state(conn, "last_weekly_week", f"{iso.year}-W{iso.week}")
 
-            # Kaiaアンバサダーの投稿案（1日1本。失敗したら次の巡回でやり直す）
+            # Kaiaアンバサダーの発信案（朝のまとめは1日1本。失敗したら次の巡回でやり直す）
+            # それ以外の時間は数時間おきにWebのニュース一覧だけ更新する
             if kaia_daily.should_run(conn, cfg, now) and not (dry_run and kaia_done_in_dry_run):
-                logger.info("Kaia投稿案の時刻になりました（%s）", now.strftime("%m/%d %H:%M"))
+                logger.info("Kaia発信案の時刻になりました（%s）", now.strftime("%m/%d %H:%M"))
                 kaia_daily.run(conn, cfg, dry_run, now=now)
                 kaia_done_in_dry_run = True
+            elif kaia_daily.should_refresh(conn, cfg, now):
+                kaia_daily.refresh(conn, cfg, dry_run, now=now)
 
             run_alert(conn, cfg, dry_run)
         except Exception:
@@ -386,6 +392,8 @@ def main() -> None:
             run_serve(conn, cfg, args.dry_run, args.max_runtime)
         elif args.kaia:
             kaia_daily.run(conn, cfg, args.dry_run, theme=args.kaia_theme)
+        elif args.kaia_refresh:
+            kaia_daily.refresh(conn, cfg, args.dry_run)
 
         report = summarize.usage_report(cfg)
         if report:

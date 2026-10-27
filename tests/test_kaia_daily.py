@@ -177,3 +177,63 @@ def test_should_run_needs_webhook_and_time(conn, monkeypatch):
     from src import db
     db.set_state(conn, "kaia_last_date", NOW.date().isoformat())
     assert not k.should_run(conn, cfg, NOW)
+
+
+def test_title_similarity_separates_stories():
+    same = ("JPYC、SBJ銀行・LINE NEXTと覚書 口座連携チャージ実証へ",
+            "JPYC、韓国系SBJ銀行・LINE NEXTと提携──銀行口座からのチャージ機能 ...")
+    other = ("Zept株式会社、日本円ステーブルコイン「JPYC」の取引を自動記録 ...",
+             "Kaia、貢献報酬プログラム「CR」の対象資産に日本円ステーブルコイン「JPYC」が導入")
+    assert k.title_similarity(*same) >= k.SAME_STORY_SIMILARITY
+    assert k.title_similarity(*other) < k.SAME_STORY_SIMILARITY
+
+
+def test_heuristic_triage_merges_same_story(conn):
+    k.ensure_schema(conn)
+    pub = NOW.astimezone(timezone.utc).isoformat()
+    for n, title in enumerate(["JPYC、SBJ銀行・LINE NEXTと覚書 口座連携チャージ実証へ",
+                               "JPYC、韓国系SBJ銀行・LINE NEXTと提携──銀行口座からのチャージ機能 ...",
+                               "SBI、韓国最大級のカード会社と提携──円建てステーブルコインの ..."]):
+        conn.execute("INSERT INTO kaia_items(url, source, kind, lang, title, summary, published_at, first_seen) "
+                     "VALUES (?, 'm', 'media', 'ja', ?, '', ?, ?)", (f"https://x/{n}", title, pub, pub))
+    k.triage(conn, {"kaia_daily": {}}, None, NOW)
+    stories = [r["story"] for r in conn.execute("SELECT story FROM kaia_items ORDER BY url")]
+    assert stories[0] == stories[1] != stories[2]
+
+
+def test_headline_digest_without_ai(conn):
+    k.ensure_schema(conn)
+    _add(conn, "https://a", story="s", topic="jpyc", lang="ja", title="JPYC、累計発行額100億円を突破",
+         kind="partner", source="JPYC（PR TIMES）", hours_ago=3)
+    conn.execute("UPDATE kaia_items SET summary='JPYC株式会社は、累計発行額が100億円を突破したと発表しました。今後も拡大を目指します。'")
+    stories = k.digest_stories(conn, _digest_cfg(), NOW)
+    digest = k.headline_digest(stories)
+    assert digest["x_post"] == "" and digest["items"][0]["summary"].endswith("。")
+    text = k.compose_community(digest, stories, {}, NOW, require_summary=False)
+    assert "1️⃣ JPYC、累計発行額100億円を突破" in text and "https://a" in text
+
+
+def test_digest_skips_urls_already_on_web(conn):
+    k.ensure_schema(conn)
+    _add(conn, "https://shown", story="shown", topic="jpyc", hours_ago=3)
+    _add(conn, "https://new", story="new", topic="jpyc", hours_ago=3)
+    picked = k.digest_stories(conn, _digest_cfg(), NOW, published_urls={"https://shown"})
+    assert [g["story"] for g in picked] == ["new"]
+
+
+def test_publish_web_keeps_archive_and_writes_preview(conn, tmp_path, monkeypatch):
+    k.ensure_schema(conn)
+    monkeypatch.setattr(k, "BASE_DIR", tmp_path)
+    monkeypatch.setattr(k, "chain_numbers", lambda: {"jpy": 1})
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    _add(conn, "https://a", story="s", topic="kaia", hours_ago=3)
+    cfg = {"kaia_daily": {**_kcfg(), "web": {"enabled": True}}}
+    site = {"archive": [{"date": "2026-10-23", "items": []}, {"date": "2026-10-24", "items": [], "old": True}]}
+    entry = {"date": "2026-10-24", "items": []}
+    assert k.publish_web(conn, cfg, NOW, entry=entry, site=site)
+    import json
+    data = json.loads((tmp_path / "data" / "kaia_site_preview.json").read_text(encoding="utf-8"))
+    assert [a["date"] for a in data["archive"]] == ["2026-10-24", "2026-10-23"]
+    assert "old" not in data["archive"][0]  # 同じ日のまとめは差し替える
+    assert data["news"][0]["url"] == "https://a" and data["numbers"] == {"jpy": 1}
+    assert data["topics"] and data["status"]["ai"] in ("none", "ok", "invalid_key")

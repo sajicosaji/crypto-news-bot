@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Kaia・JPYC デスク</title>
+<meta name="description" content="Kaia・JPYCのニュースまとめと発信の準備をする場所">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23151a12'/%3E%3Cpath d='M20 16v32M20 33l18-17M27 27l13 21' stroke='%23BFF009' stroke-width='7' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #f4f5ef;
+  --surface: #ffffff;
+  --surface-2: #eef0e6;
+  --ink: #15180f;
+  --ink-2: #4b5143;
+  --ink-3: #7b8270;
+  --line: #dde1d2;
+  --accent: #bff009;
+  --accent-ink: #15180f;
+  --accent-strong: #5b7a00;
+  --kaia: #4f7a00;
+  --kaia-bg: #ecf8c4;
+  --jpyc: #1d5fd1;
+  --jpyc-bg: #e1ebff;
+  --both: #0b7a6c;
+  --both-bg: #d8f3ee;
+  --stable: #8a5a00;
+  --stable-bg: #f8ecd2;
+  --warn: #a64b00;
+  --warn-bg: #fff1e0;
+  --bad: #b3261e;
+  --bad-bg: #fde8e6;
+  --good: #2f7d32;
+  --shadow: 0 1px 2px rgba(20, 24, 12, .06), 0 4px 16px rgba(20, 24, 12, .05);
+  --radius: 14px;
+  --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e110c;
+    --surface: #171b14;
+    --surface-2: #1f251b;
+    --ink: #eef2e6;
+    --ink-2: #b9c0ad;
+    --ink-3: #848c78;
+    --line: #2c3326;
+    --accent: #bff009;
+    --accent-ink: #11140c;
+    --accent-strong: #c9f53a;
+    --kaia: #c9f53a;
+    --kaia-bg: #26300f;
+    --jpyc: #8fb4ff;
+    --jpyc-bg: #17233d;
+    --both: #63d6c4;
+    --both-bg: #11302b;
+    --stable: #f0c06a;
+    --stable-bg: #33270f;
+    --warn: #ffb86b;
+    --warn-bg: #36240f;
+    --bad: #ff8a80;
+    --bad-bg: #3a1714;
+    --good: #81c784;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e110c; --surface: #171b14; --surface-2: #1f251b; --ink: #eef2e6; --ink-2: #b9c0ad; --ink-3: #848c78;
+  --line: #2c3326; --accent-strong: #c9f53a; --kaia: #c9f53a; --kaia-bg: #26300f; --jpyc: #8fb4ff; --jpyc-bg: #17233d;
+  --both: #63d6c4; --both-bg: #11302b; --stable: #f0c06a; --stable-bg: #33270f; --warn: #ffb86b; --warn-bg: #36240f;
+  --bad: #ff8a80; --bad-bg: #3a1714; --good: #81c784; --shadow: 0 1px 2px rgba(0, 0, 0, .3); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.7 system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", sans-serif;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+
+/* ヘッダー */
+header.top { padding: 18px 0 10px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.mark { width: 34px; height: 34px; border-radius: 9px; background: #151a12; display: grid; place-items: center; flex: none; }
+.mark svg { width: 22px; height: 22px; }
+.brand h1 { font-size: 18px; line-height: 1.2; margin: 0; letter-spacing: .02em; }
+.brand .sub { font-size: 12px; color: var(--ink-3); }
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.badge.prep { background: var(--accent); color: var(--accent-ink); }
+.badge.ai { background: var(--both-bg); color: var(--both); }
+.badge.headline { background: var(--surface-2); color: var(--ink-2); }
+.updated { margin-left: auto; text-align: right; font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
+
+/* タブ */
+nav.tabs { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+nav.tabs .wrap { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+nav.tabs .wrap::-webkit-scrollbar { display: none; }
+.tab { flex: none; border: 0; background: none; padding: 11px 12px 10px; font-size: 14px; color: var(--ink-3); cursor: pointer; border-bottom: 2.5px solid transparent; }
+.tab[aria-selected="true"] { color: var(--ink); font-weight: 700; border-bottom-color: var(--accent-strong); }
+
+main { padding: 16px 0 48px; }
+section[hidden] { display: none; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; margin-bottom: 14px; }
+.card h2 { font-size: 15px; margin: 0 0 8px; }
+.muted { color: var(--ink-3); }
+.small { font-size: 12.5px; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.spacer { flex: 1; }
+
+/* 今日 */
+.lead-date { font-size: 13px; color: var(--ink-3); }
+.lead-title { font-size: 19px; font-weight: 800; margin: 2px 0 6px; line-height: 1.45; }
+.reason { font-size: 13px; color: var(--ink-2); }
+.box-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.box-head h3 { font-size: 14px; margin: 0; }
+.box-head .count { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+pre.text { white-space: pre-wrap; word-break: break-word; margin: 0; padding: 14px; background: var(--surface-2); border-radius: 10px; font: inherit; font-size: 14.5px; line-height: 1.75; max-height: 62vh; overflow: auto; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; min-height: 40px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.x { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn:active { transform: translateY(1px); }
+.btn.done { background: var(--both-bg); border-color: var(--both-bg); color: var(--both); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.notice { border-radius: 10px; padding: 10px 12px; font-size: 13.5px; margin-top: 10px; }
+.notice.warn { background: var(--warn-bg); color: var(--warn); }
+.notice.bad { background: var(--bad-bg); color: var(--bad); }
+.notice.info { background: var(--surface-2); color: var(--ink-2); }
+.notice ul { margin: 4px 0 0; padding-left: 1.2em; }
+.empty { text-align: center; padding: 34px 16px; color: var(--ink-3); }
+.empty .big { font-size: 30px; margin-bottom: 6px; }
+
+/* ニュース */
+.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: 10px; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.day { font-size: 12.5px; font-weight: 700; color: var(--ink-3); margin: 18px 2px 8px; }
+.news { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+.news a.title { display: block; font-weight: 700; text-decoration: none; line-height: 1.5; }
+.news a.title:hover { text-decoration: underline; }
+.news .orig { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+.topic { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 6px; }
+.topic.kaia { background: var(--kaia-bg); color: var(--kaia); }
+.topic.jpyc { background: var(--jpyc-bg); color: var(--jpyc); }
+.topic.both { background: var(--both-bg); color: var(--both); }
+.topic.stablecoin { background: var(--stable-bg); color: var(--stable); }
+.flag { font-size: 11.5px; font-weight: 700; padding: 1px 7px; border-radius: 6px; }
+.flag.bad { background: var(--bad-bg); color: var(--bad); }
+.flag.warn { background: var(--warn-bg); color: var(--warn); }
+.flag.done { background: var(--surface-2); color: var(--ink-2); }
+details.others { margin-top: 6px; font-size: 12.5px; }
+details.others summary { cursor: pointer; color: var(--ink-3); }
+details.others a { display: block; color: var(--ink-2); padding: 2px 0; }
+
+/* 履歴 */
+details.hist { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; }
+details.hist > summary { list-style: none; cursor: pointer; padding: 12px 14px; display: flex; gap: 10px; align-items: center; }
+details.hist > summary::-webkit-details-marker { display: none; }
+details.hist > summary .d { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 64px; }
+details.hist > summary .h { flex: 1; font-size: 14px; }
+details.hist .inner { padding: 0 14px 14px; }
+
+/* 数字 */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.stat .label { font-size: 12.5px; color: var(--ink-3); }
+.stat .value { font-size: 26px; font-weight: 800; letter-spacing: -.01em; font-variant-numeric: tabular-nums; line-height: 1.3; margin: 2px 0; }
+.stat .value small { font-size: 14px; font-weight: 600; margin-left: 2px; }
+.stat .exact { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.delta { font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.spark { width: 100%; height: 56px; margin-top: 8px; display: block; }
+.spark path.line { fill: none; stroke: var(--jpyc); stroke-width: 2; }
+.spark path.area { fill: var(--jpyc-bg); }
+
+/* 豆知識 */
+.topic-group h3 { font-size: 14px; margin: 18px 2px 8px; }
+.tip { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 11px 14px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; text-decoration: none; }
+.tip .t { flex: 1; font-weight: 600; }
+.tip .host { font-size: 11.5px; color: var(--ink-3); }
+
+/* 準備状況 */
+.check { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.check:last-child { border-bottom: 0; }
+.dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; flex: none; font-size: 14px; font-weight: 800; }
+.dot.ok { background: var(--both-bg); color: var(--both); }
+.dot.wait { background: var(--warn-bg); color: var(--warn); }
+.dot.ng { background: var(--bad-bg); color: var(--bad); }
+.dot.off { background: var(--surface-2); color: var(--ink-3); }
+.check .what { font-weight: 700; }
+.check .how { font-size: 13px; color: var(--ink-2); }
+.todo { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+.todo:last-child { border-bottom: 0; }
+.todo input { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--accent-strong); flex: none; }
+.todo.checked .what { text-decoration: line-through; color: var(--ink-3); }
+.src-list { margin: 6px 0 0; padding: 0; list-style: none; font-size: 13px; }
+.src-list li { display: flex; gap: 8px; padding: 2px 0; }
+.src-list .n { margin-left: auto; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 16px 28px; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 10; }
+.toast.show { opacity: 1; }
+.loading { padding: 40px 0; text-align: center; color: var(--ink-3); }
+@media (max-width: 420px) {
+  .lead-title { font-size: 17.5px; }
+  .stat .value { font-size: 23px; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap brand">
+    <div class="mark" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M20 12v40M20 34l20-22M28 27l14 25" stroke="#BFF009" stroke-width="8" stroke-linecap="round" fill="none"/></svg></div>
+    <div>
+      <h1>Kaia・JPYC デスク</h1>
+      <div class="sub">ニュースまとめと発信の準備 <span id="prepBadge" class="badge prep" hidden>準備期間</span></div>
+    </div>
+    <div class="updated" id="updated"></div>
+  </div>
+</header>
+<nav class="tabs" aria-label="ページの切り替え">
+  <div class="wrap" role="tablist">
+    <button class="tab" role="tab" data-tab="today" aria-selected="true">今日</button>
+    <button class="tab" role="tab" data-tab="news" aria-selected="false">ニュース</button>
+    <button class="tab" role="tab" data-tab="history" aria-selected="false">履歴</button>
+    <button class="tab" role="tab" data-tab="numbers" aria-selected="false">数字</button>
+    <button class="tab" role="tab" data-tab="topics" aria-selected="false">豆知識</button>
+    <button class="tab" role="tab" data-tab="status" aria-selected="false">準備状況</button>
+  </div>
+</nav>
+<main class="wrap">
+  <div id="loading" class="loading">読み込み中…</div>
+  <section id="today" hidden></section>
+  <section id="news" hidden></section>
+  <section id="history" hidden></section>
+  <section id="numbers" hidden></section>
+  <section id="topics" hidden></section>
+  <section id="status" hidden></section>
+</main>
+<footer>
+  毎朝7時にまとめ、3時間おきにニュース一覧を自動で更新しています。<br>
+  情報共有が目的で、投資を勧めるものではありません。
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+  var DATA_URL = "https://raw.githubusercontent.com/sajicosaji/crypto-news-bot/kaia-data/kaia/site.json";
+  var TOPIC_NAMES = { both: "Kaia × JPYC", kaia: "Kaia", jpyc: "JPYC", stablecoin: "円ステーブルコイン" };
+  var WEEK = "日月火水木金土";
+
+  // ---------- 小さな道具 ----------
+  function el(tag, attrs, children) {
+    var node = document.createElement(tag);
+    if (attrs) {
+      Object.keys(attrs).forEach(function (k) {
+        var v = attrs[k];
+        if (v === null || v === undefined || v === false) return;
+        if (k === "class") node.className = v;
+        else if (k === "text") node.textContent = v;
+        else if (k.slice(0, 2) === "on") node.addEventListener(k.slice(2), v);
+        else node.setAttribute(k, v === true ? "" : v);
+      });
+    }
+    (children || []).forEach(function (c) {
+      if (c === null || c === undefined || c === false) return;
+      node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return node;
+  }
+  function store(key, value) {
+    try {
+      if (value === undefined) return window.localStorage.getItem(key);
+      window.localStorage.setItem(key, value);
+    } catch (e) { return null; }
+    return null;
+  }
+  function toast(msg) {
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { t.classList.remove("show"); }, 1600);
+  }
+  function copyText(text, button) {
+    function done() {
+      toast("コピーしました");
+      if (button) {
+        var label = button.textContent;
+        button.classList.add("done");
+        button.textContent = "✓ コピー済み";
+        setTimeout(function () { button.classList.remove("done"); button.textContent = label; }, 1800);
+      }
+    }
+    function fallback() {
+      var ta = el("textarea", { style: "position:fixed;top:-1000px;opacity:0", readonly: true });
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      if (ok) done(); else toast("コピーできませんでした。長押しで選んでください");
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else {
+      fallback();
+    }
+  }
+  function xWeight(text) {
+    text = text.replace(/https?:\/\/\S+/g, "x".repeat(23));
+    var n = 0;
+    for (var ch of text.normalize("NFC")) {
+      var cp = ch.codePointAt(0);
+      if (cp === 0xFE0F || cp === 0xFE0E) continue;
+      n += (cp <= 0x10FF || (cp >= 0x2000 && cp <= 0x200D) || (cp >= 0x2010 && cp <= 0x201F) || (cp >= 0x2032 && cp <= 0x2037)) ? 1 : 2;
+    }
+    return n;
+  }
+  function parseDate(iso) { var d = new Date(iso); return isNaN(d) ? null : d; }
+  function jstParts(d) {
+    var j = new Date(d.getTime() + 9 * 3600 * 1000);
+    return { y: j.getUTCFullYear(), m: j.getUTCMonth() + 1, d: j.getUTCDate(), w: WEEK[j.getUTCDay()], h: j.getUTCHours(), mi: j.getUTCMinutes() };
+  }
+  function mdw(iso) {
+    var d = parseDate(iso.length === 10 ? iso + "T12:00:00+09:00" : iso);
+    if (!d) return iso;
+    var p = jstParts(d);
+    return p.m + "/" + p.d + "（" + p.w + "）";
+  }
+  function hm(d) { var p = jstParts(d); return p.h + ":" + String(p.mi).padStart(2, "0"); }
+  function ago(iso) {
+    var d = parseDate(iso);
+    if (!d) return "";
+    var s = (Date.now() - d.getTime()) / 1000;
+    if (s < 3600) return Math.max(1, Math.round(s / 60)) + "分前";
+    if (s < 86400) return Math.round(s / 3600) + "時間前";
+    return Math.round(s / 86400) + "日前";
+  }
+  function todayJst() { var p = jstParts(new Date()); return p.y + "-" + String(p.m).padStart(2, "0") + "-" + String(p.d).padStart(2, "0"); }
+  function jaAmount(x) {
+    if (x >= 1e8) return (x / 1e8).toFixed(2) + "億";
+    if (x >= 1e4) return Math.round(x / 1e4).toLocaleString("ja-JP") + "万";
+    return Math.round(x).toLocaleString("ja-JP");
+  }
+  function delta(now, before) {
+    if (!before) return "";
+    var p = (now / before - 1) * 100;
+    return (p >= 0 ? "▲ +" : "▼ ") + p.toFixed(1) + "%";
+  }
+  function host(url) { try { return new URL(url).hostname.replace(/^www\./, ""); } catch (e) { return ""; } }
+  function topicTag(t) { return el("span", { class: "topic " + (TOPIC_NAMES[t] ? t : "kaia"), text: TOPIC_NAMES[t] || "Kaia" }); }
+
+  // ---------- 各タブ ----------
+  function textBox(title, text, opts) {
+    opts = opts || {};
+    var copyBtn = el("button", { class: "btn primary", type: "button" }, ["コピー"]);
+    copyBtn.addEventListener("click", function () { copyText(text, copyBtn); });
+    var head = el("div", { class: "box-head" }, [
+      el("h3", { text: title }),
+      el("span", { class: "count", text: opts.count || (text.length + "字") })
+    ]);
+    var actions = el("div", { class: "actions" }, [copyBtn].concat(opts.extra || []));
+    return el("div", { class: "card" }, [head, opts.note ? el("p", { class: "small muted", text: opts.note, style: "margin:-2px 0 8px" }) : null, el("pre", { class: "text", text: text }), actions]);
+  }
+
+  function renderEntry(a, container, isToday) {
+    var badge = a.mode === "ai" ? el("span", { class: "badge ai", text: "AI要約" }) : el("span", { class: "badge headline", text: "見出しモード" });
+    container.appendChild(el("div", { class: "card" }, [
+      el("div", { class: "row" }, [el("span", { class: "lead-date", text: mdw(a.date) + "のまとめ" }), badge, el("span", { class: "spacer" }), el("span", { class: "small muted", text: a.label || "" })]),
+      el("div", { class: "lead-title", text: a.headline || "" }),
+      el("div", { class: "reason", text: a.reason || "" }),
+      a.warnings && a.warnings.length ? el("div", { class: "notice warn" }, ["⚠️ 点検で気になった点", el("ul", null, a.warnings.map(function (w) { return el("li", { text: w }); }))]) : null,
+      a.mode !== "ai" && isToday ? el("div", { class: "notice info", text: "いまは見出しと抜粋だけのまとめです。AIの要約とX本文は、APIキーを設定すると自動で始まります。" }) : null
+    ]));
+    if (a.community_text) {
+      container.appendChild(textBox("① コミュニティ向け", a.community_text, { note: "LINEオープンチャット・Telegram・Discordにそのまま貼れます" }));
+    }
+    if (a.x_text) {
+      var w = xWeight(a.x_text);
+      var extra = [];
+      if (a.intent_url) extra.push(el("a", { class: "btn x", href: a.intent_url, target: "_blank", rel: "noopener" }, ["𝕏 投稿画面を開く"]));
+      container.appendChild(textBox("② X本文", a.x_text, { count: w + "/280", extra: extra }));
+    }
+    if (a.reply_text) {
+      container.appendChild(textBox("③ リプ欄用", a.reply_text, { note: "リンクはリプに置くと表示が伸びやすくなります" }));
+    }
+    if (a.cautions && a.cautions.length) {
+      container.appendChild(el("div", { class: "card" }, [
+        el("h2", { text: "🔎 知っておきたいニュース" }),
+        el("p", { class: "small muted", text: "まとめには入れていません（悪いニュース・注意が必要な話）", style: "margin:0 0 6px" }),
+        el("div", null, a.cautions.map(function (c) { return el("a", { href: c.url, target: "_blank", rel: "noopener", style: "display:block;padding:3px 0", text: c.title }); }))
+      ]));
+    }
+  }
+
+  function renderToday(data, root) {
+    var a = (data.archive || [])[0];
+    if (!a) {
+      root.appendChild(el("div", { class: "card empty" }, [el("div", { class: "big", text: "🌱" }), "まだまとめがありません。", el("br"), "毎朝" + ((data.status && data.status.digest_hour) || 7) + "時に自動で作られます。「ニュース」タブで最新の話題を見られます。"]));
+      return;
+    }
+    if (a.date !== todayJst()) {
+      root.appendChild(el("div", { class: "notice info", style: "margin:0 0 14px", text: "今日のまとめはまだです（毎朝" + ((data.status && data.status.digest_hour) || 7) + "時ごろ）。下は " + mdw(a.date) + " のまとめです。" }));
+    }
+    renderEntry(a, root, true);
+  }
+
+  function renderNews(data, root) {
+    var list = data.news || [];
+    var current = store("kaia.newsFilter") || "all";
+    var chips = el("div", { class: "chips", role: "group", "aria-label": "区分で絞り込む" });
+    var listBox = el("div");
+    var filters = [["all", "すべて"], ["both", "Kaia × JPYC"], ["kaia", "Kaia"], ["jpyc", "JPYC"], ["stablecoin", "円ステーブルコイン"]];
+    function draw() {
+      chips.innerHTML = "";
+      filters.forEach(function (f) {
+        var n = f[0] === "all" ? list.length : list.filter(function (x) { return x.topic === f[0]; }).length;
+        chips.appendChild(el("button", { class: "chip", type: "button", "aria-pressed": String(current === f[0]), onclick: function () { current = f[0]; store("kaia.newsFilter", current); draw(); } }, [f[1] + " " + n]));
+      });
+      listBox.innerHTML = "";
+      var shown = list.filter(function (x) { return current === "all" || x.topic === current; });
+      if (!shown.length) { listBox.appendChild(el("div", { class: "empty", text: "この区分の話題はまだありません" })); return; }
+      var lastDay = "";
+      shown.forEach(function (n) {
+        var day = mdw(n.date);
+        if (day !== lastDay) { listBox.appendChild(el("div", { class: "day", text: day })); lastDay = day; }
+        var flags = [];
+        if (n.negative) flags.push(el("span", { class: "flag bad", text: "注意" }));
+        if (n.price_talk) flags.push(el("span", { class: "flag warn", text: "値動きの話" }));
+        if (n.digested) flags.push(el("span", { class: "flag done", text: "✓ まとめ済み" }));
+        var others = (n.others || []).length ? el("details", { class: "others" }, [
+          el("summary", { text: "ほかの報道 " + n.others.length + "件" }),
+          el("div", null, n.others.map(function (o) { return el("a", { href: o.url, target: "_blank", rel: "noopener", text: "・" + o.source }); }))
+        ]) : null;
+        listBox.appendChild(el("article", { class: "news" }, [
+          el("a", { class: "title", href: n.url, target: "_blank", rel: "noopener", text: n.title }),
+          n.original_title ? el("div", { class: "orig", text: n.original_title }) : null,
+          el("div", { class: "meta" }, [topicTag(n.topic), el("span", { text: n.source + "｜" + n.label })].concat(flags).concat([el("span", { text: ago(n.date) })])),
+          others
+        ]));
+      });
+    }
+    root.appendChild(el("p", { class: "small muted", style: "margin:0 0 10px", text: "直近1週間のKaia・JPYC・円建てステーブルコインの話題。同じ出来事は1件にまとめています。" }));
+    root.appendChild(chips);
+    root.appendChild(listBox);
+    draw();
+  }
+
+  function renderHistory(data, root) {
+    var arc = data.archive || [];
+    if (!arc.length) { root.appendChild(el("div", { class: "card empty", text: "まだ履歴はありません" })); return; }
+    root.appendChild(el("p", { class: "small muted", style: "margin:0 0 10px", text: "これまでのまとめ（" + arc.length + "日分）。開くとそのままコピーできます。" }));
+    arc.forEach(function (a, i) {
+      var inner = el("div", { class: "inner" });
+      var d = el("details", { class: "hist" }, [
+        el("summary", null, [el("span", { class: "d", text: mdw(a.date) }), el("span", { class: "h", text: a.headline || "" }), el("span", { class: "badge " + (a.mode === "ai" ? "ai" : "headline"), text: a.mode === "ai" ? "AI" : "見出し" })]),
+        inner
+      ]);
+      d.addEventListener("toggle", function () { if (d.open && !inner.childNodes.length) renderEntry(a, inner, false); });
+      root.appendChild(d);
+    });
+  }
+
+  function sparkline(values) {
+    var w = 300, h = 56, pad = 4;
+    var min = Math.min.apply(null, values), max = Math.max.apply(null, values);
+    var span = max - min || 1;
+    var pts = values.map(function (v, i) {
+      return [(i / (values.length - 1)) * w, h - pad - ((v - min) / span) * (h - pad * 2)];
+    });
+    var line = pts.map(function (p, i) { return (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" ");
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("class", "spark");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "直近30日の推移");
+    var area = document.createElementNS(svg.namespaceURI, "path");
+    area.setAttribute("class", "area");
+    area.setAttribute("d", line + " L" + w + " " + h + " L0 " + h + " Z");
+    var path = document.createElementNS(svg.namespaceURI, "path");
+    path.setAttribute("class", "line");
+    path.setAttribute("d", line);
+    svg.appendChild(area);
+    svg.appendChild(path);
+    return svg;
+  }
+
+  function renderNumbers(data, root) {
+    var n = data.numbers || {};
+    if (!n.stable_usd && !n.tvl) { root.appendChild(el("div", { class: "card empty", text: "数字はまだ取得できていません" })); return; }
+    var cards = el("div", { class: "stats" });
+    if (n.jpy) {
+      cards.appendChild(el("div", { class: "stat" }, [
+        el("div", { class: "label", text: "Kaia上の日本円建てステーブルコイン（JPYCなど）" }),
+        el("div", { class: "value" }, ["約" + jaAmount(n.jpy), el("small", { text: "円" })]),
+        el("div", { class: "exact", text: Math.round(n.jpy).toLocaleString("ja-JP") + "円" }),
+        el("div", { class: "delta", text: n.jpy_30d ? "30日前から " + delta(n.jpy, n.jpy_30d) : "" }),
+        n.jpy_history && n.jpy_history.length > 2 ? sparkline(n.jpy_history) : null
+      ]));
+    }
+    if (n.stable_usd) {
+      cards.appendChild(el("div", { class: "stat" }, [
+        el("div", { class: "label", text: "Kaia上のステーブルコイン流通額（合計）" }),
+        el("div", { class: "value" }, ["約" + jaAmount(n.stable_usd), el("small", { text: "ドル" })]),
+        el("div", { class: "exact", text: "$" + Math.round(n.stable_usd).toLocaleString("en-US") }),
+        el("div", { class: "delta", text: "7日前から " + delta(n.stable_usd, n.stable_usd_7d) + "　30日前から " + delta(n.stable_usd, n.stable_usd_30d) })
+      ]));
+    }
+    if (n.tvl) {
+      cards.appendChild(el("div", { class: "stat" }, [
+        el("div", { class: "label", text: "Kaia上のDeFiに預けられている資産（TVL）" }),
+        el("div", { class: "value" }, ["約" + jaAmount(n.tvl), el("small", { text: "ドル" })]),
+        el("div", { class: "exact", text: "$" + Math.round(n.tvl).toLocaleString("en-US") }),
+        el("div", { class: "delta", text: "7日前から " + delta(n.tvl, n.tvl_7d) })
+      ]));
+    }
+    root.appendChild(cards);
+    root.appendChild(el("p", { class: "small muted", style: "margin-top:12px" }, [
+      "出典: ", el("a", { href: "https://defillama.com/stablecoins/Kaia", target: "_blank", rel: "noopener", text: "DefiLlama" }),
+      "（" + (n.stable_date ? mdw(n.stable_date) + "時点" : "") + "）。発信に使うときは日付と出典を添えてください。"
+    ]));
+  }
+
+  function renderTopics(data, root) {
+    var topics = data.topics || [];
+    root.appendChild(el("p", { class: "small muted", style: "margin:0 0 4px", text: "ニュースが無い日の「今日の豆知識」の元になる公式資料です。準備期間の勉強用にもどうぞ。" }));
+    var groups = {};
+    var order = [];
+    topics.forEach(function (t) { if (!groups[t.theme]) { groups[t.theme] = []; order.push(t.theme); } groups[t.theme].push(t); });
+    order.forEach(function (theme) {
+      var g = el("div", { class: "topic-group" }, [el("h3", { text: theme + "（" + groups[theme].length + "）" })]);
+      groups[theme].forEach(function (t) {
+        var url = (t.urls || [])[0] || "#";
+        g.appendChild(el("a", { class: "tip", href: url, target: "_blank", rel: "noopener" }, [el("span", { class: "t", text: t.title }), el("span", { class: "host", text: host(url) })]));
+      });
+      root.appendChild(g);
+    });
+  }
+
+  var TODOS = [
+    ["community", "発信する場所を決める", "LINEオープンチャット・Telegram・Discordのどこで届けるか。Discord/Telegramなら自動で流す仕組みも足せます"],
+    ["rules", "アンバサダーの決まりごとを確認する", "付けるハッシュタグ、アンバサダーであることの表記（ステマ規制）、使ってよいロゴや画像"],
+    ["profile", "Xのプロフィールを整える", "Kaiaアンバサダーであること、どんな情報を発信するか"],
+    ["apikey", "AI要約のAPIキーを用意する", "console.anthropic.com でキーを作る（ワークスペースを選ぶ）。設定すると要約とX本文が自動で始まります"],
+    ["tone", "1週間まとめを読んで好みを決める", "件数・長さ・口調・入れたい話題/外したい話題を、気づいたら伝える"],
+    ["launch", "発信を始める日を決める", "準備期間が終わったら、このページの「準備期間」表示を外します"]
+  ];
+
+  function renderStatus(data, root) {
+    var s = data.status || {};
+    var src = (s.sources && s.sources.sources) || [];
+    var okCount = src.filter(function (x) { return x.ok; }).length;
+    function check(state, what, how, extra) {
+      var mark = { ok: "✓", wait: "!", ng: "×", off: "–" }[state];
+      return el("div", { class: "check" }, [el("span", { class: "dot " + state, text: mark }), el("div", { style: "flex:1;min-width:0" }, [el("div", { class: "what", text: what }), el("div", { class: "how", text: how }), extra || null])]);
+    }
+    var aiState = s.ai === "ok" ? ["ok", "AI要約: 動いています", "まとめの要約とX本文をAIが書いています"]
+      : s.ai === "invalid_key" ? ["ng", "AI要約: APIキーが無効です", "新しいAPIキーを作って設定すると、要約とX本文が自動で始まります（それまでは見出しモード）"]
+      : ["wait", "AI要約: APIキー待ち", "それまでは見出し・抜粋・出典リンクだけのまとめで動きます"];
+    var srcList = el("ul", { class: "src-list" }, src.map(function (x) {
+      return el("li", null, [el("span", { text: x.ok ? "✅" : "⚠️" }), el("span", { text: x.name }), el("span", { class: "n", text: x.ok ? "新着 " + x.added : "取得できず" })]);
+    }));
+    var generalNote = s.sources && s.sources.general_total ? el("div", { class: "how", text: "ほかに一般のニュース媒体 " + s.sources.general_ok + "/" + s.sources.general_total + " も見ています" }) : null;
+    root.appendChild(el("div", { class: "card" }, [
+      el("h2", { text: "仕組みの状態" }),
+      check(src.length && okCount === src.length ? "ok" : (okCount ? "wait" : "ng"), "情報源: " + okCount + "/" + src.length + " 取得できています",
+        s.sources && s.sources.checked_at ? "最後に見に行った時刻 " + mdw(s.sources.checked_at) + " " + hm(parseDate(s.sources.checked_at)) : "",
+        el("div", null, [srcList, generalNote])),
+      check(aiState[0], aiState[1], aiState[2]),
+      check("ok", "Webページ: 自動で更新中", "まとめは毎朝" + (s.digest_hour || 7) + "時、ニュース一覧は" + (s.refresh_hours || 3) + "時間おき"),
+      check(s.discord ? "ok" : "off", "Discordへの通知: " + (s.discord ? "設定済み" : "使っていません（任意）"), "このページだけで使えます。スマホに通知がほしければ設定できます")
+    ]));
+    var todoCard = el("div", { class: "card" }, [el("h2", { text: "準備期間のやることリスト" }), el("p", { class: "small muted", style: "margin:0 0 4px", text: "チェックはこの端末に保存されます" })]);
+    TODOS.forEach(function (t) {
+      var key = "kaia.todo." + t[0];
+      var box = el("input", { type: "checkbox", "aria-label": t[1] });
+      box.checked = store(key) === "1";
+      var row = el("label", { class: "todo" + (box.checked ? " checked" : "") }, [box, el("div", null, [el("div", { class: "what", text: t[1] }), el("div", { class: "how", text: t[2] })])]);
+      box.addEventListener("change", function () { store(key, box.checked ? "1" : "0"); row.classList.toggle("checked", box.checked); });
+      todoCard.appendChild(row);
+    });
+    root.appendChild(todoCard);
+  }
+
+  // ---------- 起動 ----------
+  var RENDER = { today: renderToday, news: renderNews, history: renderHistory, numbers: renderNumbers, topics: renderTopics, status: renderStatus };
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+  function show(name) {
+    if (!RENDER[name]) name = "today";
+    tabs.forEach(function (t) { t.setAttribute("aria-selected", String(t.dataset.tab === name)); });
+    Object.keys(RENDER).forEach(function (k) { document.getElementById(k).hidden = k !== name; });
+    store("kaia.tab", name);
+    if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
+  }
+  tabs.forEach(function (t) { t.addEventListener("click", function () { show(t.dataset.tab); window.scrollTo(0, 0); }); });
+
+  fetch(DATA_URL + "?t=" + Math.floor(Date.now() / 60000), { cache: "no-store" })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (data) {
+      document.getElementById("loading").remove();
+      if (data.prep_mode) document.getElementById("prepBadge").hidden = false;
+      var up = parseDate(data.updated_at);
+      if (up) document.getElementById("updated").innerHTML = "";
+      if (up) document.getElementById("updated").append("更新 " + mdw(data.updated_at) + " " + hm(up), el("br"), ago(data.updated_at));
+      Object.keys(RENDER).forEach(function (k) {
+        try { RENDER[k](data, document.getElementById(k)); }
+        catch (e) { document.getElementById(k).appendChild(el("div", { class: "notice bad", text: "この部分を表示できませんでした" })); }
+      });
+      show((location.hash || "").slice(1) || store("kaia.tab") || "today");
+    })
+    .catch(function () {
+      document.getElementById("loading").textContent = "データを読み込めませんでした。少し時間をおいて開き直してください。";
+    });
+})();
+</script>
+</body>
+</html>

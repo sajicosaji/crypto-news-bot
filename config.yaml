@@ -609,6 +609,17 @@ kaia_daily:
   digest_min_importance: 2       # 大事さ（1〜5）がこれ未満の小ネタは載せない
   digest_topic_limits: {stablecoin: 2}   # JPYC以外の円ステーブルコインの話は2件まで
   community_footer: "※情報共有が目的です。投資を勧めるものではありません。"
+  # Webページ（Cloudflare Pagesのページが、GitHubの kaia-data ブランチの site.json を読む）
+  web:
+    enabled: true
+    page_url: "https://kaia-jpyc-desk.pages.dev"
+    repo: "sajicosaji/crypto-news-bot"
+    branch: "kaia-data"
+    path: "kaia/site.json"
+    refresh_hours: 3             # ニュース一覧と準備状況はこの間隔で更新（文章は書かないので安い）
+    news_days: 7                 # ニュース一覧に出す日数
+    archive_days: 90             # まとめの履歴を残す日数
+    prep_mode: true              # アンバサダーの準備期間中（ページに「準備期間」と出す）
   # 書く係は上位モデル（本人の名前で公開される文章なので品質優先）。仕分け係は安いモデル。
   # 1日1回の呼び出しで、まとめとX本文を一緒に書く。目安: 1日 ¥10〜20 → 月 ¥300〜600
   writer_model: "claude-opus-5-5"

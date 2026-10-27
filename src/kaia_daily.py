@@ -12,10 +12,14 @@
 - 書く: 上位モデルに「材料に書いてあることだけ」で、コミュニティ向けのまとめとX用の本文を書かせる。
   URLと出典名はプログラムが差し込む（モデルに書かせると間違うことがあるため）。
 - 確かめる: Xの文字数（日本語は1字=2）・材料に無い数字・煽り表現を機械的に点検する。
-- 届ける: 本人のDiscordへ届ける。コミュニティ（LINE・Telegram・Discord）やXへは本人が確認してから貼る。
+- 届ける: Webページ（GitHubの kaia-data ブランチに site.json を書き、Cloudflareのページが読む）と、
+  設定されていれば本人のDiscordへ。コミュニティやXへは本人が確認してから貼る。
+- Claude APIが使えない間は「見出しモード」（見出し・抜粋・出典リンクだけのまとめ）で動き続ける。
+- 朝のまとめとは別に、数時間おきにニュース一覧と準備状況だけをWebに更新する（文章は書かないので安い）。
 """
 from __future__ import annotations
 
+import base64
 import calendar
 import html as html_lib
 import json
@@ -90,8 +94,20 @@ OFFICIAL_KINDS = {"official", "forum", "release"}
 KIND_LABELS = {"official": "Kaia公式", "forum": "Kaia公式", "release": "Kaia公式", "partner": "提携先の公式発表"}
 
 
-def _kind_label(kind: str) -> str:
+def _kind_label(kind: str, url: str = "") -> str:
+    if kind == "media" and any(h in urlparse(url).netloc.lower() for h in ("note.com", "medium.com", "ameblo.jp",
+                                                                          "hatenablog", "livedoor.blog")):
+        return "個人ブログ"
     return KIND_LABELS.get(kind, "報道")
+
+
+# Claude APIの状態（none=キー未設定 / ok / invalid_key=キーが無効）。Webの「準備状況」に出す
+_ai_state = {"value": "none"}
+
+
+def _note_api_error(e: Exception) -> None:
+    if getattr(e, "status_code", None) == 401:
+        _ai_state["value"] = "invalid_key"
 
 
 SCHEMA = """
@@ -227,11 +243,14 @@ def collect(conn, cfg: dict, now: datetime) -> int:
                             "max_age_days": 7, "require_keywords": True})
 
     added = 0
+    status = []
     for src in sources:
         resp = _http_get(src["url"])
         if resp is None:
+            status.append({"name": src["name"], "ok": False, "added": 0, "own": src in kcfg.get("sources", [])})
             continue
         feed = feedparser.parse(resp.content)
+        before = added
         max_age = timedelta(days=src.get("max_age_days", 7))
         pattern = re.compile(src["title_pattern"]) if src.get("title_pattern") else None
         for entry in feed.entries:
@@ -263,7 +282,13 @@ def collect(conn, cfg: dict, now: datetime) -> int:
                  published.isoformat() if published else None, now.astimezone(timezone.utc).isoformat()),
             )
             added += cur.rowcount
+        status.append({"name": src["name"], "ok": True, "added": added - before, "own": src in kcfg.get("sources", [])})
     conn.commit()
+    # Webの「準備状況」用（Kaia・JPYC専用の情報源だけ出す）
+    db.set_state(conn, "kaia_source_status", json.dumps(
+        {"checked_at": now.isoformat(), "sources": [s for s in status if s["own"]],
+         "general_ok": sum(1 for s in status if not s["own"] and s["ok"]),
+         "general_total": sum(1 for s in status if not s["own"])}, ensure_ascii=False))
     logger.info("Kaia・JPYCの話題: 新しく%d件を記録しました", added)
     return added
 
@@ -341,6 +366,22 @@ def _heuristic_triage(row) -> dict:
     }
 
 
+def _bigrams(text: str) -> set[str]:
+    s = re.sub(r"[\s\W_]+", "", unicodedata.normalize("NFKC", text).lower())
+    return {s[i:i + 2] for i in range(len(s) - 1)}
+
+
+def title_similarity(a: str, b: str) -> float:
+    """見出しの似ている度合い（2文字ずつの重なり）。実測で同じ出来事0.55〜0.67、別の出来事は0.47以下。"""
+    x, y = _bigrams(a), _bigrams(b)
+    if not x or not y:
+        return 0.0
+    return len(x & y) / min(len(x), len(y))
+
+
+SAME_STORY_SIMILARITY = 0.5
+
+
 def _apply_triage(conn, rowid: int, t: dict) -> None:
     topic = t.get("topic") if t.get("topic") in TOPICS else "other"
     conn.execute(
@@ -395,11 +436,28 @@ def triage(conn, cfg: dict, client, now: datetime) -> int:
                     results[int(item["id"])] = item
             else:
                 logger.warning("仕分けが途中で止まりました stop_reason=%s", response.stop_reason)
+            _ai_state["value"] = "ok"
         except Exception as e:  # 仕分けに失敗しても簡易判定で続ける
+            _note_api_error(e)
             logger.warning("仕分けに失敗しました（簡易判定で続けます） error=%s", e)
 
+    # 簡易判定の分は、見出しが似ている話題を同じ出来事としてまとめる
+    clusters: list[tuple[str, list[str]]] = [(k["story"], [k["ja_title"] or ""]) for k in known]
     for r in rows:
-        _apply_triage(conn, r["id"], results.get(r["id"]) or _heuristic_triage(r))
+        t = results.get(r["id"])
+        if t is None:
+            t = _heuristic_triage(r)
+            match = next((story for story, titles in clusters
+                          if any(title_similarity(r["title"], x) >= SAME_STORY_SIMILARITY for x in titles)), None)
+            if match:
+                t["story"] = match
+        _apply_triage(conn, r["id"], t)
+        for story, titles in clusters:
+            if story == t["story"]:
+                titles.append(r["title"])
+                break
+        else:
+            clusters.append((t["story"], [r["title"]]))
     conn.commit()
     logger.info("話題を%d件仕分けました（モデル判定%d件）", len(rows), len(results))
     return len(rows)
@@ -407,9 +465,22 @@ def triage(conn, cfg: dict, client, now: datetime) -> int:
 
 # ---------------------------------------------------------------- 選ぶ
 
+# 個人ブログ・転載サイト（公式・提携先のnoteは別扱い）。代表には選びにくくし、これだけの話題はまとめに載せない
+LOW_QUALITY_HOSTS = ("note.com", "msn.com", "medium.com", "x.com", "twitter.com", "youtube.com", "ameblo.jp",
+                     "hatenablog", "livedoor.blog")
+
+
+def _low_quality(item: dict) -> bool:
+    if item["kind"] in OFFICIAL_KINDS or item["kind"] == "partner":
+        return False
+    host = urlparse(item["url"]).netloc.lower()
+    return any(h in host for h in LOW_QUALITY_HOSTS)
+
+
 def _rep_key(item: dict):
-    """同じ出来事の記事のうち、代表にする順（公式 → 提携先の発表 → 日本語 → URLが短い）。"""
-    return (item["kind"] not in OFFICIAL_KINDS, item["kind"] != "partner", item["lang"] != "ja", len(item["url"]))
+    """同じ出来事の記事のうち、代表にする順（公式 → 提携先の発表 → 日本語 → 媒体の記事 → URLが短い）。"""
+    return (item["kind"] not in OFFICIAL_KINDS, item["kind"] != "partner", item["lang"] != "ja",
+            _low_quality(item), len(item["url"]))
 
 
 def _stories(conn, now: datetime, days: float) -> list[dict]:
@@ -453,16 +524,26 @@ def score_story(g: dict, now: datetime) -> float:
             + min(g["sources"] - 1, 2))
 
 
-def digest_stories(conn, cfg: dict, now: datetime) -> list[dict]:
-    """今日のまとめに入れる話題（まだ届けていないもの）。並びはまとめの見出し順。"""
+def digest_stories(conn, cfg: dict, now: datetime, published_urls: set[str] | None = None,
+                   japanese_only: bool = False) -> list[dict]:
+    """今日のまとめに入れる話題（まだ届けていないもの）。並びはまとめの見出し順。
+
+    published_urls: Webに載せ済みの記事URL。DBが消えても同じ話題を二度載せないために使う。
+    japanese_only: 翻訳できない見出しモードでは、日本語の記事か公式発表がある話題だけにする。
+    """
     kcfg = _kcfg(cfg)
-    first_time = conn.execute("SELECT 1 FROM kaia_posts WHERE kind='digest' LIMIT 1").fetchone() is None
+    published_urls = published_urls or set()
+    first_time = (conn.execute("SELECT 1 FROM kaia_posts WHERE kind='digest' LIMIT 1").fetchone() is None
+                  and not published_urls)
     # 初回だけは直近1週間から選ぶ（いきなり空っぽにしない）
     hours = kcfg.get("digest_first_window_hours", 168) if first_time else kcfg.get("digest_window_hours", 72)
     candidates = [
         g for g in _stories(conn, now, days=hours / 24)
         if not g["digested"] and not g["negative"] and not g["price_talk"]
         and g["topic"] in TOPICS and g["importance"] >= kcfg.get("digest_min_importance", 2)
+        and not any(i["url"] in published_urls for i in g["items"])
+        and not all(_low_quality(i) for i in g["items"])
+        and (not japanese_only or any(i["lang"] == "ja" or i["kind"] in OFFICIAL_KINDS for i in g["items"]))
     ]
     candidates.sort(key=lambda g: score_story(g, now), reverse=True)
 
@@ -545,7 +626,7 @@ def news_material(story: dict) -> tuple[str, list[str]]:
         if not text:
             continue
         pub = _parse_iso(item["published_at"])
-        parts.append(f"[資料{n}] {item['source']}（{_kind_label(item['kind'])}） 公開日: {_ja_date(pub)}\n"
+        parts.append(f"[資料{n}] {item['source']}（{_kind_label(item['kind'], item['url'])}） 公開日: {_ja_date(pub)}\n"
                      f"見出し: {item['title']}\nURL: {item['url']}\n本文: {text}")
         urls.append(item["url"])
     return "\n\n".join(parts), urls
@@ -560,7 +641,7 @@ def digest_material(stories: list[dict]) -> str:
             text = _item_text(item, max_chars=2500)
             if text:
                 pub = _parse_iso(item["published_at"])
-                texts.append(f"出典: {item['source']}（{_kind_label(item['kind'])}） 公開日: {_ja_date(pub)}\n"
+                texts.append(f"出典: {item['source']}（{_kind_label(item['kind'], item['url'])}） 公開日: {_ja_date(pub)}\n"
                              f"見出し: {item['title']}\n本文: {text}")
             if sum(len(t) for t in texts) > 1500:
                 break
@@ -576,7 +657,7 @@ def recap_material(stories: list[dict]) -> tuple[str, list[str]]:
     for n, g in enumerate(stories, 1):
         item = g["items"][0]
         text = (item.get("body") or item.get("summary") or "")[:800]
-        parts.append(f"[話題{n}] {g['ja_title']}\n出典: {item['source']}（{_kind_label(item['kind'])}） 公開日: "
+        parts.append(f"[話題{n}] {g['ja_title']}\n出典: {item['source']}（{_kind_label(item['kind'], item['url'])}） 公開日: "
                      f"{_ja_date(_parse_iso(item['published_at']))}\n見出し: {item['title']}\n概要: {text}")
         urls.append(item["url"])
     return "\n\n".join(parts), urls
@@ -601,15 +682,17 @@ def _ja_amount(x: float) -> str:
     return f"{x:,.0f}"
 
 
-def data_material(now: datetime) -> tuple[str, list[str]]:
-    """数字で見るKaia: DefiLlamaのステーブルコイン流通額とTVL。値段は使わない。"""
-    lines = []
+def chain_numbers() -> dict:
+    """Kaia上のステーブルコイン流通額（合計・日本円建て）とTVL（DefiLlama）。取れなかった項目は入れない。"""
+    out: dict = {}
     resp = _http_get("https://stablecoins.llama.fi/stablecoincharts/Kaia")
     if resp is not None:
-        sc = resp.json()
+        try:
+            sc = resp.json()
+        except ValueError:
+            sc = []
         if len(sc) > 31:
             last, w1, m1 = sc[-1], sc[-8], sc[-31]
-            day = datetime.fromtimestamp(int(last["date"]), tz=timezone.utc)
 
             def usd_total(rec):
                 return sum((rec.get("totalCirculatingUSD") or {}).values())
@@ -617,24 +700,42 @@ def data_material(now: datetime) -> tuple[str, list[str]]:
             def jpy_native(rec):
                 return (rec.get("totalCirculating") or {}).get("peggedJPY") or 0
 
-            t0, t7, t30 = usd_total(last), usd_total(w1), usd_total(m1)
-            lines.append(f"Kaia上のステーブルコイン流通額の合計（{_ja_date(day)}時点）: {t0:,.0f}ドル（約{_ja_amount(t0)}ドル）")
-            lines.append(f"  7日前: {t7:,.0f}ドル（約{_ja_amount(t7)}ドル） / 30日前: {t30:,.0f}ドル（約{_ja_amount(t30)}ドル）")
-            if t7:
-                lines.append(f"  7日間の増減: {(t0 / t7 - 1) * 100:+.1f}% / 30日間の増減: {(t0 / t30 - 1) * 100:+.1f}%")
-            j0, j30 = jpy_native(last), jpy_native(m1)
-            if j0:
-                lines.append(f"うち日本円建てステーブルコイン（JPYCなど）: {j0:,.0f}円（約{_ja_amount(j0)}円）")
-                if j30:
-                    lines.append(f"  30日前: {j30:,.0f}円（約{_ja_amount(j30)}円） / 30日間の増減: {(j0 / j30 - 1) * 100:+.1f}%")
+            out["stable_date"] = datetime.fromtimestamp(int(last["date"]), tz=timezone.utc).isoformat()
+            out["stable_usd"], out["stable_usd_7d"], out["stable_usd_30d"] = usd_total(last), usd_total(w1), usd_total(m1)
+            out["jpy"], out["jpy_30d"] = jpy_native(last), jpy_native(m1)
+            out["jpy_history"] = [round(jpy_native(r)) for r in sc[-30:]]
     resp = _http_get("https://api.llama.fi/v2/historicalChainTvl/Kaia")
     if resp is not None:
-        tv = resp.json()
+        try:
+            tv = resp.json()
+        except ValueError:
+            tv = []
         if len(tv) > 8:
-            day = datetime.fromtimestamp(int(tv[-1]["date"]), tz=timezone.utc)
-            v0, v7 = tv[-1]["tvl"], tv[-8]["tvl"]
-            lines.append(f"Kaia上のDeFiに預けられている資産（TVL, {_ja_date(day)}時点）: {v0:,.0f}ドル（約{_ja_amount(v0)}ドル）、"
-                         f"7日前: {v7:,.0f}ドル（7日間の増減 {(v0 / v7 - 1) * 100:+.1f}%）")
+            out["tvl_date"] = datetime.fromtimestamp(int(tv[-1]["date"]), tz=timezone.utc).isoformat()
+            out["tvl"], out["tvl_7d"] = tv[-1]["tvl"], tv[-8]["tvl"]
+    return out
+
+
+def data_material(now: datetime) -> tuple[str, list[str]]:
+    """数字で見るKaia: DefiLlamaのステーブルコイン流通額とTVL。値段は使わない。"""
+    n = chain_numbers()
+    lines = []
+    if "stable_usd" in n:
+        t0, t7, t30 = n["stable_usd"], n["stable_usd_7d"], n["stable_usd_30d"]
+        day = _parse_iso(n["stable_date"])
+        lines.append(f"Kaia上のステーブルコイン流通額の合計（{_ja_date(day)}時点）: {t0:,.0f}ドル（約{_ja_amount(t0)}ドル）")
+        lines.append(f"  7日前: {t7:,.0f}ドル（約{_ja_amount(t7)}ドル） / 30日前: {t30:,.0f}ドル（約{_ja_amount(t30)}ドル）")
+        if t7 and t30:
+            lines.append(f"  7日間の増減: {(t0 / t7 - 1) * 100:+.1f}% / 30日間の増減: {(t0 / t30 - 1) * 100:+.1f}%")
+        j0, j30 = n["jpy"], n["jpy_30d"]
+        if j0:
+            lines.append(f"うち日本円建てステーブルコイン（JPYCなど）: {j0:,.0f}円（約{_ja_amount(j0)}円）")
+            if j30:
+                lines.append(f"  30日前: {j30:,.0f}円（約{_ja_amount(j30)}円） / 30日間の増減: {(j0 / j30 - 1) * 100:+.1f}%")
+    if "tvl" in n and n["tvl_7d"]:
+        v0, v7 = n["tvl"], n["tvl_7d"]
+        lines.append(f"Kaia上のDeFiに預けられている資産（TVL, {_ja_date(_parse_iso(n['tvl_date']))}時点）: "
+                     f"{v0:,.0f}ドル（約{_ja_amount(v0)}ドル）、7日前: {v7:,.0f}ドル（7日間の増減 {(v0 / v7 - 1) * 100:+.1f}%）")
     if not lines:
         return "", []
     urls = ["https://defillama.com/stablecoins/Kaia", "https://defillama.com/chain/Kaia"]
@@ -774,8 +875,10 @@ def _call_writer(client, kcfg: dict, prompt: str, schema: dict) -> dict | None:
             fallbacks="default",
         )
     except Exception as e:
+        _note_api_error(e)
         logger.warning("発信案の作成に失敗しました error=%s", e)
         return None
+    _ai_state["value"] = "ok"
     summarize._record_usage(model, response)
     if response.stop_reason != "end_turn":
         logger.warning("発信案の作成が途中で止まりました stop_reason=%s", response.stop_reason)
@@ -856,7 +959,35 @@ def write_digest(client, cfg: dict, stories: list[dict], material: str, now: dat
                              lambda p: " ".join(i["summary"] + i["point"] for i in p["items"]))
 
 
-def compose_community(digest: dict, stories: list[dict], kcfg: dict, now: datetime) -> str:
+def _snippet(text: str, limit: int = 90) -> str:
+    """抜粋の冒頭（文の切れ目で切る）。画像の表記・URL・全角英数字は整える。"""
+    text = unicodedata.normalize("NFKC", text or "")
+    text = re.sub(r"\[[^\]]*\]|https?://\S+", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    end = max(cut.rfind("。"), cut.rfind("．"))
+    return cut[:end + 1] if end >= limit // 2 else cut.rstrip("、, ") + "…"
+
+
+def headline_digest(stories: list[dict]) -> dict:
+    """Claude APIが使えないときのまとめ（見出し＋日本語記事の抜粋だけ。文章は作らない）。"""
+    items = []
+    for n, g in enumerate(stories, 1):
+        rep = g["items"][0]
+        title = rep["title"] if rep["lang"] == "ja" else (g["ja_title"] or rep["title"])
+        summary = _snippet(rep.get("summary") or rep.get("body") or "") if rep["lang"] == "ja" else ""
+        s_grams = _bigrams(summary)
+        if s_grams and len(s_grams & _bigrams(title)) / len(s_grams) > 0.8:
+            summary = ""  # 抜粋が見出しの繰り返しなら出さない
+        items.append({"id": n, "title": re.sub(r"\s*\.\.\.$|\s*…$", "…", title), "summary": summary, "point": ""})
+    return {"headline": f"新しい話題{len(stories)}件（見出しのみ）", "intro": "", "closing": "", "items": items,
+            "x_item_id": 0, "x_post": "", "x_reply": ""}
+
+
+def compose_community(digest: dict, stories: list[dict], kcfg: dict, now: datetime,
+                      require_summary: bool = True) -> str:
     """まとめ本文を組み立てる。出典名とURLはモデルではなくプログラムが入れる。"""
     by_id = {i["id"]: i for i in digest["items"]}
     lines = [f"📰 Kaia・JPYCニュース｜{now.month}/{now.day}（{WEEKDAY_JA[now.weekday()]}）"]
@@ -865,7 +996,7 @@ def compose_community(digest: dict, stories: list[dict], kcfg: dict, now: dateti
     current_topic, number = None, 0
     for n, g in enumerate(stories, 1):
         item = by_id.get(n)
-        if not item or not item["summary"].strip():
+        if not item or (require_summary and not item["summary"].strip()):
             continue
         if g["topic"] != current_topic:
             current_topic = g["topic"]
@@ -874,10 +1005,11 @@ def compose_community(digest: dict, stories: list[dict], kcfg: dict, now: dateti
         mark = NUMBER_EMOJI[number] if number < len(NUMBER_EMOJI) else "▶"
         number += 1
         lines.append(f"{mark} {item['title'].strip()}")
-        lines.append(item["summary"].strip())
+        if item["summary"].strip():
+            lines.append(item["summary"].strip())
         if item["point"].strip():
             lines.append(f"👉 {item['point'].strip()}")
-        lines.append(f"🔗 {rep['source']}｜{_kind_label(rep['kind'])}")
+        lines.append(f"🔗 {rep['source']}｜{_kind_label(rep['kind'], rep['url'])}")
         lines.append(rep["url"])
     if digest.get("closing", "").strip():
         lines += ["", digest["closing"].strip()]
@@ -931,42 +1063,187 @@ def _split_message(text: str, limit: int = 1900) -> list[str]:
     return chunks
 
 
-def deliver(cfg: dict, plan: dict, headline: str, community_text: str, x_text: str, reply_text: str,
-            urls: list[str], warnings: list[str], caution_list: list[dict], now: datetime, dry_run: bool) -> bool:
+def x_intent_url(x_text: str) -> str:
+    return "https://x.com/intent/post?text=" + quote(x_text, safe="") if x_text else ""
+
+
+def deliver(cfg: dict, entry: dict, caution_list: list[dict], now: datetime, dry_run: bool) -> bool:
+    """本人のDiscordへ届ける（WEBHOOK_KAIA があるときだけ。無ければ何もせず成功扱い）。"""
     kcfg = _kcfg(cfg)
     webhook = os.environ.get(kcfg.get("webhook_env", "WEBHOOK_KAIA"), "").strip()
     if not webhook and not dry_run:
-        logger.warning("%s が未設定のため発信案を届けられません", kcfg.get("webhook_env", "WEBHOOK_KAIA"))
-        return False
+        return True
     username = kcfg.get("username", "Kaia 発信係")
+    warnings = entry["warnings"]
 
     head = [f"📣 **{now.month}/{now.day}（{WEEKDAY_JA[now.weekday()]}）のKaia・JPYC発信案**　"
-            f"{THEME_LABELS.get(plan['kind'], plan['kind'])}",
-            f"**{headline}**",
-            f"選んだ理由: {plan['reason']}"]
-    intent = "https://x.com/intent/post?text=" + quote(x_text, safe="")
-    if len(intent) < 1500:
-        head.append(f"👉 [ワンタップでXの投稿画面を開く]({intent})")
+            f"{THEME_LABELS.get(entry['kind'], entry['kind'])}",
+            f"**{entry['headline']}**",
+            f"選んだ理由: {entry['reason']}"]
+    if entry["intent_url"] and len(entry["intent_url"]) < 1500:
+        head.append(f"👉 [ワンタップでXの投稿画面を開く]({entry['intent_url']})")
     head.append("✅ 点検: 問題なし" if not warnings else "⚠️ 点検:\n" + "\n".join(f"- {w}" for w in warnings))
     if caution_list:
         head.append("🔎 知っておきたいニュース（発信案には入れていません）:\n"
                     + "\n".join(f"- {g['ja_title']} <{g['items'][0]['url']}>" for g in caution_list[:3]))
-    head.append("-# 下に ①コミュニティ向け ②X本文 ③リプ欄用 が届きます。長押し→「テキストをコピー」で使えます")
+    if kcfg.get("web", {}).get("page_url"):
+        head.append(f"🌐 Webでも見られます: <{kcfg['web']['page_url']}>")
 
     messages: list[tuple[str, str | None]] = [("\n".join(head)[:1990], None)]
-    parts = _split_message(community_text)
+    parts = _split_message(entry["community_text"])
     for n, part in enumerate(parts, 1):
         suffix = f"（{n}/{len(parts)}）" if len(parts) > 1 else ""
         messages.append((part, f"① コミュニティ向け{suffix}（LINE・Telegram・Discordにそのまま貼れます）"))
-    messages.append((x_text, "② X本文（このまま投稿できます）"))
-    if reply_text.strip():
-        messages.append((reply_text, "③ リプ欄用（リンクはリプに置くと表示されやすくなります）"))
+    if entry["x_text"]:
+        messages.append((entry["x_text"], "② X本文（このまま投稿できます）"))
+    if entry["reply_text"].strip():
+        messages.append((entry["reply_text"], "③ リプ欄用（リンクはリプに置くと表示されやすくなります）"))
 
     ok = True
     for content, label in messages:
         embeds = [{"description": label, "color": 0xBFF009}] if label else None
         ok &= discord.post_webhook(webhook or "dry-run", username=username, content=content,
                                    embeds=embeds, dry_run=dry_run)
+    return ok
+
+
+# ---------------------------------------------------------------- Webページ用のデータ
+
+def _web_cfg(cfg: dict) -> dict:
+    return _kcfg(cfg).get("web") or {}
+
+
+def _gh_target(cfg: dict) -> tuple[str, str, str, str] | None:
+    """(トークン, リポジトリ, ブランチ, パス)。書き出せない環境なら None。"""
+    w = _web_cfg(cfg)
+    token = os.environ.get("GITHUB_TOKEN", "").strip()
+    repo = os.environ.get("GITHUB_REPOSITORY", "").strip() or w.get("repo", "")
+    if not (w.get("enabled") and token and repo):
+        return None
+    return token, repo, w.get("branch", "kaia-data"), w.get("path", "kaia/site.json")
+
+
+def _gh_headers(token: str) -> dict:
+    return {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28"}
+
+
+def load_site(cfg: dict) -> tuple[dict, str | None]:
+    """いま公開されている site.json と、その版（sha）。無ければ空。"""
+    target = _gh_target(cfg)
+    if target is None:
+        return {}, None
+    token, repo, branch, path = target
+    try:
+        resp = requests.get(f"https://api.github.com/repos/{repo}/contents/{path}", params={"ref": branch},
+                            headers=_gh_headers(token), timeout=REQUEST_TIMEOUT)
+    except requests.RequestException as e:
+        logger.warning("公開中のデータを読めませんでした error=%s", e)
+        return {}, None
+    if resp.status_code != 200:
+        return {}, None
+    body = resp.json()
+    try:
+        return json.loads(base64.b64decode(body["content"]).decode("utf-8")), body["sha"]
+    except (KeyError, ValueError):
+        return {}, body.get("sha")
+
+
+def _save_site(cfg: dict, payload: dict, sha: str | None, message: str) -> bool:
+    token, repo, branch, path = _gh_target(cfg)
+    content = base64.b64encode(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")).decode()
+    data = {"message": message, "content": content, "branch": branch}
+    if sha:
+        data["sha"] = sha
+    try:
+        resp = requests.put(f"https://api.github.com/repos/{repo}/contents/{path}", json=data,
+                            headers=_gh_headers(token), timeout=REQUEST_TIMEOUT)
+    except requests.RequestException as e:
+        logger.warning("Webへの書き出しに失敗しました error=%s", e)
+        return False
+    if resp.status_code in (200, 201):
+        return True
+    logger.warning("Webへの書き出しに失敗しました status=%s body=%s", resp.status_code, resp.text[:300])
+    return False
+
+
+def _published_urls(site: dict) -> set[str]:
+    return {i["url"] for a in site.get("archive", []) for i in a.get("items", []) if i.get("url")}
+
+
+def news_board(conn, now: datetime, days: int = 7) -> list[dict]:
+    """Webの「ニュース一覧」。同じ出来事は1件にまとめ、他の媒体は「ほかの報道」に入れる。"""
+    out = []
+    for g in sorted(_stories(conn, now, days=days), key=lambda g: g["latest_at"], reverse=True):
+        rep = g["items"][0]
+        title = rep["title"] if rep["lang"] == "ja" else (g["ja_title"] or rep["title"])
+        out.append({
+            "title": title,
+            "original_title": rep["title"] if title != rep["title"] else "",
+            "source": rep["source"], "label": _kind_label(rep["kind"], rep["url"]), "url": rep["url"],
+            "topic": g["topic"] if g["topic"] in TOPICS else "kaia",
+            "date": g["latest_at"].isoformat(), "importance": g["importance"],
+            "negative": g["negative"], "price_talk": g["price_talk"], "digested": g["digested"],
+            "others": [{"source": i["source"], "url": i["url"]} for i in g["items"][1:5]],
+        })
+    return out
+
+
+def site_status(conn, cfg: dict) -> dict:
+    kcfg = _kcfg(cfg)
+    try:
+        sources = json.loads(db.get_state(conn, "kaia_source_status") or "{}")
+    except ValueError:
+        sources = {}
+    has_key = bool(os.environ.get("ANTHROPIC_API_KEY", "").strip())
+    ai = _ai_state["value"] if has_key else "none"
+    return {
+        "ai": ai,
+        "discord": bool(os.environ.get(kcfg.get("webhook_env", "WEBHOOK_KAIA"), "").strip()),
+        "sources": sources,
+        "digest_hour": kcfg.get("hour_jst", 7),
+        "refresh_hours": _web_cfg(cfg).get("refresh_hours", 3),
+    }
+
+
+def publish_web(conn, cfg: dict, now: datetime, entry: dict | None = None, site: dict | None = None,
+                sha: str | None = None, dry_run: bool = False) -> bool:
+    """Webページ用の site.json を作って書き出す。entry があれば今日のまとめとして履歴の先頭に入れる。"""
+    w = _web_cfg(cfg)
+    if not w.get("enabled"):
+        return False
+    if site is None:
+        site, sha = load_site(cfg)
+    archive = [a for a in site.get("archive", []) if not entry or a.get("date") != entry["date"]]
+    if entry:
+        archive.insert(0, entry)
+    archive.sort(key=lambda a: a.get("date", ""), reverse=True)
+    payload = {
+        "version": 1,
+        "updated_at": now.isoformat(),
+        "prep_mode": bool(w.get("prep_mode", True)),
+        "status": site_status(conn, cfg),
+        "numbers": chain_numbers() or site.get("numbers") or {},
+        "news": news_board(conn, now, days=w.get("news_days", 7)),
+        "archive": archive[: w.get("archive_days", 90)],
+        "topics": [{"id": t["id"], "theme": THEME_LABELS.get(t["theme"], t["theme"]), "title": t["title"],
+                    "urls": t.get("urls", [])} for t in load_topics()],
+    }
+    if dry_run or _gh_target(cfg) is None:
+        preview = BASE_DIR / "data" / "kaia_site_preview.json"
+        preview.parent.mkdir(parents=True, exist_ok=True)
+        preview.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
+        logger.info("Webには書き出さず、%s に保存しました（%d bytes）", preview, preview.stat().st_size)
+        return True
+    message = f"Kaia・JPYCデータ更新 {now:%Y-%m-%d %H:%M}" + ("（まとめ）" if entry else "")
+    ok = _save_site(cfg, payload, sha, message)
+    if not ok:  # 別の実行と重なって版がずれた場合は、読み直して1回だけやり直す
+        site2, sha2 = load_site(cfg)
+        if entry is None and site2.get("archive"):
+            payload["archive"] = site2["archive"][: w.get("archive_days", 90)]
+        ok = _save_site(cfg, payload, sha2, message)
+    if ok:
+        logger.info("Webのデータを更新しました（ニュース%d件・履歴%d日分）", len(payload["news"]), len(payload["archive"]))
     return ok
 
 
@@ -983,7 +1260,7 @@ def build_plan(conn, cfg: dict, now: datetime, theme: str | None = None) -> tupl
         if story is not None:
             material, urls = news_material(story)
             if len(material) >= 300:
-                kinds = "Kaia公式の発表" if story["official"] else _kind_label(story["items"][0]["kind"])
+                kinds = "Kaia公式の発表" if story["official"] else _kind_label(story["items"][0]["kind"], story["items"][0]["url"])
                 reason = (f"{_ja_date(story['latest_at'])}の{kinds}（{story['items'][0]['source']}ほか、"
                           f"{story['sources']}媒体）・大事さ{story['importance']}/5"
                           + ("・日本に関係" if story["japan"] else ""))
@@ -1025,11 +1302,16 @@ def build_plan(conn, cfg: dict, now: datetime, theme: str | None = None) -> tupl
     return None
 
 
-def should_run(conn, cfg: dict, now: datetime) -> bool:
+def _has_destination(cfg: dict) -> bool:
+    """届け先（WebかDiscord）があるか。"""
     kcfg = _kcfg(cfg)
-    if not kcfg.get("enabled"):
-        return False
-    if not os.environ.get(kcfg.get("webhook_env", "WEBHOOK_KAIA"), "").strip():
+    return bool(_gh_target(cfg)) or bool(os.environ.get(kcfg.get("webhook_env", "WEBHOOK_KAIA"), "").strip())
+
+
+def should_run(conn, cfg: dict, now: datetime) -> bool:
+    """朝のまとめを作る時刻か。"""
+    kcfg = _kcfg(cfg)
+    if not kcfg.get("enabled") or not _has_destination(cfg):
         return False
     hour = kcfg.get("hour_jst", 7)
     if not (hour <= now.hour < hour + kcfg.get("window_hours", 6)):
@@ -1038,45 +1320,101 @@ def should_run(conn, cfg: dict, now: datetime) -> bool:
     return db.get_state(conn, "kaia_last_date") != now.date().isoformat()
 
 
-def run(conn, cfg: dict, dry_run: bool = False, theme: str | None = None, now: datetime | None = None) -> bool:
-    """1日分の発信案（コミュニティ向けまとめ＋X用1本）を作って届ける。成功したら True。
+def should_refresh(conn, cfg: dict, now: datetime) -> bool:
+    """Webのニュース一覧・準備状況を更新する時刻か（数時間おき）。"""
+    if not _kcfg(cfg).get("enabled") or _gh_target(cfg) is None:
+        return False
+    ensure_schema(conn)
+    last = _parse_iso(db.get_state(conn, "kaia_last_refresh"))
+    return last is None or now - last >= timedelta(hours=_web_cfg(cfg).get("refresh_hours", 3))
 
-    theme を指定すると（試し実行）、まとめは作らずその枠でX用1本と長文版を作る。
+
+def refresh(conn, cfg: dict, dry_run: bool = False, now: datetime | None = None) -> bool:
+    """新しい話題を集めて仕分け、Webのニュース一覧と準備状況だけ更新する（文章は書かない）。"""
+    now = now or now_jst()
+    ensure_schema(conn)
+    try:
+        client = summarize._build_client(cfg)
+        collect(conn, cfg, now)
+        triage(conn, cfg, client, now)
+        ok = publish_web(conn, cfg, now, dry_run=dry_run)
+    except Exception:
+        logger.exception("Webの更新に失敗しました")
+        ok = False
+    db.set_state(conn, "kaia_last_refresh", now.isoformat())
+    return ok
+
+
+def run(conn, cfg: dict, dry_run: bool = False, theme: str | None = None, now: datetime | None = None) -> bool:
+    """1日分の発信案（コミュニティ向けまとめ＋X用1本）を作り、Web（と設定があればDiscord）へ届ける。
+
+    Claude APIが使えないときは「見出しモード」（見出し・抜粋・出典リンクだけのまとめ。X本文は無し）で作る。
+    theme を指定すると（試し実行）、まとめは作らずその枠でX用1本と長文版を作る（APIが必要）。
+    成功したら True。
     """
     kcfg = _kcfg(cfg)
     now = now or now_jst()
     today = now.date().isoformat()
     ensure_schema(conn)
-
     client = summarize._build_client(cfg)
-    if client is None:
-        logger.warning("Claude APIが使えないため、発信案は作れません")
-        return False
 
     try:
         collect(conn, cfg, now)
         triage(conn, cfg, client, now)
+        ai_ok = client is not None and _ai_state["value"] != "invalid_key"
+        site, sha = load_site(cfg)
         history = [dict(r) for r in conn.execute(
             "SELECT date, headline, x_post FROM kaia_posts ORDER BY date DESC LIMIT 7")]
+        extra_warnings: list[str] = []
+        items: list[dict] = []
 
-        stories = digest_stories(conn, cfg, now) if theme in (None, "auto", "digest") else []
+        stories = (digest_stories(conn, cfg, now, _published_urls(site), japanese_only=not ai_ok)
+                   if theme in (None, "auto", "digest") else [])
         if stories:
-            material = digest_material(stories)
-            digest = write_digest(client, cfg, stories, material, now, history)
+            digest, material = None, ""
+            if ai_ok:
+                material = digest_material(stories)
+                digest = write_digest(client, cfg, stories, material, now, history)
+                if digest is None:
+                    extra_warnings.append("AIの要約に失敗したため、見出しだけのまとめにしました")
+            mode = "ai" if digest else "headline"
             if digest is None:
-                raise RuntimeError("ニュースまとめを書けませんでした")
-            x_index = digest.get("x_item_id", 1)
-            x_story = stories[x_index - 1] if 1 <= x_index <= len(stories) else stories[0]
-            n_by_topic = {}
+                digest = headline_digest(stories)
+            n_by_topic: dict[str, int] = {}
             for g in stories:
                 n_by_topic[g["topic"]] = n_by_topic.get(g["topic"], 0) + 1
             breakdown = "・".join(f"{dict(TOPIC_SECTIONS)[t]} {c}件" for t, c in n_by_topic.items())
-            plan = {"kind": "digest", "digest": [g["story"] for g in stories], "story": x_story["story"],
-                    "reason": f"まだ届けていない新しい話題 {len(stories)}件（{breakdown}）。Xはその中から1本"}
-            community = compose_community(digest, stories, kcfg, now)
-            urls = [x_story["items"][0]["url"]]
+            plan = {"kind": "digest", "digest": [g["story"] for g in stories],
+                    "reason": f"まだ届けていない新しい話題 {len(stories)}件（{breakdown}）"}
+            urls: list[str] = []
+            if mode == "ai":
+                x_index = digest.get("x_item_id", 1)
+                x_story = stories[x_index - 1] if 1 <= x_index <= len(stories) else stories[0]
+                plan["story"] = x_story["story"]
+                plan["reason"] += "。Xはその中から1本"
+                urls = [x_story["items"][0]["url"]]
+            else:
+                plan["reason"] += "。見出しモード（AIの要約はAPIキーの設定後に始まります）"
+            community = compose_community(digest, stories, kcfg, now, require_summary=(mode == "ai"))
+            by_id = {i["id"]: i for i in digest["items"]}
+            for n, g in enumerate(stories, 1):
+                it = by_id.get(n)
+                if not it or (mode == "ai" and not it["summary"].strip()):
+                    continue
+                rep = g["items"][0]
+                items.append({"topic": g["topic"], "title": it["title"], "summary": it["summary"],
+                              "point": it["point"], "source": rep["source"], "label": _kind_label(rep["kind"], rep["url"]),
+                              "url": rep["url"]})
             post = digest
         else:
+            if not ai_ok:
+                # 新しい話題が無く、文章も書けない日は、Webの一覧だけ更新して終える
+                publish_web(conn, cfg, now, site=site, sha=sha, dry_run=dry_run)
+                db.set_state(conn, "kaia_last_refresh", now.isoformat())
+                if not dry_run:
+                    db.set_state(conn, "kaia_last_date", today)
+                logger.info("新しい話題が無く、APIも使えないため、今日のまとめは見送りました")
+                return True
             if theme in (None, "auto", "digest"):
                 theme = theme_for(cfg, now)  # 新しいニュースが無い日は曜日の定番ネタ（豆知識）
             built = build_plan(conn, cfg, now, theme)
@@ -1086,17 +1424,28 @@ def run(conn, cfg: dict, dry_run: bool = False, theme: str | None = None, now: d
             post = write_post(client, cfg, plan, material, now, history)
             if post is None:
                 raise RuntimeError("発信案を書けませんでした")
+            mode = "ai"
             community = compose_community_single(post, plan, kcfg, now)
-        logger.info("発信案: 枠=%s 理由=%s", plan["kind"], plan["reason"])
+        logger.info("発信案: 枠=%s モード=%s 理由=%s", plan["kind"], mode, plan["reason"])
 
-        x_text = compose_x(post, kcfg, urls)
-        reply_text = post["x_reply"].strip()
-        if urls and kcfg.get("link_in_reply", True):
+        x_text = compose_x(post, kcfg, urls) if post.get("x_post", "").strip() else ""
+        reply_text = (post.get("x_reply") or "").strip()
+        if reply_text and urls and kcfg.get("link_in_reply", True):
             reply_text = f"{reply_text}\n{urls[0]}"
-        warnings = check_texts(x_text, community, kcfg, material, now)
-        ok = deliver(cfg, plan, post["headline"], community, x_text, reply_text, urls, warnings,
-                     cautions(conn, now), now, dry_run)
-        if not ok:
+        warnings = (check_texts(x_text, community, kcfg, material, now) if mode == "ai" else []) + extra_warnings
+        caution_list = cautions(conn, now)
+        entry = {
+            "date": today, "weekday": WEEKDAY_JA[now.weekday()], "kind": plan["kind"], "mode": mode,
+            "label": THEME_LABELS.get(plan["kind"], plan["kind"]), "headline": post["headline"],
+            "reason": plan["reason"], "community_text": community, "x_text": x_text, "reply_text": reply_text,
+            "intent_url": x_intent_url(x_text), "warnings": warnings, "items": items,
+            "cautions": [{"title": g["ja_title"], "url": g["items"][0]["url"]} for g in caution_list[:3]],
+            "created_at": now.isoformat(),
+        }
+        if _web_cfg(cfg).get("enabled") and not publish_web(conn, cfg, now, entry=entry, site=site, sha=sha,
+                                                              dry_run=dry_run):
+            raise RuntimeError("Webへ書き出せませんでした")
+        if not deliver(cfg, entry, caution_list, now, dry_run):
             raise RuntimeError("Discordへ届けられませんでした")
     except Exception as e:
         logger.exception("発信案づくりに失敗しました")
@@ -1104,6 +1453,7 @@ def run(conn, cfg: dict, dry_run: bool = False, theme: str | None = None, now: d
             _record_failure(conn, cfg, now, str(e))
         return False
 
+    db.set_state(conn, "kaia_last_refresh", now.isoformat())
     if not dry_run:
         for s in plan.get("digest", []):
             conn.execute("UPDATE kaia_items SET digest_on=? WHERE story=? AND digest_on IS NULL", (today, s))
@@ -1114,7 +1464,7 @@ def run(conn, cfg: dict, dry_run: bool = False, theme: str | None = None, now: d
             "INSERT OR REPLACE INTO kaia_posts(date, kind, topic_id, story, headline, x_post, created_at) "
             "VALUES (?, ?, ?, ?, ?, ?, ?)",
             (today, plan["kind"], plan.get("topic_id"), ",".join(x_stories) or None, post["headline"],
-             post["x_post"], datetime.now(timezone.utc).isoformat()),
+             post.get("x_post", ""), datetime.now(timezone.utc).isoformat()),
         )
         conn.commit()
         db.set_state(conn, "kaia_last_date", today)
