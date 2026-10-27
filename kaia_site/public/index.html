@@ -202,6 +202,33 @@ details.hist .inner { padding: 0 14px 14px; }
 .src-list li { display: flex; gap: 8px; padding: 2px 0; }
 .src-list .n { margin-left: auto; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 
+/* 読む人の切り替え */
+.howto { font-size: 13px; color: var(--ink-2); margin: 0 0 12px; }
+.audience { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.aud { border: 1.5px solid var(--line); background: var(--surface); border-radius: 12px; padding: 10px 12px; text-align: left; cursor: pointer; line-height: 1.35; }
+.aud .n { display: block; font-weight: 800; font-size: 15px; }
+.aud .d { display: block; font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.aud[aria-pressed="true"] { border-color: var(--accent-strong); background: var(--kaia-bg); }
+.aud[aria-pressed="true"] .d { color: var(--ink-2); }
+.copy-card { border: 1.5px solid var(--accent-strong); }
+.copy-card .big-copy { width: 100%; min-height: 50px; font-size: 16px; margin-top: 4px; }
+.copy-card details { margin-top: 10px; }
+.copy-card summary { cursor: pointer; font-size: 13px; color: var(--ink-3); }
+.copy-card pre.text { margin-top: 8px; }
+.sec-label { font-size: 13px; font-weight: 800; color: var(--ink-2); margin: 18px 2px 8px; }
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; gap: 12px; }
+.item .num { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-size: 13px; font-weight: 800; margin-top: 1px; }
+.item .body { flex: 1; min-width: 0; }
+.item .t { font-weight: 800; font-size: 15.5px; line-height: 1.5; }
+.item .s { margin-top: 4px; color: var(--ink-2); }
+.item .p { margin-top: 8px; background: var(--kaia-bg); color: var(--ink); border-radius: 8px; padding: 6px 10px; font-size: 14px; }
+.item .src { margin-top: 8px; font-size: 12.5px; }
+.item .src a { color: var(--ink-3); }
+.words dt { font-weight: 800; margin-top: 10px; }
+.words dt:first-child { margin-top: 0; }
+.words dd { margin: 2px 0 0; color: var(--ink-2); font-size: 14px; }
+.stat .explain { font-size: 12.5px; color: var(--ink-2); margin-top: 6px; line-height: 1.6; }
+
 footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 16px 28px; }
 .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 10; }
 .toast.show { opacity: 1; }
@@ -218,19 +245,19 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     <div class="mark" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M20 12v40M20 34l20-22M28 27l14 25" stroke="#BFF009" stroke-width="8" stroke-linecap="round" fill="none"/></svg></div>
     <div>
       <h1>Kaia・JPYC デスク</h1>
-      <div class="sub">ニュースまとめと発信の準備 <span id="prepBadge" class="badge prep" hidden>準備期間</span></div>
+      <div class="sub">Kaia・JPYCのニュースを毎朝わかりやすく <span id="prepBadge" class="badge prep" hidden>準備期間</span></div>
     </div>
     <div class="updated" id="updated"></div>
   </div>
 </header>
 <nav class="tabs" aria-label="ページの切り替え">
   <div class="wrap" role="tablist">
-    <button class="tab" role="tab" data-tab="today" aria-selected="true">今日</button>
-    <button class="tab" role="tab" data-tab="news" aria-selected="false">ニュース</button>
-    <button class="tab" role="tab" data-tab="history" aria-selected="false">履歴</button>
-    <button class="tab" role="tab" data-tab="numbers" aria-selected="false">数字</button>
-    <button class="tab" role="tab" data-tab="topics" aria-selected="false">豆知識</button>
-    <button class="tab" role="tab" data-tab="status" aria-selected="false">準備状況</button>
+    <button class="tab" role="tab" data-tab="today" aria-selected="true">📰 今日</button>
+    <button class="tab" role="tab" data-tab="news" aria-selected="false">🗞 ニュース</button>
+    <button class="tab" role="tab" data-tab="history" aria-selected="false">📚 履歴</button>
+    <button class="tab" role="tab" data-tab="numbers" aria-selected="false">📊 数字</button>
+    <button class="tab" role="tab" data-tab="topics" aria-selected="false">💡 豆知識</button>
+    <button class="tab" role="tab" data-tab="status" aria-selected="false">✅ 準備</button>
   </div>
 </nav>
 <main class="wrap">
@@ -372,26 +399,95 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     return el("div", { class: "card" }, [head, opts.note ? el("p", { class: "small muted", text: opts.note, style: "margin:-2px 0 8px" }) : null, el("pre", { class: "text", text: text }), actions]);
   }
 
+  // ---------- 読む人の切り替え（はじめての人向け／慣れている人向け） ----------
+  var AUD = [
+    { key: "easy", name: "🔰 はじめての人向け", desc: "やさしい言葉＋ことばの説明つき" },
+    { key: "pro", name: "⚡ 慣れている人向け", desc: "要点だけ・専門用語そのまま" }
+  ];
+  var audience = store("kaia.audience") === "pro" ? "pro" : "easy";
+  var rerenders = [];
+  function audienceSwitch() {
+    var box = el("div", { class: "audience", role: "group", "aria-label": "読む人に合わせて切り替え" });
+    AUD.forEach(function (a) {
+      box.appendChild(el("button", {
+        class: "aud", type: "button", "aria-pressed": String(audience === a.key),
+        onclick: function () {
+          if (audience === a.key) return;
+          audience = a.key;
+          store("kaia.audience", audience);
+          rerenders.forEach(function (f) { f(); });
+        }
+      }, [el("span", { class: "n", text: a.name }), el("span", { class: "d", text: a.desc })]));
+    });
+    return box;
+  }
+  function versionOf(a) {
+    var vs = a.versions || [];
+    for (var i = 0; i < vs.length; i++) if (vs[i].key === audience) return vs[i];
+    if (vs.length) return vs[0];
+    return a.community_text ? { key: "pro", label: "コミュニティ向け", text: a.community_text } : null;
+  }
+  function fieldsOf(it) {
+    if (audience === "easy") return { t: it.easy_title || it.title, s: it.easy_summary || it.summary, p: it.easy_point || "" };
+    return { t: it.title, s: it.summary, p: it.point || "" };
+  }
+
   function renderEntry(a, container, isToday) {
+    var v = versionOf(a);
+    var items = a.items || [];
     var badge = a.mode === "ai" ? el("span", { class: "badge ai", text: "AI要約" }) : el("span", { class: "badge headline", text: "見出しモード" });
+    var lead = a.mode === "ai" || !items.length ? (a.headline || "") : (isToday ? "今日" : mdw(a.date)) + "の話題 " + items.length + "件";
     container.appendChild(el("div", { class: "card" }, [
       el("div", { class: "row" }, [el("span", { class: "lead-date", text: mdw(a.date) + "のまとめ" }), badge, el("span", { class: "spacer" }), el("span", { class: "small muted", text: a.label || "" })]),
-      el("div", { class: "lead-title", text: a.headline || "" }),
-      el("div", { class: "reason", text: a.reason || "" }),
-      a.warnings && a.warnings.length ? el("div", { class: "notice warn" }, ["⚠️ 点検で気になった点", el("ul", null, a.warnings.map(function (w) { return el("li", { text: w }); }))]) : null,
-      a.mode !== "ai" && isToday ? el("div", { class: "notice info", text: "いまは見出しと抜粋だけのまとめです。AIの要約とX本文は、APIキーを設定すると自動で始まります。" }) : null
+      el("div", { class: "lead-title", text: lead }),
+      a.mode !== "ai" ? el("div", { class: "notice info", text: "いまは「見出しモード」です。ニュースの見出しと記事の一部をそのまま載せています。AIによるやさしい言い換えとX本文は、APIキーを設定すると自動で始まります。" }) : null,
+      a.warnings && a.warnings.length ? el("div", { class: "notice warn" }, ["⚠️ 貼る前に確かめてほしい点", el("ul", null, a.warnings.map(function (w) { return el("li", { text: w }); }))]) : null
     ]));
-    if (a.community_text) {
-      container.appendChild(textBox("① コミュニティ向け", a.community_text, { note: "LINEオープンチャット・Telegram・Discordにそのまま貼れます" }));
+
+    // コミュニティに貼る文章（いちばん使うものなので上に）
+    if (v && v.text) {
+      var copyBtn = el("button", { class: "btn primary big-copy", type: "button" }, ["📋 コピーする"]);
+      copyBtn.addEventListener("click", function () { copyText(v.text, copyBtn); });
+      container.appendChild(el("div", { class: "card copy-card" }, [
+        el("div", { class: "box-head" }, [el("h3", { text: "コミュニティに貼る文章" }), el("span", { class: "count", text: v.text.length + "字" })]),
+        el("p", { class: "small muted", style: "margin:-2px 0 6px", text: (a.versions ? (audience === "easy" ? "はじめての人向け" : "慣れている人向け") + "の文章です。" : "") + "LINEオープンチャット・Telegram・Discordにそのまま貼れます。" }),
+        copyBtn,
+        el("details", { open: !items.length }, [el("summary", { text: "貼る文章をそのまま見る" }), el("pre", { class: "text", text: v.text })])
+      ]));
     }
+
+    // 読みやすい形（話題ごとのカード）
+    var lastTopic = "";
+    items.forEach(function (it, i) {
+      if (it.topic !== lastTopic) {
+        container.appendChild(el("div", { class: "sec-label" }, [topicTag(it.topic), " の話題"]));
+        lastTopic = it.topic;
+      }
+      var f = fieldsOf(it);
+      container.appendChild(el("article", { class: "item" }, [
+        el("span", { class: "num", text: String(i + 1) }),
+        el("div", { class: "body" }, [
+          el("div", { class: "t", text: f.t }),
+          f.s ? el("div", { class: "s", text: f.s }) : null,
+          f.p ? el("div", { class: "p", text: (audience === "easy" ? "💡 ひとことで言うと：" : "👉 ") + f.p }) : null,
+          el("div", { class: "src" }, [el("a", { href: it.url, target: "_blank", rel: "noopener", text: "🔗 " + it.source + "（" + it.label + "）の記事を開く" })])
+        ])
+      ]));
+    });
+
+    if (audience === "easy" && a.glossary && a.glossary.length) {
+      var dl = el("dl", { class: "words" });
+      a.glossary.forEach(function (g) { dl.appendChild(el("dt", { text: g.term })); dl.appendChild(el("dd", { text: g.desc })); });
+      container.appendChild(el("div", { class: "card", style: "margin-top:14px" }, [el("h2", { text: "📖 今日のことば" }), dl]));
+    }
+
     if (a.x_text) {
-      var w = xWeight(a.x_text);
       var extra = [];
       if (a.intent_url) extra.push(el("a", { class: "btn x", href: a.intent_url, target: "_blank", rel: "noopener" }, ["𝕏 投稿画面を開く"]));
-      container.appendChild(textBox("② X本文", a.x_text, { count: w + "/280", extra: extra }));
+      container.appendChild(textBox("Xに投稿する文章", a.x_text, { count: xWeight(a.x_text) + "/280", extra: extra }));
     }
     if (a.reply_text) {
-      container.appendChild(textBox("③ リプ欄用", a.reply_text, { note: "リンクはリプに置くと表示が伸びやすくなります" }));
+      container.appendChild(textBox("Xのリプ欄に付ける文章", a.reply_text, { note: "リンクはリプに置くと、投稿が見られやすくなります" }));
     }
     if (a.cautions && a.cautions.length) {
       container.appendChild(el("div", { class: "card" }, [
@@ -403,15 +499,23 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
   }
 
   function renderToday(data, root) {
-    var a = (data.archive || [])[0];
-    if (!a) {
-      root.appendChild(el("div", { class: "card empty" }, [el("div", { class: "big", text: "🌱" }), "まだまとめがありません。", el("br"), "毎朝" + ((data.status && data.status.digest_hour) || 7) + "時に自動で作られます。「ニュース」タブで最新の話題を見られます。"]));
-      return;
+    var hour = (data.status && data.status.digest_hour) || 7;
+    function draw() {
+      root.innerHTML = "";
+      root.appendChild(el("p", { class: "howto", text: "毎朝" + hour + "時に新しいまとめができます。読む人に合わせて切り替えて、「コピーする」を押せばそのまま貼れます。" }));
+      root.appendChild(audienceSwitch());
+      var a = (data.archive || [])[0];
+      if (!a) {
+        root.appendChild(el("div", { class: "card empty" }, [el("div", { class: "big", text: "🌱" }), "まだまとめがありません。", el("br"), "毎朝" + hour + "時に自動で作られます。「ニュース」タブで最新の話題を見られます。"]));
+        return;
+      }
+      if (a.date !== todayJst()) {
+        root.appendChild(el("div", { class: "notice info", style: "margin:0 0 14px", text: "今日のまとめはまだです（毎朝" + hour + "時ごろ）。下は " + mdw(a.date) + " のまとめです。" }));
+      }
+      renderEntry(a, root, a.date === todayJst());
     }
-    if (a.date !== todayJst()) {
-      root.appendChild(el("div", { class: "notice info", style: "margin:0 0 14px", text: "今日のまとめはまだです（毎朝" + ((data.status && data.status.digest_hour) || 7) + "時ごろ）。下は " + mdw(a.date) + " のまとめです。" }));
-    }
-    renderEntry(a, root, true);
+    rerenders.push(draw);
+    draw();
   }
 
   function renderNews(data, root) {
@@ -457,17 +561,24 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
 
   function renderHistory(data, root) {
     var arc = data.archive || [];
-    if (!arc.length) { root.appendChild(el("div", { class: "card empty", text: "まだ履歴はありません" })); return; }
-    root.appendChild(el("p", { class: "small muted", style: "margin:0 0 10px", text: "これまでのまとめ（" + arc.length + "日分）。開くとそのままコピーできます。" }));
-    arc.forEach(function (a, i) {
-      var inner = el("div", { class: "inner" });
-      var d = el("details", { class: "hist" }, [
-        el("summary", null, [el("span", { class: "d", text: mdw(a.date) }), el("span", { class: "h", text: a.headline || "" }), el("span", { class: "badge " + (a.mode === "ai" ? "ai" : "headline"), text: a.mode === "ai" ? "AI" : "見出し" })]),
-        inner
-      ]);
-      d.addEventListener("toggle", function () { if (d.open && !inner.childNodes.length) renderEntry(a, inner, false); });
-      root.appendChild(d);
-    });
+    function draw() {
+      root.innerHTML = "";
+      if (!arc.length) { root.appendChild(el("div", { class: "card empty", text: "まだ履歴はありません" })); return; }
+      root.appendChild(el("p", { class: "howto", text: "これまでのまとめ（" + arc.length + "日分）。開くと、選んだ読む人向けの文章をそのままコピーできます。" }));
+      root.appendChild(audienceSwitch());
+      arc.forEach(function (a) {
+        var inner = el("div", { class: "inner" });
+        var count = (a.items || []).length;
+        var d = el("details", { class: "hist" }, [
+          el("summary", null, [el("span", { class: "d", text: mdw(a.date) }), el("span", { class: "h", text: a.mode === "ai" || !count ? (a.headline || "") : "話題 " + count + "件" }), el("span", { class: "badge " + (a.mode === "ai" ? "ai" : "headline"), text: a.mode === "ai" ? "AI" : "見出し" })]),
+          inner
+        ]);
+        d.addEventListener("toggle", function () { if (d.open && !inner.childNodes.length) renderEntry(a, inner, false); });
+        root.appendChild(d);
+      });
+    }
+    rerenders.push(draw);
+    draw();
   }
 
   function sparkline(values) {
@@ -505,7 +616,8 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
         el("div", { class: "value" }, ["約" + jaAmount(n.jpy), el("small", { text: "円" })]),
         el("div", { class: "exact", text: Math.round(n.jpy).toLocaleString("ja-JP") + "円" }),
         el("div", { class: "delta", text: n.jpy_30d ? "30日前から " + delta(n.jpy, n.jpy_30d) : "" }),
-        n.jpy_history && n.jpy_history.length > 2 ? sparkline(n.jpy_history) : null
+        n.jpy_history && n.jpy_history.length > 2 ? sparkline(n.jpy_history) : null,
+        el("div", { class: "explain", text: "Kaiaの上にある「円と同じ価値のデジタルのお金」（JPYCなど）の合計です。グラフは直近30日の動き。" })
       ]));
     }
     if (n.stable_usd) {
@@ -513,7 +625,8 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
         el("div", { class: "label", text: "Kaia上のステーブルコイン流通額（合計）" }),
         el("div", { class: "value" }, ["約" + jaAmount(n.stable_usd), el("small", { text: "ドル" })]),
         el("div", { class: "exact", text: "$" + Math.round(n.stable_usd).toLocaleString("en-US") }),
-        el("div", { class: "delta", text: "7日前から " + delta(n.stable_usd, n.stable_usd_7d) + "　30日前から " + delta(n.stable_usd, n.stable_usd_30d) })
+        el("div", { class: "delta", text: "7日前から " + delta(n.stable_usd, n.stable_usd_7d) + "　30日前から " + delta(n.stable_usd, n.stable_usd_30d) }),
+        el("div", { class: "explain", text: "円やドルと同じ価値のデジタルのお金（ステーブルコイン）が、Kaiaの上にどれだけあるかの合計です。" })
       ]));
     }
     if (n.tvl) {
@@ -521,7 +634,8 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
         el("div", { class: "label", text: "Kaia上のDeFiに預けられている資産（TVL）" }),
         el("div", { class: "value" }, ["約" + jaAmount(n.tvl), el("small", { text: "ドル" })]),
         el("div", { class: "exact", text: "$" + Math.round(n.tvl).toLocaleString("en-US") }),
-        el("div", { class: "delta", text: "7日前から " + delta(n.tvl, n.tvl_7d) })
+        el("div", { class: "delta", text: "7日前から " + delta(n.tvl, n.tvl_7d) }),
+        el("div", { class: "explain", text: "Kaiaの上のお金のサービス（DeFi＝貸し借りや交換）に預けられている資産の合計です。どれだけ使われているかの目安になります。" })
       ]));
     }
     root.appendChild(cards);

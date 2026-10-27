@@ -59,6 +59,7 @@ def parse_args() -> argparse.Namespace:
     mode.add_argument("--serve", action="store_true", help="自走モード（指定時間ループして各モードを実行）")
     mode.add_argument("--kaia", action="store_true", help="Kaia発信案（まとめ）を今すぐ作る")
     mode.add_argument("--kaia-refresh", action="store_true", help="Kaia・JPYCのニュース一覧だけWebに更新する")
+    mode.add_argument("--kaia-restyle", action="store_true", help="公開中の古いまとめを2種類（初心者向け・慣れた人向け）に直す")
     parser.add_argument("--kaia-theme", default=None,
                         help="Kaia投稿案の枠（news/recap/howto/data/ecosystem/tech/japan/basics。省略で曜日どおり）")
     parser.add_argument("--dry-run", action="store_true", help="投稿せず内容を表示する")
@@ -66,7 +67,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-runtime", type=int, default=330, help="自走モードの最大実行時間（分）")
     args = parser.parse_args()
     if not (args.digest or args.alert or args.weekly or args.serve or args.kaia or args.kaia_refresh
-            or args.test_webhooks):
+            or args.kaia_restyle or args.test_webhooks):
         parser.error("--digest / --alert / --weekly / --serve / --kaia / --kaia-refresh / --test-webhooks "
                      "のいずれかを指定してください")
     return args
@@ -394,6 +395,8 @@ def main() -> None:
             kaia_daily.run(conn, cfg, args.dry_run, theme=args.kaia_theme)
         elif args.kaia_refresh:
             kaia_daily.refresh(conn, cfg, args.dry_run)
+        elif args.kaia_restyle:
+            kaia_daily.restyle_site(cfg)
 
         report = summarize.usage_report(cfg)
         if report:

@@ -237,3 +237,60 @@ def test_publish_web_keeps_archive_and_writes_preview(conn, tmp_path, monkeypatc
     assert "old" not in data["archive"][0]  # 同じ日のまとめは差し替える
     assert data["news"][0]["url"] == "https://a" and data["numbers"] == {"jpy": 1}
     assert data["topics"] and data["status"]["ai"] in ("none", "ok", "invalid_key")
+
+
+def test_glossary_lists_terms_in_order_of_appearance():
+    g = k.glossary_for("JPYCとLINE NEXTが覚書を締結。ステーブルコインのPoCを進める。", limit=4)
+    assert [x["term"] for x in g] == ["JPYC", "LINE NEXT", "覚書（MOU）", "ステーブルコイン"]
+    assert all(x["desc"] for x in g)
+    # KAIA DLT Foundation の「KAIA」はトークンの説明を出さない
+    assert not any(x["term"] == "KAIA" for x in k.glossary_for("KAIA DLT Foundationが発表"))
+
+
+def _rows():
+    return [{"topic": "both", "title": "JPYC×LINE NEXT、口座連携PoC", "summary": "SBJ銀行と3社で覚書。",
+             "point": "Unifiへの円チャージ導線", "easy_title": "LINEのお財布に銀行から円を入れる実験",
+             "easy_summary": "3つの会社が、銀行の口座からデジタルのお金を入れる仕組みを試します。",
+             "easy_point": "LINEで円が使いやすくなるかも", "source": "JPYC（PR TIMES）", "label": "提携先の公式発表",
+             "url": "https://prtimes.jp/a"}]
+
+
+def test_two_versions_differ_by_audience():
+    versions, glossary = k.compose_versions(_rows(), {"intro": "", "easy_intro": ""}, {"community_footer": "※注意書き"},
+                                            "10/28（水）")
+    easy, pro = versions["easy"], versions["pro"]
+    assert easy.startswith("📰 今日のKaia・JPYCニュース（やさしい版）｜10/28（水）")
+    assert "1️⃣ LINEのお財布に銀行から円を入れる実験" in easy and "💡 ひとことで言うと：LINEで円が使いやすくなるかも" in easy
+    assert "📖 今日のことば" in easy and "📖" not in pro
+    assert pro.startswith("📰 Kaia・JPYCニュース｜10/28（水）")
+    assert "1️⃣ JPYC×LINE NEXT、口座連携PoC" in pro and "👉 Unifiへの円チャージ導線" in pro
+    assert easy.endswith("※注意書き") and pro.endswith("※注意書き")
+    assert "https://prtimes.jp/a" in easy and "https://prtimes.jp/a" in pro
+    assert glossary and glossary[0]["term"]
+
+
+def test_restyle_old_entry_builds_both_versions():
+    old = {"date": "2026-10-27", "mode": "headline", "community_text": "古い文章",
+           "items": [{"topic": "jpyc", "title": "JPYC、累計発行額100億円を突破", "summary": "JPYCが発表しました。",
+                      "point": "", "source": "JPYC（PR TIMES）", "label": "提携先の公式発表", "url": "https://p/1"}]}
+    new = k.restyle_entry(old, {})
+    assert [v["key"] for v in new["versions"]] == ["easy", "pro"]
+    assert "10/27（火）" in new["versions"][0]["text"] and "JPYC" in new["versions"][1]["text"]
+    assert new["items"][0]["easy_title"] == "JPYC、累計発行額100億円を突破"
+    assert any(g["term"] == "JPYC" for g in new["glossary"])
+    assert k.restyle_entry(new, {}) is new  # 直したものはそのまま
+
+
+def test_single_versions_for_no_news_day():
+    post = {"long_post": "Kaiaのガス代の仕組み", "easy_post": "Kaiaでお金を送るときの手数料（ガス代）の話"}
+    versions, glossary = k.compose_single_versions(post, {"kind": "tech"}, {}, NOW)
+    assert versions["easy"].startswith("💡 今日のKaia豆知識（やさしい版）")
+    assert "ガス代" in [g["term"] for g in glossary]
+    assert versions["pro"].startswith("💡 今日のKaia豆知識｜")
+
+
+def test_easy_title_rules_for_governance_forum():
+    assert k.easy_title_rule("[GP-27] StakingTrackerV3 Upgrade") == "Kaiaのルール変更の提案（GP-27）：StakingTrackerV3 Upgrade"
+    assert k.easy_title_rule("Update on GC Member: Bughole") == "Kaiaの運営メンバー（GC）についてのお知らせ：Bughole"
+    assert k.easy_title_rule("[CR] Contribution Reward Monthly Report - Epoch 2") == "貢献報酬（CR）の月ごとの報告（第2期）"
+    assert k.easy_title_rule("JPYC、累計発行額100億円を突破") == "JPYC、累計発行額100億円を突破"

@@ -770,29 +770,38 @@ WRITER_SCHEMA = {
         "headline": {"type": "string", "description": "20字以内の要約（確認用）"},
         "x_post": {"type": "string", "description": "Xの本文"},
         "x_reply": {"type": "string", "description": "リプ欄に付ける一言（30字以内、URLは書かない）"},
-        "long_post": {"type": "string", "description": "LINE・Telegram向けの長文版"},
+        "long_post": {"type": "string", "description": "暗号資産に慣れている人向けの長文版"},
+        "easy_post": {"type": "string", "description": "はじめての人向けの長文版"},
         "facts": {"type": "array", "items": {"type": "string"}, "description": "使った事実（各40字以内）"},
     },
-    "required": ["headline", "x_post", "x_reply", "long_post", "facts"],
+    "required": ["headline", "x_post", "x_reply", "long_post", "easy_post", "facts"],
     "additionalProperties": False,
 }
+
+# まとめは読む人に合わせて2種類作る（Webページではタブで切り替える）
+AUDIENCES = [("easy", "🔰 はじめての人向け"), ("pro", "⚡ 慣れている人向け")]
+GLOSSARY_PATH = BASE_DIR / "kaia_glossary.yaml"
 
 DIGEST_SCHEMA = {
     "type": "object",
     "properties": {
         "headline": {"type": "string", "description": "今日のまとめを20字以内で（確認用）"},
-        "intro": {"type": "string", "description": "今日の見どころを1文（40字以内）"},
+        "intro": {"type": "string", "description": "慣れている人向け: 今日の見どころを1文（40字以内）"},
+        "easy_intro": {"type": "string", "description": "はじめての人向け: 今日の見どころを1文（40字以内）"},
         "items": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
                     "id": {"type": "integer"},
-                    "title": {"type": "string", "description": "見出し（30字以内、事実だけ）"},
-                    "summary": {"type": "string", "description": "何が起きたか（2〜3文、合わせて120字以内）"},
-                    "point": {"type": "string", "description": "それで何が変わるか（1文40字以内。材料に無ければ空文字）"},
+                    "title": {"type": "string", "description": "慣れている人向けの見出し（30字以内、事実だけ）"},
+                    "summary": {"type": "string", "description": "慣れている人向け: 何が起きたか（2文・100字以内、具体的に）"},
+                    "point": {"type": "string", "description": "慣れている人向け: Kaia・JPYCにとっての意味（40字以内。材料に無ければ空文字）"},
+                    "easy_title": {"type": "string", "description": "はじめての人向けの見出し（30字以内、専門用語なし）"},
+                    "easy_summary": {"type": "string", "description": "はじめての人向け: 何が起きたか（2〜3文・120字以内、やさしい言葉で）"},
+                    "easy_point": {"type": "string", "description": "はじめての人向け: ひとことで言うと（30字以内）"},
                 },
-                "required": ["id", "title", "summary", "point"],
+                "required": ["id", "title", "summary", "point", "easy_title", "easy_summary", "easy_point"],
                 "additionalProperties": False,
             },
         },
@@ -801,9 +810,18 @@ DIGEST_SCHEMA = {
         "x_post": {"type": "string", "description": "その話題のXの本文"},
         "x_reply": {"type": "string", "description": "リプ欄に付ける一言（30字以内、URLは書かない）"},
     },
-    "required": ["headline", "intro", "items", "closing", "x_item_id", "x_post", "x_reply"],
+    "required": ["headline", "intro", "easy_intro", "items", "closing", "x_item_id", "x_post", "x_reply"],
     "additionalProperties": False,
 }
+
+AUDIENCE_GUIDE = (
+    "まとめは読む人に合わせて2種類書く。\n"
+    "- 慣れている人向け（title / summary / point / intro）: 暗号資産に慣れた人向け。前置きなしで、社名・数字・時期を具体的に。"
+    "専門用語はそのまま使ってよい。pointはKaia・JPYCのエコシステムにとっての意味や注目点。\n"
+    "- はじめての人向け（easy_title / easy_summary / easy_point / easy_intro）: 暗号資産を知らない人向け。中学生にも分かる言葉で、"
+    "専門用語は使わないか言い換える（例: ステーブルコイン→円と同じ価値のデジタルのお金、PoC→試しにやってみる取り組み）。"
+    "暮らしや身近なサービスに置き換えて説明してよいが、材料に無い事実は足さない。easy_pointは「ひとことで言うと」にあたる一文。\n"
+)
 
 KIND_GUIDE = {
     "news": "この話題を、Kaiaを知らない人にも伝わるように紹介する。何が起きたか → それで何が変わるのか（材料にある範囲で）→ 一言。",
@@ -932,12 +950,15 @@ def write_post(client, cfg: dict, plan: dict, material: str, now: datetime, hist
         + (f" ／ ネタ: {plan['title']}" if plan.get("title") else "") + "\n"
         f"書き方: {guide}\n"
         f"X本文の長さ: 全角{_x_max_chars(kcfg)}字以内（改行も1字に数える）。1行目は思わず読みたくなる短い見出しにする。\n"
-        f"長文版: 300〜500字。見出し1行、要点2〜4つ、最後に一言。LINEのオープンチャットやTelegramにそのまま貼れる形。\n"
+        f"長文版は2種類。どちらもLINEのオープンチャットやTelegramにそのまま貼れる形。\n"
+        f"- long_post（慣れている人向け）: 200〜400字。見出し1行、要点2〜4つを具体的に。専門用語はそのままでよい。\n"
+        f"- easy_post（はじめての人向け）: 300〜500字。見出し1行、中学生にも分かる言葉で要点2〜3つ、最後に「ひとことで言うと」。"
+        f"専門用語は使わないか言い換える。\n"
         f"{kcfg.get('tone', '')}\n\n"
         f"最近の投稿（同じ言い回し・同じ切り口を避ける）:\n{_history_text(history)}\n\n"
         f"## 材料\n{material}"
     )
-    return _write_with_retry(client, kcfg, prompt, WRITER_SCHEMA, lambda p: p["long_post"])
+    return _write_with_retry(client, kcfg, prompt, WRITER_SCHEMA, lambda p: p["long_post"] + p["easy_post"])
 
 
 def write_digest(client, cfg: dict, stories: list[dict], material: str, now: datetime,
@@ -948,15 +969,18 @@ def write_digest(client, cfg: dict, stories: list[dict], material: str, now: dat
         f"今日: {now.year}年{now.month}月{now.day}日（{WEEKDAY_JA[now.weekday()]}）\n"
         f"作るもの: Kaiaコミュニティ（LINEオープンチャット・Telegram・Discord）に毎朝届ける「Kaia・JPYCニュースまとめ」と、"
         f"その中から1本選んだXの投稿。\n"
-        f"まとめ: 材料の話題{len(stories)}件すべてについて、id・見出し・何が起きたか・それで何が変わるかを書く。"
+        f"まとめ: 材料の話題{len(stories)}件すべてについて、idごとに書く。"
         f"見出しと要約だけで内容が分かるようにする（リンクを開かない人が多い）。\n"
-        f"X本文: 全角{_x_max_chars(kcfg)}字以内（改行も1字に数える）。1行目は思わず読みたくなる短い見出しにする。\n"
+        f"{AUDIENCE_GUIDE}"
+        f"X本文: 全角{_x_max_chars(kcfg)}字以内（改行も1字に数える）。1行目は思わず読みたくなる短い見出しにする。"
+        f"暗号資産に詳しくない人にも伝わる言葉で。\n"
         f"{kcfg.get('tone', '')}\n\n"
         f"最近のX投稿（同じ言い回しを避ける）:\n{_history_text(history)}\n\n"
         f"## 材料\n{material}"
     )
     return _write_with_retry(client, kcfg, prompt, DIGEST_SCHEMA,
-                             lambda p: " ".join(i["summary"] + i["point"] for i in p["items"]))
+                             lambda p: " ".join(i["summary"] + i["point"] + i["easy_summary"] + i["easy_point"]
+                                                for i in p["items"]))
 
 
 def _snippet(text: str, limit: int = 90) -> str:
@@ -971,60 +995,164 @@ def _snippet(text: str, limit: int = 90) -> str:
     return cut[:end + 1] if end >= limit // 2 else cut.rstrip("、, ") + "…"
 
 
+# Kaiaガバナンスフォーラムのよくある英語の見出しを、はじめての人向けの日本語にする（AIが無いとき用）
+EASY_TITLE_RULES = [
+    (re.compile(r"^\[GP-(\d+)\]\s*(.+)$"), "Kaiaのルール変更の提案（GP-{0}）：{1}"),
+    (re.compile(r"^Update on GC Member:\s*(.+)$", re.IGNORECASE), "Kaiaの運営メンバー（GC）についてのお知らせ：{0}"),
+    (re.compile(r"^\[CR\].*Monthly Report.*Epoch\s*(\d+)", re.IGNORECASE), "貢献報酬（CR）の月ごとの報告（第{0}期）"),
+    (re.compile(r"Use of Funds Proposal\s*\((.+)\)", re.IGNORECASE), "Kaiaのお金の使い道の提案（{0}）"),
+]
+# 会社紹介の決まり文句「(本社:東京都…、代表取締役:…)」など、短いかっこ書きは抜粋から外す
+_PAREN = re.compile(r"[（(][^（）()]{0,60}[）)]")
+
+
+def easy_title_rule(title: str) -> str:
+    for pattern, template in EASY_TITLE_RULES:
+        m = pattern.search(title)
+        if m:
+            return template.format(*m.groups())
+    return title
+
+
 def headline_digest(stories: list[dict]) -> dict:
     """Claude APIが使えないときのまとめ（見出し＋日本語記事の抜粋だけ。文章は作らない）。"""
     items = []
     for n, g in enumerate(stories, 1):
         rep = g["items"][0]
         title = rep["title"] if rep["lang"] == "ja" else (g["ja_title"] or rep["title"])
-        summary = _snippet(rep.get("summary") or rep.get("body") or "") if rep["lang"] == "ja" else ""
+        raw = _PAREN.sub("", rep.get("summary") or rep.get("body") or "")
+        raw = re.sub(r"[（(][^（）()]*$", "…", raw)  # 途中で切れたかっこ書きも外す
+        summary = _snippet(raw) if rep["lang"] == "ja" else ""
         s_grams = _bigrams(summary)
         if s_grams and len(s_grams & _bigrams(title)) / len(s_grams) > 0.8:
             summary = ""  # 抜粋が見出しの繰り返しなら出さない
-        items.append({"id": n, "title": re.sub(r"\s*\.\.\.$|\s*…$", "…", title), "summary": summary, "point": ""})
-    return {"headline": f"新しい話題{len(stories)}件（見出しのみ）", "intro": "", "closing": "", "items": items,
-            "x_item_id": 0, "x_post": "", "x_reply": ""}
+        clean_title = re.sub(r"\s*\.\.\.$|\s*…$", "…", title)
+        items.append({"id": n, "title": clean_title, "summary": summary, "point": "",
+                      "easy_title": easy_title_rule(clean_title), "easy_summary": summary, "easy_point": ""})
+    return {"headline": f"新しい話題{len(stories)}件（見出しのみ）", "intro": "", "easy_intro": "", "closing": "",
+            "items": items, "x_item_id": 0, "x_post": "", "x_reply": ""}
+
+
+def load_glossary() -> list[dict]:
+    try:
+        with open(GLOSSARY_PATH, encoding="utf-8") as f:
+            terms = yaml.safe_load(f).get("terms", [])
+    except OSError:
+        return []
+    return [{**t, "re": re.compile(t["match"], re.IGNORECASE)} for t in terms]
+
+
+def glossary_for(text: str, limit: int = 6) -> list[dict]:
+    """文章に出てきた言葉の説明（出てきた順に最大 limit 個）。"""
+    found = []
+    for t in load_glossary():
+        m = t["re"].search(text)
+        if m:
+            found.append((m.start(), t["term"], t["desc"]))
+    found.sort()
+    return [{"term": term, "desc": desc} for _, term, desc in found[:limit]]
+
+
+def digest_rows(digest: dict, stories: list[dict], require_summary: bool = True) -> list[dict]:
+    """まとめの1話題ずつの中身（2種類の文章＋出典）。Webページの表示と文章の組み立ての両方に使う。"""
+    by_id = {i["id"]: i for i in digest["items"]}
+    rows = []
+    for n, g in enumerate(stories, 1):
+        it = by_id.get(n)
+        if not it or (require_summary and not it["summary"].strip()):
+            continue
+        rep = g["items"][0]
+        rows.append({
+            "topic": g["topic"],
+            "title": it["title"].strip(), "summary": it["summary"].strip(), "point": it["point"].strip(),
+            "easy_title": (it.get("easy_title") or it["title"]).strip(),
+            "easy_summary": (it.get("easy_summary") or it["summary"]).strip(),
+            "easy_point": (it.get("easy_point") or "").strip(),
+            "source": rep["source"], "label": _kind_label(rep["kind"], rep["url"]), "url": rep["url"],
+        })
+    return rows
+
+
+def rows_glossary_text(rows: list[dict]) -> str:
+    """「今日のことば」を探す文章。やさしい版に出た言葉を先に、元のニュースの言葉（慣れている人向け）も拾う。"""
+    easy = "\n".join(f"{r['easy_title']} {r['easy_summary']} {r['easy_point']}" for r in rows)
+    pro = "\n".join(f"{r['title']} {r['summary']} {r['point']}" for r in rows)
+    return f"{easy}\n{pro}"
+
+
+def compose_text(rows: list[dict], style: str, date_label: str, kcfg: dict, intro: str = "",
+                 closing: str = "", glossary: list[dict] | None = None) -> str:
+    """コミュニティにそのまま貼る文章。style=easy（はじめての人向け）/ pro（慣れている人向け）。
+    出典名とURLはモデルではなくプログラムが入れる。"""
+    easy = style == "easy"
+    if easy:
+        lines = [f"📰 今日のKaia・JPYCニュース（やさしい版）｜{date_label}",
+                 intro or "暗号資産にくわしくなくても読めるように、ことばの説明をつけました。"]
+    else:
+        lines = [f"📰 Kaia・JPYCニュース｜{date_label}"]
+        if intro:
+            lines.append(intro)
+    current_topic, number = None, 0
+    for r in rows:
+        if r["topic"] != current_topic:
+            current_topic = r["topic"]
+            lines += ["", f"【{dict(TOPIC_SECTIONS).get(current_topic, '🟢 Kaia')}】"]
+        mark = NUMBER_EMOJI[number] if number < len(NUMBER_EMOJI) else "▶"
+        number += 1
+        title, summary, point = ((r["easy_title"], r["easy_summary"], r["easy_point"]) if easy
+                                 else (r["title"], r["summary"], r["point"]))
+        lines.append(f"{mark} {title}")
+        if summary:
+            lines.append(summary)
+        if point:
+            lines.append(f"💡 ひとことで言うと：{point}" if easy else f"👉 {point}")
+        lines.append(f"🔗 {r['source']}｜{r['label']}")
+        lines.append(r["url"])
+    if easy and glossary:
+        lines += ["", "📖 今日のことば"] + [f"・{g['term']}：{g['desc']}" for g in glossary]
+    if closing:
+        lines += ["", closing]
+    if kcfg.get("community_footer"):
+        lines += ["", kcfg["community_footer"]]
+    return "\n".join(lines)
+
+
+def _date_label(now: datetime) -> str:
+    return f"{now.month}/{now.day}（{WEEKDAY_JA[now.weekday()]}）"
+
+
+def compose_versions(rows: list[dict], digest: dict, kcfg: dict, date_label: str) -> tuple[dict, list[dict]]:
+    """2種類のまとめ文章と、はじめての人向けの「今日のことば」。"""
+    glossary = glossary_for(rows_glossary_text(rows))
+    closing = (digest.get("closing") or "").strip()
+    versions = {
+        "easy": compose_text(rows, "easy", date_label, kcfg, (digest.get("easy_intro") or "").strip(), closing, glossary),
+        "pro": compose_text(rows, "pro", date_label, kcfg, (digest.get("intro") or "").strip(), closing),
+    }
+    return versions, glossary
 
 
 def compose_community(digest: dict, stories: list[dict], kcfg: dict, now: datetime,
-                      require_summary: bool = True) -> str:
-    """まとめ本文を組み立てる。出典名とURLはモデルではなくプログラムが入れる。"""
-    by_id = {i["id"]: i for i in digest["items"]}
-    lines = [f"📰 Kaia・JPYCニュース｜{now.month}/{now.day}（{WEEKDAY_JA[now.weekday()]}）"]
-    if digest.get("intro", "").strip():
-        lines.append(digest["intro"].strip())
-    current_topic, number = None, 0
-    for n, g in enumerate(stories, 1):
-        item = by_id.get(n)
-        if not item or (require_summary and not item["summary"].strip()):
-            continue
-        if g["topic"] != current_topic:
-            current_topic = g["topic"]
-            lines += ["", f"【{dict(TOPIC_SECTIONS)[current_topic]}】"]
-        rep = g["items"][0]
-        mark = NUMBER_EMOJI[number] if number < len(NUMBER_EMOJI) else "▶"
-        number += 1
-        lines.append(f"{mark} {item['title'].strip()}")
-        if item["summary"].strip():
-            lines.append(item["summary"].strip())
-        if item["point"].strip():
-            lines.append(f"👉 {item['point'].strip()}")
-        lines.append(f"🔗 {rep['source']}｜{_kind_label(rep['kind'], rep['url'])}")
-        lines.append(rep["url"])
-    if digest.get("closing", "").strip():
-        lines += ["", digest["closing"].strip()]
-    if kcfg.get("community_footer"):
-        lines += ["", kcfg["community_footer"]]
-    return "\n".join(lines)
+                      require_summary: bool = True, style: str = "pro") -> str:
+    """まとめ本文（1種類）を組み立てる。"""
+    rows = digest_rows(digest, stories, require_summary)
+    glossary = glossary_for(rows_glossary_text(rows)) if style == "easy" else None
+    intro = digest.get("easy_intro" if style == "easy" else "intro") or ""
+    return compose_text(rows, style, _date_label(now), kcfg, intro.strip(), (digest.get("closing") or "").strip(),
+                        glossary)
 
 
-def compose_community_single(post: dict, plan: dict, kcfg: dict, now: datetime) -> str:
-    """ニュースが無い日のコミュニティ向け（定番ネタの長文版）。"""
+def compose_single_versions(post: dict, plan: dict, kcfg: dict, now: datetime) -> tuple[dict, list[dict]]:
+    """ニュースが無い日のコミュニティ向け（定番ネタの長文版）を2種類。"""
     label = "🗓 先週のKaia・JPYCまとめ" if plan["kind"] == "recap" else "💡 今日のKaia豆知識"
-    lines = [f"{label}｜{now.month}/{now.day}（{WEEKDAY_JA[now.weekday()]}）", "", post["long_post"].strip()]
-    if kcfg.get("community_footer"):
-        lines += ["", kcfg["community_footer"]]
-    return "\n".join(lines)
+    footer = ["", kcfg["community_footer"]] if kcfg.get("community_footer") else []
+    easy_body = (post.get("easy_post") or post["long_post"]).strip()
+    glossary = glossary_for(easy_body)
+    easy = [f"{label}（やさしい版）｜{_date_label(now)}", "", easy_body]
+    if glossary:
+        easy += ["", "📖 今日のことば"] + [f"・{g['term']}：{g['desc']}" for g in glossary]
+    pro = [f"{label}｜{_date_label(now)}", "", post["long_post"].strip()]
+    return {"easy": "\n".join(easy + footer), "pro": "\n".join(pro + footer)}, glossary
 
 
 # ---------------------------------------------------------------- 確かめる・届ける
@@ -1090,10 +1218,12 @@ def deliver(cfg: dict, entry: dict, caution_list: list[dict], now: datetime, dry
         head.append(f"🌐 Webでも見られます: <{kcfg['web']['page_url']}>")
 
     messages: list[tuple[str, str | None]] = [("\n".join(head)[:1990], None)]
-    parts = _split_message(entry["community_text"])
-    for n, part in enumerate(parts, 1):
-        suffix = f"（{n}/{len(parts)}）" if len(parts) > 1 else ""
-        messages.append((part, f"① コミュニティ向け{suffix}（LINE・Telegram・Discordにそのまま貼れます）"))
+    versions = entry.get("versions") or [{"label": "コミュニティ向け", "text": entry["community_text"]}]
+    for v in versions:
+        parts = _split_message(v["text"])
+        for n, part in enumerate(parts, 1):
+            suffix = f"（{n}/{len(parts)}）" if len(parts) > 1 else ""
+            messages.append((part, f"① {v['label']}{suffix}（LINE・Telegram・Discordにそのまま貼れます）"))
     if entry["x_text"]:
         messages.append((entry["x_text"], "② X本文（このまま投稿できます）"))
     if entry["reply_text"].strip():
@@ -1196,7 +1326,11 @@ def site_status(conn, cfg: dict) -> dict:
     except ValueError:
         sources = {}
     has_key = bool(os.environ.get("ANTHROPIC_API_KEY", "").strip())
-    ai = _ai_state["value"] if has_key else "none"
+    # この実行でAPIを呼ばなかった（新着が無かった）ときは、前回わかった状態を使う
+    if _ai_state["value"] != "none":
+        db.set_state(conn, "kaia_ai_state", _ai_state["value"])
+    ai = (_ai_state["value"] if _ai_state["value"] != "none" else db.get_state(conn, "kaia_ai_state", "none")) \
+        if has_key else "none"
     return {
         "ai": ai,
         "discord": bool(os.environ.get(kcfg.get("webhook_env", "WEBHOOK_KAIA"), "").strip()),
@@ -1395,16 +1529,8 @@ def run(conn, cfg: dict, dry_run: bool = False, theme: str | None = None, now: d
                 urls = [x_story["items"][0]["url"]]
             else:
                 plan["reason"] += "。見出しモード（AIの要約はAPIキーの設定後に始まります）"
-            community = compose_community(digest, stories, kcfg, now, require_summary=(mode == "ai"))
-            by_id = {i["id"]: i for i in digest["items"]}
-            for n, g in enumerate(stories, 1):
-                it = by_id.get(n)
-                if not it or (mode == "ai" and not it["summary"].strip()):
-                    continue
-                rep = g["items"][0]
-                items.append({"topic": g["topic"], "title": it["title"], "summary": it["summary"],
-                              "point": it["point"], "source": rep["source"], "label": _kind_label(rep["kind"], rep["url"]),
-                              "url": rep["url"]})
+            items = digest_rows(digest, stories, require_summary=(mode == "ai"))
+            versions, glossary = compose_versions(items, digest, kcfg, _date_label(now))
             post = digest
         else:
             if not ai_ok:
@@ -1425,19 +1551,23 @@ def run(conn, cfg: dict, dry_run: bool = False, theme: str | None = None, now: d
             if post is None:
                 raise RuntimeError("発信案を書けませんでした")
             mode = "ai"
-            community = compose_community_single(post, plan, kcfg, now)
+            versions, glossary = compose_single_versions(post, plan, kcfg, now)
         logger.info("発信案: 枠=%s モード=%s 理由=%s", plan["kind"], mode, plan["reason"])
 
         x_text = compose_x(post, kcfg, urls) if post.get("x_post", "").strip() else ""
         reply_text = (post.get("x_reply") or "").strip()
         if reply_text and urls and kcfg.get("link_in_reply", True):
             reply_text = f"{reply_text}\n{urls[0]}"
-        warnings = (check_texts(x_text, community, kcfg, material, now) if mode == "ai" else []) + extra_warnings
+        both_texts = versions["easy"] + "\n" + versions["pro"]
+        warnings = (check_texts(x_text, both_texts, kcfg, material, now) if mode == "ai" else []) + extra_warnings
         caution_list = cautions(conn, now)
         entry = {
             "date": today, "weekday": WEEKDAY_JA[now.weekday()], "kind": plan["kind"], "mode": mode,
             "label": THEME_LABELS.get(plan["kind"], plan["kind"]), "headline": post["headline"],
-            "reason": plan["reason"], "community_text": community, "x_text": x_text, "reply_text": reply_text,
+            "reason": plan["reason"],
+            "versions": [{"key": k, "label": label, "text": versions[k]} for k, label in AUDIENCES],
+            "community_text": versions["pro"],  # 古い表示との互換用
+            "glossary": glossary, "x_text": x_text, "reply_text": reply_text,
             "intent_url": x_intent_url(x_text), "warnings": warnings, "items": items,
             "cautions": [{"title": g["ja_title"], "url": g["items"][0]["url"]} for g in caution_list[:3]],
             "created_at": now.isoformat(),
@@ -1470,6 +1600,34 @@ def run(conn, cfg: dict, dry_run: bool = False, theme: str | None = None, now: d
         db.set_state(conn, "kaia_last_date", today)
         prune(conn)
     return True
+
+
+def restyle_entry(entry: dict, kcfg: dict) -> dict:
+    """2種類の文章が無い古いまとめ（見出しモード）を、残っている items から2種類に組み直す。"""
+    if entry.get("versions") or not entry.get("items"):
+        return entry
+    rows = [{**r, "easy_title": r.get("easy_title") or easy_title_rule(r["title"]),
+             "easy_summary": r.get("easy_summary") or r["summary"], "easy_point": r.get("easy_point") or ""}
+            for r in entry["items"]]
+    d = datetime.fromisoformat(entry["date"])
+    versions, glossary = compose_versions(rows, {}, kcfg, f"{d.month}/{d.day}（{WEEKDAY_JA[d.weekday()]}）")
+    return {**entry, "items": rows, "glossary": glossary, "community_text": versions["pro"],
+            "versions": [{"key": k, "label": label, "text": versions[k]} for k, label in AUDIENCES]}
+
+
+def restyle_site(cfg: dict) -> int:
+    """公開中の site.json の古いまとめを2種類の形に直す。直した件数を返す。"""
+    site, sha = load_site(cfg)
+    if not site:
+        logger.warning("公開中のデータを読めませんでした")
+        return 0
+    kcfg = _kcfg(cfg)
+    before = [bool(a.get("versions")) for a in site.get("archive", [])]
+    site["archive"] = [restyle_entry(a, kcfg) for a in site.get("archive", [])]
+    changed = sum(1 for b, a in zip(before, site["archive"]) if not b and a.get("versions"))
+    if changed and _save_site(cfg, site, sha, "Kaia・JPYCデータ: 古いまとめを2種類の形に直す"):
+        logger.info("古いまとめ%d件を2種類の形に直しました", changed)
+    return changed
 
 
 def _record_failure(conn, cfg: dict, now: datetime, reason: str) -> None:
