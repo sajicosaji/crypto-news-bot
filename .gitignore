@@ -18,3 +18,6 @@ data/*.bak
 
 # データベースはリポジトリに入れず、GitHub Actionsのキャッシュで引き継ぐ
 data/*.db
+
+# Cloudflareの公開ツールが作る作業フォルダ
+.wrangler/

@@ -417,3 +417,13 @@ Robinhood Chain収益変化の検知、抜粋の整形、読む価値アドバ�
 - 書く: `claude-opus-5-5` が材料だけで、まとめとX本文を1回で書く。出典名とURLはプログラムが差し込む。目安は月300〜600円
 - 確かめる: Xの文字数（日本語は1字=2）・材料に無い数字・煽り表現を自動で点検し、気になる点は⚠で出す
 - 定番ネタは `kaia_topics.yaml`、設定は `config.yaml` の `kaia_daily`。試しに作るときは Actions の `kaia-test` を手動実行（本番のDBには触らない）
+
+### Webページ「Kaia・JPYC デスク」（2026-10-27追加）
+
+https://kaia-jpyc-desk.pages.dev （検索エンジン除け付き）。タブ: 今日 / ニュース / 履歴 / 数字 / 豆知識 / 準備状況。
+- データ: 自走ジョブが `kaia/site.json` を **kaia-data ブランチ**へ書き出し（毎朝のまとめ＋3時間おきのニュース一覧）、ページはそれを読むだけ。
+  Discordは任意（`WEBHOOK_KAIA` があれば同じ内容が届く）。
+- Claude APIが使えない間は「見出しモード」（見出し・抜粋・出典リンク）。APIキーが有効になれば自動でAI要約とX本文に切り替わる。
+- ページ本体は `kaia_site/public/index.html`。直したら kaia_site フォルダで
+  `cmd //c "C:adio\site_tools
+ode_modules\.bin\wrangler.cmd" pages deploy public --project-name kaia-jpyc-desk --branch main --commit-dirty=true`
