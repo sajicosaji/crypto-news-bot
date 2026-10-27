@@ -425,5 +425,4 @@ https://kaia-jpyc-desk.pages.dev （検索エンジン除け付き）。タブ: 
   Discordは任意（`WEBHOOK_KAIA` があれば同じ内容が届く）。
 - Claude APIが使えない間は「見出しモード」（見出し・抜粋・出典リンク）。APIキーが有効になれば自動でAI要約とX本文に切り替わる。
 - ページ本体は `kaia_site/public/index.html`。直したら kaia_site フォルダで
-  `cmd //c "C:adio\site_tools
-ode_modules\.bin\wrangler.cmd" pages deploy public --project-name kaia-jpyc-desk --branch main --commit-dirty=true`
+  `cmd //c "C:\radio\site_tools\node_modules\.bin\wrangler.cmd" pages deploy public --project-name kaia-jpyc-desk --branch main --commit-dirty=true`
