@@ -73,7 +73,7 @@ def test_compose_community_inserts_sources_and_urls_by_program(conn):
         {"id": 2, "title": "空の話題", "summary": "", "point": ""},
     ]}
     text = k.compose_community(digest, stories, {"community_footer": "※投資助言ではありません"}, NOW)
-    assert text.startswith("📰 Kaia・JPYCニュース｜10/24（土）")
+    assert text.startswith("📰 Unifi・JPYC・Kaiaニュース｜10/24（土）")
     assert "【🤝 Kaia × JPYC】" in text and "1️⃣ JPYCとLINE NEXTが提携" in text
     assert "🔗 JPYC（PR TIMES）｜提携先の公式発表\nhttps://prtimes.jp/a" in text
     assert "空の話題" not in text and "【💴 JPYC】" not in text  # 要約が空の話題は載せない
@@ -81,7 +81,10 @@ def test_compose_community_inserts_sources_and_urls_by_program(conn):
 
 
 def test_keyword_topic():
-    assert k._keyword_topic("JPYC、LINE NEXTと覚書") == "both"
+    # Unifi（LINE NEXT）の話は、JPYCが出てきてもUnifiの話として先頭に置く
+    assert k._keyword_topic("JPYC、LINE NEXTと覚書") == "unifi"
+    assert k._keyword_topic("LINEのUnifi、JPYCに対応") == "unifi"
+    assert k._keyword_topic("JPYC、Kaiaチェーンに対応") == "both"
     assert k._keyword_topic("Kaia launches X") == "kaia"
     assert k._keyword_topic("JPYC累計発行額100億円") == "jpyc"
     assert k._keyword_topic("3メガバンクが円建てステーブルコイン") == "stablecoin"
@@ -259,10 +262,10 @@ def test_two_versions_differ_by_audience():
     versions, glossary = k.compose_versions(_rows(), {"intro": "", "easy_intro": ""}, {"community_footer": "※注意書き"},
                                             "10/28（水）")
     easy, pro = versions["easy"], versions["pro"]
-    assert easy.startswith("📰 今日のKaia・JPYCニュース（やさしい版）｜10/28（水）")
+    assert easy.startswith("📰 今日のUnifi・JPYC・Kaiaニュース（やさしい版）｜10/28（水）")
     assert "1️⃣ LINEのお財布に銀行から円を入れる実験" in easy and "💡 ひとことで言うと：LINEで円が使いやすくなるかも" in easy
     assert "📖 今日のことば" in easy and "📖" not in pro
-    assert pro.startswith("📰 Kaia・JPYCニュース｜10/28（水）")
+    assert pro.startswith("📰 Unifi・JPYC・Kaiaニュース｜10/28（水）")
     assert "1️⃣ JPYC×LINE NEXT、口座連携PoC" in pro and "👉 Unifiへの円チャージ導線" in pro
     assert easy.endswith("※注意書き") and pro.endswith("※注意書き")
     assert "https://prtimes.jp/a" in easy and "https://prtimes.jp/a" in pro
@@ -310,3 +313,31 @@ def test_headline_mode_skips_english_article_from_japanese_search(conn):
     _add(conn, "https://ja", story="ja", topic="jpyc", lang="ja", title="JPYC、累計発行額100億円を突破", hours_ago=3)
     picked = k.digest_stories(conn, _digest_cfg(), NOW, japanese_only=True)
     assert [g["story"] for g in picked] == ["ja"]
+
+
+def test_unifi_is_told_apart_from_network_gear():
+    assert k.mentions_unifi("LINEのステーブルコインウォレット「Unifi」")
+    assert k.mentions_unifi("Unifi mini、日本で提供開始")
+    assert k.mentions_unifi("LINE NEXT、Danalと提携")
+    # ネットワーク機器のUniFi（Ubiquiti）は拾わない
+    assert not k.mentions_unifi("Ubiquiti UniFi Dream Machine review")
+    assert not k.mentions_unifi("UniFi Network 9.0 released")
+    assert k.topic_match("Unifi Payが正式ローンチ")
+    assert not k.topic_match("UniFi Protect camera firmware update")
+
+
+def test_no_ai_when_use_ai_is_off(conn, monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    cfg = {"kaia_daily": {"use_ai": False}}
+    assert k._ai_client(cfg) is None
+    k.ensure_schema(conn)
+    assert k.site_status(conn, cfg)["ai"] == "off"
+
+
+def test_unifi_section_comes_first(conn):
+    k.ensure_schema(conn)
+    conn.execute("INSERT INTO kaia_posts(date, kind, created_at) VALUES ('2026-10-23', 'digest', 'x')")
+    _add(conn, "https://kaia1", story="kaia1", topic="kaia", lang="ja", hours_ago=3)
+    _add(conn, "https://unifi1", story="unifi1", topic="unifi", kind="unifi", lang="ja", hours_ago=8)
+    picked = k.digest_stories(conn, _digest_cfg(), NOW, set())
+    assert [g["story"] for g in picked] == ["unifi1", "kaia1"]

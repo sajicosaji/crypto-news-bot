@@ -418,11 +418,16 @@ Robinhood Chain収益変化の検知、抜粋の整形、読む価値アドバ�
 - 確かめる: Xの文字数（日本語は1字=2）・材料に無い数字・煽り表現を自動で点検し、気になる点は⚠で出す
 - 定番ネタは `kaia_topics.yaml`、設定は `config.yaml` の `kaia_daily`。試しに作るときは Actions の `kaia-test` を手動実行（本番のDBには触らない）
 
-### Webページ「Kaia・JPYC デスク」（2026-10-27追加）
+### Webページ「Unifi・JPYC・Kaia デスク」（2026-10-27追加・10-28に作り直し）
 
-https://kaia-jpyc-desk.pages.dev （検索エンジン除け付き）。タブ: 今日 / ニュース / 履歴 / 数字 / 豆知識 / 準備状況。
-- データ: 自走ジョブが `kaia/site.json` を **kaia-data ブランチ**へ書き出し（毎朝のまとめ＋3時間おきのニュース一覧）、ページはそれを読むだけ。
-  Discordは任意（`WEBHOOK_KAIA` があれば同じ内容が届く）。
-- Claude APIが使えない間は「見出しモード」（見出し・抜粋・出典リンク）。APIキーが有効になれば自動でAI要約とX本文に切り替わる。
-- ページ本体は `kaia_site/public/index.html`。直したら kaia_site フォルダで
+https://kaia-jpyc-desk.pages.dev （検索エンジン除け付き）。本人はLINE NEXTのウォレット「Unifi」のアンバサダー。
+タブ: 今日（今日おぼえる1枚＋ニュースまとめ＋これまで）/ 説明（よくある質問の答え方）/ データ（数字・年表・公式の入口）/
+ニュース / 用語 / 心得（言っていいこと・PR表記・使える文章）/ 準備。どのタブも「はじめての人向け／慣れている人向け」を切り替えられる。
+- **無料で運用**（本人の方針）。`kaia_daily.use_ai: false` なのでClaude APIは呼ばない。ニュースは見出し・抜粋・出典リンクでまとめる。
+- ニュースのデータ: 自走ジョブが `kaia/site.json` を **kaia-data ブランチ**へ書き出し（毎朝のまとめ＋3時間おきのニュース一覧）、ページはそれを読むだけ。
+  Unifiの話題は LINE NEXT（PR TIMES）・Unifi公式ブログ（Medium、日本語の回だけ）・ニュース検索から集め、まとめの先頭に置く。
+  「UniFi」はネットワーク機器の名前でもあるので、LINE・お金の話と一緒に出たときだけUnifiの話とみなす（`mentions_unifi`）。
+- 説明カード・データ・年表・心得・公式リンクは `kaia_knowledge.yaml`、用語は `kaia_glossary.yaml` に手で書く（日付と出典つき）。
+  直したら `python kaia_site/build.py` で `kaia_site/public/knowledge.json` を作り直してから公開する。
+- 公開は kaia_site フォルダで
   `cmd //c "C:\radio\site_tools\node_modules\.bin\wrangler.cmd" pages deploy public --project-name kaia-jpyc-desk --branch main --commit-dirty=true`

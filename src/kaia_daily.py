@@ -51,12 +51,28 @@ REQUEST_TIMEOUT = 20
 
 # 見出し・概要にこれが無い記事は拾わない（ニュース検索や一般媒体のノイズよけ）
 TOPIC_KEYWORDS = re.compile(
-    r"\bKaia\b|カイア|카이아|LINE NEXT|Mini ?Dapps?|ミニDapp|Klaytn|クレイトン|Finschia|Unifi|"
+    r"(?<![A-Za-z])Kaia(?![A-Za-z])|カイア|카이아|LINE NEXT|Mini ?Dapps?|ミニDapp|Klaytn|クレイトン|Finschia|"
     r"JPYC|日本円ステーブルコイン|円建てステーブルコイン|円ステーブルコイン|日本円建てステーブルコイン",
     re.IGNORECASE,
 )
-_KW_KAIA = re.compile(r"\bKaia\b|カイア|카이아|LINE NEXT|Mini ?Dapp|Klaytn|Finschia|Unifi", re.IGNORECASE)
+_KW_KAIA = re.compile(r"(?<![A-Za-z])Kaia(?![A-Za-z])|カイア|카이아|Mini ?Dapp|Klaytn|Finschia", re.IGNORECASE)
 _KW_JPYC = re.compile(r"JPYC", re.IGNORECASE)
+# 「UniFi」はネットワーク機器（Ubiquiti）の名前でもあるので、LINE・お金の話と一緒に出たときだけUnifiの話とみなす
+_KW_UNIFI_SURE = re.compile(r"LINE NEXT|ラインネクスト|ユニファイ|Unifi ?(mini|Pay)", re.IGNORECASE)
+_UNIFI_CONTEXT = re.compile(r"LINE|ステーブルコイン|stablecoin|JPYC|USDT|USD₮|ウォレット|wallet|Kaia|カイア|Web3",
+                            re.IGNORECASE)
+
+
+def mentions_unifi(text: str) -> bool:
+    if _KW_UNIFI_SURE.search(text):
+        return True
+    return bool(re.search(r"Unifi", text, re.IGNORECASE) and _UNIFI_CONTEXT.search(text)
+                and not re.search(r"Ubiquiti", text, re.IGNORECASE))
+
+
+def topic_match(text: str) -> bool:
+    """Unifi（LINE）・Kaia・JPYC・円建てステーブルコインのどれかの話か。"""
+    return bool(TOPIC_KEYWORDS.search(text)) or mentions_unifi(text)
 # 値段の話（予想・急騰急落・チャート分析）。発信案にはしない
 PRICE_TALK = re.compile(
     r"price prediction|price analysis|price forecast|surges?|plunges?|rall(y|ies)|soars?|"
@@ -82,6 +98,7 @@ THEME_LABELS = {
 }
 # まとめの並び順と見出し
 TOPIC_SECTIONS = [
+    ("unifi", "📱 Unifi（LINE）"),
     ("both", "🤝 Kaia × JPYC"),
     ("kaia", "🟢 Kaia"),
     ("jpyc", "💴 JPYC"),
@@ -90,8 +107,9 @@ TOPIC_SECTIONS = [
 TOPICS = {t for t, _ in TOPIC_SECTIONS}
 NUMBER_EMOJI = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
 WEEKDAY_JA = "月火水木金土日"
-OFFICIAL_KINDS = {"official", "forum", "release"}
-KIND_LABELS = {"official": "Kaia公式", "forum": "Kaia公式", "release": "Kaia公式", "partner": "提携先の公式発表"}
+OFFICIAL_KINDS = {"official", "forum", "release", "unifi"}
+KIND_LABELS = {"official": "Kaia公式", "forum": "Kaia公式", "release": "Kaia公式", "unifi": "Unifi公式（LINE NEXT）",
+               "partner": "提携先の公式発表"}
 
 
 def _kind_label(kind: str, url: str = "") -> str:
@@ -108,6 +126,14 @@ _ai_state = {"value": "none"}
 def _note_api_error(e: Exception) -> None:
     if getattr(e, "status_code", None) == 401:
         _ai_state["value"] = "invalid_key"
+
+
+def _ai_client(cfg: dict):
+    """Claude APIのクライアント。use_ai: false（無料で運用）のときは呼ばない。"""
+    if not _kcfg(cfg).get("use_ai", True):
+        _ai_state["value"] = "off"
+        return None
+    return summarize._build_client(cfg)
 
 
 SCHEMA = """
@@ -253,6 +279,8 @@ def collect(conn, cfg: dict, now: datetime) -> int:
         before = added
         max_age = timedelta(days=src.get("max_age_days", 7))
         pattern = re.compile(src["title_pattern"]) if src.get("title_pattern") else None
+        # keywords: その情報源だけの絞り込み（LINE NEXTの発表のうちUnifi・お金の話だけ拾う、など）
+        own_keywords = re.compile(src["keywords"], re.IGNORECASE) if src.get("keywords") else None
         for entry in feed.entries:
             title = _strip_html(entry.get("title", ""))
             link = _real_url(entry.get("link", ""))
@@ -265,8 +293,14 @@ def collect(conn, cfg: dict, now: datetime) -> int:
                 continue  # 日付の無い報道は古い可能性があるので使わない
             if pattern and not pattern.search(title):
                 continue
+            # 何か国語かで同じお知らせを出す公式（Unifiのブログ等）は、日本語の回だけ使う
+            if src.get("only_japanese") and not re.search(r"[ぁ-んァ-ン]", title):
+                continue
             summary = _strip_html(entry.get("summary", ""))[:6000]
-            if src.get("require_keywords") and not TOPIC_KEYWORDS.search(f"{title} {summary[:400]}"):
+            head = f"{title} {summary[:400]}"
+            if own_keywords is not None and not own_keywords.search(head):
+                continue
+            if src.get("require_keywords") and not topic_match(head):
                 continue
             body = ""
             if entry.get("content"):
@@ -300,8 +334,10 @@ def collect(conn, cfg: dict, now: datetime) -> int:
 TRIAGE_SYSTEM = """あなたは、ブロックチェーン「Kaia」（KlaytnとFinschiaが統合したチェーン）と、
 日本円ステーブルコイン「JPYC」（Kaiaでも発行されている）のニュースを仕分ける係です。
 各記事について次を判定してください。
-- relevant: Kaia・JPYC・日本円建てステーブルコインのどれかの話ならtrue。人名のKaiaなど無関係ならfalse。
-- topic: both（KaiaとJPYCの両方が関わる。LINE NEXTやUnifiとJPYCの話もここ）/ kaia（Kaia・LINE NEXT・Mini Dapp・Unifi）/
+- relevant: Unifi（LINE NEXTのウォレット）・Kaia・JPYC・日本円建てステーブルコインのどれかの話ならtrue。
+  人名のKaiaや、ネットワーク機器のUniFi（Ubiquiti）など無関係ならfalse。
+- topic: unifi（LINE NEXT・Unifi・Unifi mini・Unifi Payの話。UnifiとJPYCの話もここ）/
+  both（KaiaとJPYCの両方が関わる）/ kaia（Kaia・Mini Dapp）/
   jpyc（JPYC単独）/ stablecoin（JPYC以外の日本円建てステーブルコインや国内のステーブルコイン制度）/ other
 - story: 同じ出来事には同じ短い英語のキー（例 jpyc-sbj-linenext-mou）。媒体や言語が違っても同じ出来事なら同じキー。
   「既知の話題」と同じ出来事ならそのキーをそのまま使う。
@@ -322,7 +358,7 @@ TRIAGE_SCHEMA = {
                 "properties": {
                     "id": {"type": "integer"},
                     "relevant": {"type": "boolean"},
-                    "topic": {"type": "string", "enum": ["both", "kaia", "jpyc", "stablecoin", "other"]},
+                    "topic": {"type": "string", "enum": ["unifi", "both", "kaia", "jpyc", "stablecoin", "other"]},
                     "story": {"type": "string"},
                     "ja_title": {"type": "string"},
                     "importance": {"type": "integer"},
@@ -342,6 +378,9 @@ TRIAGE_SCHEMA = {
 
 
 def _keyword_topic(text: str) -> str:
+    # 本人はUnifi（LINE）のアンバサダーなので、UnifiとJPYCの話はUnifiの話として先頭に置く
+    if mentions_unifi(text):
+        return "unifi"
     kaia, jpyc = bool(_KW_KAIA.search(text)), bool(_KW_JPYC.search(text))
     if kaia and jpyc:
         return "both"
@@ -358,7 +397,7 @@ def _heuristic_triage(row) -> dict:
     topic = _keyword_topic(f"{title} {(row['summary'] or '')[:300]}")
     return {
         "relevant": topic != "other" or row["kind"] in OFFICIAL_KINDS,
-        "topic": "kaia" if topic == "other" else topic,
+        "topic": (("unifi" if row["kind"] == "unifi" else "kaia") if topic == "other" else topic),
         "story": re.sub(r"[^a-z0-9]+", "-", title.lower())[:60] or row["url"],
         "ja_title": title[:60],
         "importance": 4 if row["kind"] in OFFICIAL_KINDS else 3,
@@ -1102,10 +1141,10 @@ def compose_text(rows: list[dict], style: str, date_label: str, kcfg: dict, intr
     出典名とURLはモデルではなくプログラムが入れる。"""
     easy = style == "easy"
     if easy:
-        lines = [f"📰 今日のKaia・JPYCニュース（やさしい版）｜{date_label}",
+        lines = [f"📰 今日のUnifi・JPYC・Kaiaニュース（やさしい版）｜{date_label}",
                  intro or "暗号資産にくわしくなくても読めるように、ことばの説明をつけました。"]
     else:
-        lines = [f"📰 Kaia・JPYCニュース｜{date_label}"]
+        lines = [f"📰 Unifi・JPYC・Kaiaニュース｜{date_label}"]
         if intro:
             lines.append(intro)
     current_topic, number = None, 0
@@ -1343,10 +1382,13 @@ def site_status(conn, cfg: dict) -> dict:
         sources = {}
     has_key = bool(os.environ.get("ANTHROPIC_API_KEY", "").strip())
     # この実行でAPIを呼ばなかった（新着が無かった）ときは、前回わかった状態を使う
-    if _ai_state["value"] != "none":
+    if _ai_state["value"] not in ("none", "off"):
         db.set_state(conn, "kaia_ai_state", _ai_state["value"])
-    ai = (_ai_state["value"] if _ai_state["value"] != "none" else db.get_state(conn, "kaia_ai_state", "none")) \
-        if has_key else "none"
+    if not kcfg.get("use_ai", True):
+        ai = "off"  # 無料で運用（AIは使わない設定）
+    else:
+        ai = (_ai_state["value"] if _ai_state["value"] != "none" else db.get_state(conn, "kaia_ai_state", "none")) \
+            if has_key else "none"
     return {
         "ai": ai,
         "discord": bool(os.environ.get(kcfg.get("webhook_env", "WEBHOOK_KAIA"), "").strip()),
@@ -1484,7 +1526,7 @@ def refresh(conn, cfg: dict, dry_run: bool = False, now: datetime | None = None)
     now = now or now_jst()
     ensure_schema(conn)
     try:
-        client = summarize._build_client(cfg)
+        client = _ai_client(cfg)
         collect(conn, cfg, now)
         triage(conn, cfg, client, now)
         ok = publish_web(conn, cfg, now, dry_run=dry_run)
@@ -1506,7 +1548,7 @@ def run(conn, cfg: dict, dry_run: bool = False, theme: str | None = None, now: d
     now = now or now_jst()
     today = now.date().isoformat()
     ensure_schema(conn)
-    client = summarize._build_client(cfg)
+    client = _ai_client(cfg)
 
     try:
         collect(conn, cfg, now)

@@ -620,6 +620,10 @@ kaia_daily:
     news_days: 7                 # ニュース一覧に出す日数
     archive_days: 90             # まとめの履歴を残す日数
     prep_mode: true              # アンバサダーの準備期間中（ページに「準備期間」と出す）
+  # 本人の方針（2026-10-28）「課金はしたくない。無料でできる範囲で」→ Claude APIは呼ばない。
+  # まとめは見出しモード（見出し・抜粋・出典リンク）。説明カードや基本データは kaia_knowledge.yaml に手で書く。
+  # true に戻すと、APIキーが有効なら下のモデルでAI要約とX本文を書く（有料）。
+  use_ai: false
   # 書く係は上位モデル（本人の名前で公開される文章なので品質優先）。仕分け係は安いモデル。
   # 1日1回の呼び出しで、まとめとX本文を一緒に書く。目安: 1日 ¥10〜20 → 月 ¥300〜600
   writer_model: "claude-opus-5-5"
@@ -642,6 +646,32 @@ kaia_daily:
   include_general_feeds: true
   # Kaia・JPYC専用の情報源（すべて実際に取得できることを確認済み）
   sources:
+    # 本人はUnifi（LINE NEXTのウォレット）のアンバサダー。Unifiの公式発表をいちばん先に見る
+    - name: "LINE NEXT（PR TIMES）"
+      url: "https://prtimes.jp/companyrdf.php?company_id=145432"
+      kind: unifi
+      lang: ja
+      max_age_days: 14
+      # MOLTS（高級品）やゲームの発表は除き、Unifi・お金の話だけ
+      keywords: 'Unifi|JPYC|ステーブルコイン|Kaia|カイア|Mini ?Dapp'
+    - name: "Unifi公式ブログ（日本語）"
+      url: "https://medium.com/feed/@unifi_x2"
+      kind: unifi
+      lang: ja
+      max_age_days: 14
+      only_japanese: true
+    - name: "Unifi公式ブログ"
+      url: "https://medium.com/feed/@unifi_x"
+      kind: unifi
+      lang: ja
+      max_age_days: 14
+      only_japanese: true
+    - name: "ニュース検索（Unifi）"
+      url: "https://www.bing.com/news/search?q=Unifi+LINE&format=rss&setlang=ja&cc=JP"
+      kind: media
+      lang: ja
+      max_age_days: 7
+      require_keywords: true
     - name: "Kaia公式ブログ"
       url: "https://blog.kaia.io/rss/"
       kind: official

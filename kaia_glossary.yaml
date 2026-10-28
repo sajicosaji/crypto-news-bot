@@ -1,103 +1,238 @@
-# 初心者向けまとめの「📖 今日のことば」に使う辞書（kaia_daily が使う）
+# ことばの辞書（kaia_daily の「📖 今日のことば」と、Webページの「用語」タブが使う）
 #
-# その日のまとめに出てきた言葉だけを、出てきた順に最大6つ載せる。
-# match は正規表現（大文字・小文字は区別しない）。desc は中学生にも分かる言葉で、事実だけを書く。
-# 説明を足すときは、公式の資料（Kaiaのドキュメント・各社のプレスリリース）で確かめた内容にすること。
+# まとめには、その日に出てきた言葉だけを、出てきた順に最大6つ載せる。
+# match は正規表現（大文字・小文字は区別しない。区別したいときは (?-i:...) で囲む）。
+# desc は中学生にも分かる言葉で、事実だけを書く。pro は詳しい人に聞かれたとき用の補足（任意）。
+# cat はWebページでの分類: unifi / jpyc / kaia / basic / law
+# 説明を足すときは、公式の資料（各社のプレスリリース・公式ドキュメント）で確かめた内容にすること。
 
 terms:
-  - term: "Kaia（カイア）"
-    match: '\bKaia\b|カイア'
-    desc: "KakaoのKlaytnとLINEのFinschiaが一つになって生まれたブロックチェーン。アジアで広く使われることを目指している。"
-  - term: "KAIA"
-    match: '\bKAIA\b(?!\s*DLT)'
-    desc: "Kaiaブロックチェーンで使われる暗号資産。取引の手数料の支払いなどに使われる。"
-  - term: "JPYC"
-    match: 'JPYC'
-    desc: "日本円と1対1で交換できる、日本円建てのステーブルコイン。Kaiaを含む複数のブロックチェーンで発行されている。"
-  - term: "ステーブルコイン"
-    match: 'ステーブルコイン|ステ-ブルコイン|ステ－ブルコイン|stablecoin'
-    desc: "円やドルと同じ値動きをするように作られた、デジタルのお金。値段が大きく上下しにくい。"
-  - term: "暗号資産（仮想通貨）"
-    match: '暗号資産|仮想通貨'
-    desc: "インターネット上でやり取りできるデジタルな資産。ビットコインなど。"
-  - term: "ブロックチェーン"
-    match: 'ブロックチェーン|blockchain'
-    desc: "取引の記録をみんなで共有して、あとから書き換えにくくする仕組み。"
+  # ---- Unifi・LINE ----
+  - term: "Unifi（ユニファイ）"
+    cat: unifi
+    match: 'Unifi|ユニファイ'
+    desc: "LINE NEXTが運営する、LINEの中で使えるステーブルコインのお財布（ウォレット）。2026年3月に正式公開。"
+    pro: "ノンカストディアル型。LINE・Google・NAVER・Kakao・Appleのアカウントで作成。ネットワークはKaia。2026/3/9グローバル正式ローンチ（ベータは2/12）。"
+  - term: "Unifi mini"
+    cat: unifi
+    match: 'Unifi ?mini'
+    desc: "Unifiを、LINEの中のミニアプリとして使える日本向けの版。アプリを追加で入れなくていい。2026年6月に始まった。"
+    pro: "2026/6/22提供開始（PR TIMES）。入口は miniapp.line.me/unifi。"
+  - term: "Unifi Pay"
+    cat: unifi
+    match: 'Unifi ?Pay'
+    desc: "Unifiに入れたステーブルコインで、お店に支払いができる仕組み。2026年8月に始まった。"
+    pro: "2026/8/6グローバル正式ローンチ。独自の決済手数料0%（プロトコル手数料が別にかかる場合あり）。精算は平均1秒水準。"
   - term: "LINE NEXT"
-    match: 'LINE NEXT'
-    desc: "LINE系の会社で、ブロックチェーンを使ったサービスを手がけている。ウォレット「Unifi」などを提供。"
-  - term: "Unifi"
-    match: 'Unifi'
-    desc: "LINE NEXTが提供するデジタルウォレット（ステーブルコインなどを入れておくアプリ）。"
-  - term: "ウォレット"
-    match: 'ウォレット|wallet'
-    desc: "暗号資産を入れておく「お財布」のようなアプリ。"
+    cat: unifi
+    match: 'LINE NEXT|ラインネクスト'
+    desc: "LINEヤフーの関連会社（アメリカの会社）。LINEの中で使えるブロックチェーンのサービスを作っていて、Unifiの運営元。"
+    pro: "LINE NEXT Inc.（代表 コ・ヨンス）。日本でのPR窓口は LINE NEXT Start株式会社。旧Dapp Portal・Mini Dappも同社。"
+  - term: "LINEミニアプリ"
+    cat: unifi
+    match: 'LINEミニアプリ|ミニアプリ'
+    desc: "LINEの中で動く小さなアプリ。追加でインストールしなくても、LINEから開いて使える。"
   - term: "Mini Dapp"
+    cat: unifi
     match: 'Mini ?Dapp|ミニDapp'
     desc: "LINEの中で動く、ブロックチェーンを使ったミニアプリ。"
-  - term: "覚書（MOU）"
-    match: '覚書|\bMOU\b'
-    desc: "正式な契約の前に「この方向で一緒に進めましょう」と確認し合う書面。"
-  - term: "業務提携"
-    match: '業務提携|提携'
-    desc: "会社どうしが、それぞれの得意分野を持ち寄って協力すること。"
-  - term: "PoC（実証実験）"
-    match: '\bPoC\b|概念実証|実証実験|実証'
-    desc: "新しいアイデアや技術が、実際に使えるかどうかを試してみる取り組み。"
-  - term: "ガバナンス"
-    match: 'ガバナンス|Governance'
-    desc: "ブロックチェーンのルールやお金の使い道を、関係者の話し合いや投票で決める仕組み。"
-  - term: "GC（ガバナンス・カウンシル）"
-    match: '\bGC\b|ガバナンス・カウンシル|Governance Council'
-    desc: "Kaiaのルールを決める投票に参加する、企業などの集まり。"
-  - term: "ステーキング"
-    match: 'ステーキング|[Ss]taking'
-    desc: "暗号資産を預けてネットワークの運営を支え、その見返りに報酬を受け取る仕組み。"
-  - term: "貢献報酬（CR）"
-    match: '貢献報酬|Contribution Reward|\bCR\b'
-    desc: "Kaiaネットワークに貢献した人に、追加のKAIAを配るプログラム。"
-  - term: "DeFi（ディーファイ）"
-    match: '\bDeFi\b|ディーファイ|分散型金融'
-    desc: "銀行などを通さずに、ブロックチェーン上でお金の貸し借りや交換ができるサービス。"
-  - term: "TVL"
-    match: '\bTVL\b'
-    desc: "DeFiのサービスに預けられている資産の合計額。どれだけ使われているかの目安になる。"
-  - term: "トークン化"
-    match: 'トークン化|tokeniz'
-    desc: "株や債券、不動産などの資産を、ブロックチェーン上で扱えるデジタルの形にすること。"
-  - term: "RWA"
-    match: '\bRWA\b'
-    desc: "現実世界の資産（Real World Asset）のこと。不動産や債券などをブロックチェーン上で扱う取り組みを指すことが多い。"
-  - term: "MMF"
-    match: '\bMMF\b'
-    desc: "短い期間の債券などで運用し、元本の安定を重視する投資信託の一種。"
-  - term: "資金移動業"
-    match: '資金移動業'
-    desc: "銀行以外の会社が送金サービスを行うための、国への登録制度。JPYCはこの登録を受けて発行されている。"
-  - term: "電子決済手段"
-    match: '電子決済手段'
-    desc: "日本の法律で、ステーブルコインを指すことば。"
+    pro: "2025年1月にDapp Portalとともに公開。2026年3月のUnifi公開でDapp Portal・Mini Dappsは Unifi に統合された。"
+  - term: "K-Pick"
+    cat: unifi
+    match: 'K-?Pick'
+    desc: "Unifiの中にある、韓国旅行向けの商品券などをJPYCで買えるコーナー。"
+  - term: "ノンカストディアル（自己管理型）"
+    cat: basic
+    match: 'ノンカストディアル|自己管理型|non-?custodial'
+    desc: "お金を会社に預けるのではなく、自分で管理するタイプのお財布。便利な反面、パスワードを忘れると取り戻せないことがある。"
+  - term: "リカバリーパスワード"
+    cat: unifi
+    match: 'リカバリーパスワード|復元パスワード|recovery password'
+    desc: "Unifiのお財布を取り戻すためのパスワード。人に教えない・忘れないことが大切。"
+    pro: "開発者向けQ&Aに「リカバリーパスワードをリセットするとアドレスが変わる場合がある」と記載。"
+  - term: "リワード"
+    cat: unifi
+    match: 'リワード'
+    desc: "サービスを使った人に配られるご褒美。条件や量は時期によって変わる。"
+  - term: "年率（APY）"
+    cat: basic
+    match: '年率|年利|(?<![A-Za-z])AP[YR](?![A-Za-z])'
+    desc: "1年間そのままにしたら何%増えるかの目安。銀行の預金とちがって、元本が保証されているわけではない。"
+
+  # ---- JPYC ----
+  - term: "JPYC"
+    cat: jpyc
+    match: 'JPYC(?! ?EX)'
+    desc: "1JPYC＝1円で円に戻せる、日本円のステーブルコイン。国に登録した会社（JPYC株式会社）が発行している。"
+    pro: "資金決済法上の電子決済手段（暗号資産ではない）。第二種資金移動業者 関東財務局長第00099号。2025/10/27発行開始。Ethereum・Polygon・Avalanche・Kaiaで発行。"
+  - term: "JPYC EX"
+    cat: jpyc
+    match: 'JPYC ?EX'
+    desc: "JPYC株式会社の公式サービス。円を振り込んでJPYCを発行したり、JPYCを円に戻したりできる。"
+    pro: "1回3,000円〜100万円。マイナンバーカードで本人確認。入金は銀行振込のみ。"
+  - term: "ステーブルコイン"
+    cat: basic
+    match: 'ステーブルコイン|ステ-ブルコイン|ステ－ブルコイン|stablecoin'
+    desc: "円やドルと同じ値段になるように作られた、デジタルのお金。値段が大きく上下しにくい。"
+  - term: "USDC・USDT"
+    cat: basic
+    match: '(?<![A-Za-z])USD[CT](?![A-Za-z])|USD₮'
+    desc: "米ドルと同じ値段になるように作られたステーブルコインの代表例。USDT（テザー）はUnifiでも使われている。"
   - term: "償還"
+    cat: jpyc
     match: '償還'
     desc: "持っているステーブルコインを、元の日本円などに戻すこと。"
   - term: "チャージ"
+    cat: basic
     match: 'チャージ'
     desc: "ウォレットなどにお金を入れること。"
+
+  # ---- Kaia ----
+  - term: "Kaia（カイア）"
+    cat: kaia
+    match: '(?<![A-Za-z])Kaia(?![A-Za-z])|カイア'
+    desc: "KakaoのKlaytnとLINEのFinschiaが一つになって生まれたブロックチェーン。UnifiやKaia版JPYCはこの上で動いている。"
+    pro: "2024/8/29に統合。EVM互換。ブロック1秒・即時ファイナリティ。チェーンID 8217。"
+  - term: "KAIA"
+    cat: kaia
+    match: '(?-i:(?<![A-Za-z])KAIA(?![A-Za-z]))(?!\s*DLT)'
+    desc: "Kaiaブロックチェーンで使われる暗号資産。取引の手数料の支払いなどに使われる。"
+    pro: "1ブロックごとに9.6 KAIAを新規発行（年約3億KAIA・流通量の約5.2%）。KLAYと1:1、FNSAと1:148.079656で交換された。"
+  - term: "Finschia（フィンシア）"
+    cat: kaia
+    match: 'Finschia|フィンシア|(?-i:FNSA)'
+    desc: "LINEが始めたブロックチェーン（昔の名前はLINK）。2024年にKlaytnと一つになってKaiaになった。"
+  - term: "Klaytn（クレイトン）"
+    cat: kaia
+    match: 'Klaytn|クレイトン|(?-i:KLAY)'
+    desc: "韓国のカカオが始めたブロックチェーン。2024年にFinschiaと一つになってKaiaになった。"
+  - term: "チェーン（ネットワーク）"
+    cat: basic
+    match: '(?<!ブロック)チェーン(?!ID)|メインネット'
+    desc: "ブロックチェーンの種類のこと。同じJPYCでも、Kaia・イーサリアムなどチェーンが違うと別のものとして扱われ、送り先を間違えると届かない。"
+  - term: "手数料の委任（Fee Delegation）"
+    cat: kaia
+    match: '手数料の委任|Fee Delegation|ガス代の?委任|肩代わり'
+    desc: "ガス代（手数料）を、使う人の代わりにアプリ側が払う仕組み。Kaiaの特徴の一つ。"
+  - term: "Kaiascan"
+    cat: kaia
+    match: 'Kaiascan'
+    desc: "Kaiaの取引の記録を誰でも見られるサイト（ブロックエクスプローラー）。"
+  - term: "ガバナンス"
+    cat: kaia
+    match: 'ガバナンス|Governance'
+    desc: "ブロックチェーンのルールやお金の使い道を、関係者の話し合いや投票で決める仕組み。"
+  - term: "GC（ガバナンス・カウンシル）"
+    cat: kaia
+    match: '(?<![A-Za-z])GC(?![A-Za-z])|ガバナンス・カウンシル|Governance Council'
+    desc: "Kaiaのルールを決める投票に参加する、企業などの集まり。"
+  - term: "ステーキング"
+    cat: kaia
+    match: 'ステーキング|[Ss]taking'
+    desc: "暗号資産を預けてネットワークの運営を支え、その見返りに報酬を受け取る仕組み。"
+  - term: "貢献報酬（CR）"
+    cat: kaia
+    match: '貢献報酬|Contribution Reward|(?<![A-Za-z])CR(?![A-Za-z])'
+    desc: "Kaiaネットワークに貢献した人に、追加のKAIAを配るプログラム。"
+    pro: "新規発行の10%がCR。CR Mission 1 Epoch 1は予算の98.5%（2,463,579 KAIA）が未払いでバーン予定、初回の自動バーンは2026年11月予定。"
+
+  # ---- ブロックチェーンの基本 ----
+  - term: "暗号資産（仮想通貨）"
+    cat: basic
+    match: '暗号資産|仮想通貨'
+    desc: "インターネット上でやり取りできるデジタルな資産。ビットコインなど。値段が大きく上下する。"
+  - term: "ブロックチェーン"
+    cat: basic
+    match: 'ブロックチェーン|blockchain'
+    desc: "取引の記録をみんなで共有して、あとから書き換えにくくする仕組み。"
+  - term: "ウォレット"
+    cat: basic
+    match: 'ウォレット|wallet'
+    desc: "暗号資産やステーブルコインを入れておく「お財布」のようなアプリ。"
+  - term: "ウォレットアドレス"
+    cat: basic
+    match: 'アドレス'
+    desc: "お財布の口座番号のようなもの。0xから始まる長い英数字。送る前に必ず確かめる。"
+  - term: "ガス代"
+    cat: basic
+    match: 'ガス代'
+    desc: "ブロックチェーンで取引をするときにかかる手数料。"
+  - term: "KYC（本人確認）"
+    cat: basic
+    match: '(?<![A-Za-z])e?KYC(?![A-Za-z])|本人確認'
+    desc: "サービスを使う人が本人かどうかを確かめる手続き。JPYCの発行・償還ではマイナンバーカードを使う。"
+  - term: "DeFi（ディーファイ）"
+    cat: basic
+    match: '(?<![A-Za-z])DeFi(?![A-Za-z])|ディーファイ|分散型金融'
+    desc: "銀行などを通さずに、ブロックチェーン上でお金の貸し借りや交換ができるサービス。"
+  - term: "TVL"
+    cat: basic
+    match: '(?<![A-Za-z])TVL(?![A-Za-z])'
+    desc: "DeFiのサービスに預けられている資産の合計額。どれだけ使われているかの目安になる。"
+  - term: "トークン化"
+    cat: basic
+    match: 'トークン化|tokeniz'
+    desc: "株や債券、不動産などの資産を、ブロックチェーン上で扱えるデジタルの形にすること。"
+  - term: "RWA"
+    cat: basic
+    match: '(?<![A-Za-z])RWA(?![A-Za-z])'
+    desc: "現実世界の資産（Real World Asset）のこと。不動産や債券などをブロックチェーン上で扱う取り組みを指すことが多い。"
+  - term: "Web3"
+    cat: basic
+    match: 'Web3'
+    desc: "ブロックチェーンを使った、新しいインターネットのサービスの総称。"
   - term: "上場"
+    cat: basic
     match: '上場|listing|상장'
     desc: "取引所で売り買いできるようになること。"
   - term: "Upbit（アップビット）"
+    cat: basic
     match: 'Upbit|アップビット|업비트'
-    desc: "韓国の大手の暗号資産取引所。"
+    desc: "韓国の大手の暗号資産取引所。2026年10月9日にKAIAの取り扱いを始めた。"
   - term: "Bithumb（ビッサム）"
+    cat: basic
     match: 'Bithumb|ビッサム|빗썸'
     desc: "韓国の大手の暗号資産取引所。"
-  - term: "ガス代"
-    match: 'ガス代'
-    desc: "ブロックチェーンで取引をするときにかかる手数料。"
-  - term: "Web3"
-    match: 'Web3'
-    desc: "ブロックチェーンを使った、新しいインターネットのサービスの総称。"
-  - term: "USDC・USDT"
-    match: '\bUSDC\b|\bUSDT\b'
-    desc: "米ドルと同じ値動きをするステーブルコインの代表例。"
+  - term: "MMF"
+    cat: basic
+    match: '(?<![A-Za-z])MMF(?![A-Za-z])'
+    desc: "短い期間の債券などで運用し、元本の安定を重視する投資信託の一種。"
+  - term: "覚書（MOU）"
+    cat: basic
+    match: '覚書|(?<![A-Za-z])MOU(?![A-Za-z])|基本合意'
+    desc: "正式な契約の前に「この方向で一緒に進めましょう」と確認し合う書面。まだ決まったわけではない段階。"
+  - term: "業務提携"
+    cat: basic
+    match: '業務提携|提携'
+    desc: "会社どうしが、それぞれの得意分野を持ち寄って協力すること。"
+  - term: "PoC（実証実験）"
+    cat: basic
+    match: '(?<![A-Za-z])PoC(?![A-Za-z])|概念実証|実証実験|実証'
+    desc: "新しいアイデアや技術が、実際に使えるかどうかを試してみる取り組み。本番のサービスとはちがう。"
+
+  # ---- 法律・制度 ----
+  - term: "資金移動業"
+    cat: law
+    match: '資金移動業'
+    desc: "銀行以外の会社が送金サービスを行うための、国への登録制度。JPYCはこの登録を受けて発行されている。"
+  - term: "電子決済手段"
+    cat: law
+    match: '電子決済手段(?!等取引業)'
+    desc: "日本の法律で、ステーブルコインを指すことば。暗号資産（仮想通貨）とは別のものとして扱われる。"
+    pro: "2023年6月1日施行の改正資金決済法で定められた。発行できるのは銀行・資金移動業者・信託会社。"
+  - term: "電子決済手段等取引業"
+    cat: law
+    match: '電子決済手段等取引業'
+    desc: "ステーブルコインの売り買いや交換の仲介をするための、国への登録。"
+  - term: "前払式支払手段"
+    cat: law
+    match: '前払式'
+    desc: "商品券や電子マネーのように、先にお金を払って使うもの。昔のJPYC（JPYC Prepaid）はこの区分だった。"
+  - term: "金融商品取引法（金商法）"
+    cat: law
+    match: '金融商品取引法|金商法'
+    desc: "株や投資信託などのルールを決めている法律。2026年7月の改正で、暗号資産もこの法律の対象になることが決まった。"
+  - term: "ステマ規制"
+    cat: law
+    match: 'ステマ|ステルスマーケティング'
+    desc: "広告なのに広告だと分からないようにした宣伝を禁止するルール（2023年10月から）。会社から報酬や特典をもらって紹介するときは、広告だと分かるようにする。"
