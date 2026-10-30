@@ -21,3 +21,6 @@ data/*.db
 
 # Cloudflareの公開ツールが作る作業フォルダ
 .wrangler/
+
+# Unifi公式サイトの調べもの（kaia_site/unifi_official.py の保存先）
+data/unifi_official/

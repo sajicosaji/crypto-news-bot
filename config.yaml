@@ -647,6 +647,13 @@ kaia_daily:
   # Kaia・JPYC専用の情報源（すべて実際に取得できることを確認済み）
   sources:
     # 本人はUnifi（LINE NEXTのウォレット）のアンバサダー。Unifiの公式発表をいちばん先に見る
+    # 日本語のお知らせ（キャンペーン・利率の変更・規約改定）は公式サイトにだけ載る。裏の公開窓口から読む
+    - name: "Unifi公式のお知らせ"
+      url: "https://api.unifi.me/api/v1/announcement"
+      type: unifi_api
+      kind: unifi
+      lang: ja
+      max_age_days: 14
     - name: "LINE NEXT（PR TIMES）"
       url: "https://prtimes.jp/companyrdf.php?company_id=145432"
       kind: unifi

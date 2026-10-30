@@ -205,6 +205,57 @@ def _http_get(url: str) -> requests.Response | None:
         return None
 
 
+UNIFI_API = "https://api.unifi.me/api/v1"
+# Unifiの利率の窓口が返すコントラクトアドレス（Kaia上のUSDTとJPYC）
+UNIFI_TOKENS = {"0xd077a400968890eacc75cdc901f0356c943e4fdb": "usdt",
+                "0xe7c3d8c9a439fede00d2600032d5db0be71c3c29": "jpyc"}
+
+
+def _unifi_get(path: str, **params) -> dict | None:
+    """Unifi公式サイトが裏で使っている公開の窓口（ログイン不要）。日本語で受け取る。"""
+    try:
+        resp = requests.get(f"{UNIFI_API}/{path}", params=params or None, timeout=REQUEST_TIMEOUT,
+                            headers={"User-Agent": USER_AGENT, "Accept": "application/json", "Accept-Language": "ja-JP"})
+        resp.raise_for_status()
+        return resp.json()
+    except (requests.RequestException, ValueError) as e:
+        logger.info("Unifiの公式窓口から取得できませんでした path=%s error=%s", path, e)
+        return None
+
+
+def unifi_announcement_entries() -> list[dict] | None:
+    """Unifi公式サイトの「お知らせ」を、RSSの記事と同じ形にする。公式ブログ（Medium）は8月以降ほぼ更新が無く、
+    日本語のお知らせはこちらにだけ載る（2026-10-30に確認）。"""
+    data = _unifi_get("announcement", size=30)
+    if data is None:
+        return None
+    entries = []
+    for a in data.get("content", []):
+        if not a.get("id") or not a.get("title") or not a.get("createdAt"):
+            continue
+        published = datetime.fromtimestamp(a["createdAt"] / 1000, tz=timezone.utc)
+        entries.append({"title": a["title"], "link": f"https://www.unifi.me/announcement/{a['id']}",
+                        "summary": a.get("content") or "", "published_parsed": published.utctimetuple()})
+    return entries
+
+
+def unifi_rates(now: datetime | None = None) -> dict:
+    """Unifiの今のリワード率（公式の窓口から）。取れなければ空。率は小数（0.07＝年7%）。"""
+    data = _unifi_get("interest/rate")
+    if not data:
+        return {}
+    out: dict = {}
+    for info in data.get("interestInfos", []):
+        token = UNIFI_TOKENS.get(str(info.get("contractAddress", "")).lower())
+        if not token:
+            continue
+        out[token] = {k: info.get(k) for k in ("baseRate", "plusBaseRate", "maxRate", "maxRateExcludingPromotion",
+                                               "kaiaBoostMaxRate", "promotionRate", "promotionEndDate")}
+    if out:
+        out["checked_at"] = (now or now_jst()).isoformat()
+    return out
+
+
 def _decode(resp: requests.Response) -> str:
     # 文字コードの指定が無いページを latin-1 で読んで日本語が化けるのを防ぐ
     if resp.encoding and resp.encoding.lower() not in ("iso-8859-1", "latin-1"):
@@ -271,17 +322,20 @@ def collect(conn, cfg: dict, now: datetime) -> int:
     added = 0
     status = []
     for src in sources:
-        resp = _http_get(src["url"])
-        if resp is None:
+        if src.get("type") == "unifi_api":
+            entries = unifi_announcement_entries()
+        else:
+            resp = _http_get(src["url"])
+            entries = feedparser.parse(resp.content).entries if resp is not None else None
+        if entries is None:
             status.append({"name": src["name"], "ok": False, "added": 0, "own": src in kcfg.get("sources", [])})
             continue
-        feed = feedparser.parse(resp.content)
         before = added
         max_age = timedelta(days=src.get("max_age_days", 7))
         pattern = re.compile(src["title_pattern"]) if src.get("title_pattern") else None
         # keywords: その情報源だけの絞り込み（LINE NEXTの発表のうちUnifi・お金の話だけ拾う、など）
         own_keywords = re.compile(src["keywords"], re.IGNORECASE) if src.get("keywords") else None
-        for entry in feed.entries:
+        for entry in entries:
             title = _strip_html(entry.get("title", ""))
             link = _real_url(entry.get("link", ""))
             if not title or not link:
@@ -1416,6 +1470,7 @@ def publish_web(conn, cfg: dict, now: datetime, entry: dict | None = None, site:
         "prep_mode": bool(w.get("prep_mode", True)),
         "status": site_status(conn, cfg),
         "numbers": chain_numbers() or site.get("numbers") or {},
+        "unifi": unifi_rates(now) or site.get("unifi") or {},
         "news": news_board(conn, now, days=w.get("news_days", 7)),
         "archive": archive[: w.get("archive_days", 90)],
         "topics": [{"id": t["id"], "theme": THEME_LABELS.get(t["theme"], t["theme"]), "title": t["title"],

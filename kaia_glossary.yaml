@@ -45,11 +45,56 @@ terms:
     cat: basic
     match: 'ノンカストディアル|自己管理型|non-?custodial'
     desc: "お金を会社に預けるのではなく、自分で管理するタイプのお財布。便利な反面、パスワードを忘れると取り戻せないことがある。"
-  - term: "リカバリーパスワード"
+  - term: "復旧パスワード（リカバリーパスワード）"
     cat: unifi
-    match: 'リカバリーパスワード|復元パスワード|recovery password'
-    desc: "Unifiのお財布を取り戻すためのパスワード。人に教えない・忘れないことが大切。"
-    pro: "開発者向けQ&Aに「リカバリーパスワードをリセットするとアドレスが変わる場合がある」と記載。"
+    match: '復旧パスワード|リカバリーパスワード|復元パスワード|recovery password'
+    desc: "Unifiのお財布の「合鍵」。機種やブラウザを変えたときに必要。なくすとお財布に入れなくなり、復旧もできない。"
+    pro: "英数字と記号を含む8文字以上。リセットするとアドレスが変わる場合がある（開発者Q&A）。生体認証パスキーを登録しておけば、なくしても新しいウォレットへ資産を移せる。"
+  - term: "パスコード（簡単パスワード）"
+    cat: unifi
+    match: 'パスコード|簡単パスワード|Passcode'
+    desc: "Unifiで送る・払うときに入れる6桁の数字。忘れても復旧パスワードがあれば再設定できる。"
+  - term: "パスキー（生体認証）"
+    cat: unifi
+    match: 'パスキー|生体認証|passkey'
+    desc: "顔や指紋で本人確認する仕組み。Unifiでは復旧パスワードをなくしたときの「命綱」にもなる（事前の登録が必要）。"
+  - term: "SuperEarn（スーパーアーン）"
+    cat: unifi
+    match: 'SuperEarn|スーパーアーン'
+    desc: "Kaiaのエコシステムで生まれた運用サービス。Unifiのリワード（利息）は、ここにJPYCやUSDTを貸して受け取る貸し賃。"
+    pro: "Kaiaがインキュベートした利回りプロトコル。Morpho（Gauntlet運用）・Pendle・RWAなどで運用。電子決済手段貸借約款の契約相手。"
+  - term: "電子決済手段貸借"
+    cat: law
+    match: '電子決済手段貸借|貸借料|貸借約款'
+    desc: "ステーブルコインを相手に貸して、貸し賃（貸借料）を受け取る取引。預金ではないので、預金保険も元本保証もない。"
+  - term: "PLUSモード"
+    cat: unifi
+    match: 'PLUSモード|プラスモード|PLUS Mode'
+    desc: "UnifiでUSDTのリワードを高くする設定（2026年10月時点で年7%）。元に戻すときは24時間待つ。"
+  - term: "KAIAブースト"
+    cat: unifi
+    match: 'KAIAブースト|ブースト|KAIA Boost'
+    desc: "KAIAをたくさん持っている人のUSDTリワードを上乗せした特典。2026年11月3日で終了。"
+  - term: "Approve（承認）"
+    cat: basic
+    match: '(?<![A-Za-z])[Aa]pprove(?![A-Za-z])|引き出し権限'
+    desc: "お財布の中の資産を、決まったサービスが動かせるように許可すること。Unifiではリワードを始めるときに承認する。知らないサイトでは押さない。"
+  - term: "委任（デリゲート）"
+    cat: kaia
+    match: '(?<!手数料の)委任|デリゲート|[Dd]elegat(?!ion)'
+    desc: "KAIAをネットワークの運営者（ノード）に預けて、運営を支えること。報酬がもらえる。やめるときは待ち時間がある（Unifiでは7日）。"
+  - term: "Kaia Square"
+    cat: kaia
+    match: 'Kaia ?Square'
+    desc: "KAIAの委任（ステーキング）をするためのKaia公式の場所。Unifiから委任するとここの「Unifi」ノードに預けられる。"
+  - term: "Unifiポイント"
+    cat: unifi
+    match: 'Unifiポイント'
+    desc: "Unifiで商品券を買うとたまるポイント。1P＝1円で次の購入に使える。付与から180日で失効、退会すると消える。"
+  - term: "Unifi Pay Direct"
+    cat: unifi
+    match: 'Pay Direct'
+    desc: "お店がUnifi Payを自分でつなげる仕組み。審査なしで連携でき、手数料は1%。"
   - term: "リワード"
     cat: unifi
     match: 'リワード'

@@ -747,12 +747,38 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
       "（" + (n.stable_date ? mdw(n.stable_date) + "時点・" : "") + "自動で更新）"
     ])]);
   }
+  function pct(x) { return (Math.round(x * 1000) / 10) + "%"; }
+  function unifiRates() {
+    var u = DATA && DATA.unifi;
+    if (!u || (!u.jpyc && !u.usdt)) return null;
+    var cards = el("div", { class: "stats" });
+    if (u.jpyc) {
+      cards.appendChild(el("div", { class: "stat" }, [
+        el("div", { class: "label", text: "JPYC（デジタルの円）" }),
+        el("div", { class: "value" }, ["年" + pct(u.jpyc.baseRate || 0)]),
+        el("div", { class: "explain", text: "Unifiに入れておくだけで毎日付く基本の率。" + (u.jpyc.promotionRate ? "キャンペーン中：年" + pct(u.jpyc.promotionRate) : "") })
+      ]));
+    }
+    if (u.usdt) {
+      cards.appendChild(el("div", { class: "stat" }, [
+        el("div", { class: "label", text: "USDT（デジタルの米ドル）" }),
+        el("div", { class: "value" }, ["年" + pct(u.usdt.baseRate || 0), el("small", { text: "　PLUS 年" + pct(u.usdt.plusBaseRate || 0) })]),
+        el("div", { class: "explain", text: "BASICは入れるだけ、PLUSモードは自分で切り替え（戻すのに24時間）。" + (u.usdt.kaiaBoostMaxRate ? "KAIAブーストで最大 年" + pct(u.usdt.maxRate || 0) + "（11/3で終了予定）" : "") })
+      ]));
+    }
+    var at = u.checked_at ? mdw(u.checked_at) + " " + hm(parseDate(u.checked_at)) : "";
+    return el("div", null, [cards, el("p", { class: "small muted", style: "margin:8px 2px 0" }, [
+      "Unifi公式サイトの数字（" + at + "に確認）。預金ではなくSuperEarnへの貸し出しの率で、元本保証はありません。率は予告なく変わります。"
+    ])]);
+  }
   var tlCat = "all";
   function renderData() {
     var root = document.getElementById("data");
     root.innerHTML = "";
     if (!KB) { root.appendChild(el("div", { class: "notice bad", text: "データを読み込めませんでした" })); return; }
     root.appendChild(el("p", { class: "howto", text: "詳しい人に聞かれたときの「数字・日付・出典」の一覧です。" + (KB.as_of ? ymd(KB.as_of) + "時点で確認した内容です。" : "") }));
+    var rates = unifiRates();
+    if (rates) { root.appendChild(el("div", { class: "sec-title", text: "📱 Unifiの今のリワード率（公式から自動）" })); root.appendChild(rates); }
     var live = liveNumbers();
     if (live) { root.appendChild(el("div", { class: "sec-title", text: "📊 Kaiaの上の数字（毎日自動）" })); root.appendChild(live); }
     (KB.facts || []).forEach(function (g) {
@@ -892,6 +918,16 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
       el("div", { class: "card ok" }, [el("h3", { text: "✅ すること" }), el("ul", null, (e.do || []).map(function (x) { return el("li", { text: x }); }))]),
       el("div", { class: "card ng" }, [el("h3", { text: "🚫 しないこと" }), el("ul", null, (e.dont || []).map(function (x) { return el("li", { text: x }); }))])
     ]));
+    if (e.program) {
+      var pg = e.program;
+      var list = function (title, xs) { return xs && xs.length ? [el("h3", { text: title }), el("ul", { style: "margin:0;padding-left:1.2em;font-size:14px" }, xs.map(function (x) { return el("li", { text: x }); }))] : []; };
+      root.appendChild(el("div", { class: "card", style: "border:1.5px solid var(--accent-strong)" }, [
+        el("h2", { text: "📋 " + pg.title }),
+        pg.note ? el("p", { class: "small muted", style: "margin:0 0 4px", text: pg.note }) : null
+      ].concat(list("📅 毎週やること", pg.weekly)).concat(list("🙋 役割", pg.roles)).concat(list("🎁 報酬", pg.rewards))
+        .concat(list("⚠️ 報酬が出なくなる条件", pg.ng)).concat(list("📝 そのほか", pg.other))
+        .concat([pg.url ? el("p", { class: "small", style: "margin:10px 0 0" }, [el("a", { href: pg.url, target: "_blank", rel: "noopener", text: "🔗 募集要項（Unifi公式のお知らせ）" })]) : null])));
+    }
     if (e.disclosure) root.appendChild(el("div", { class: "card" }, [el("h2", { text: "🏷 PR表記（ステマ規制）" }), el("p", { style: "margin:0", text: e.disclosure })]));
     if (e.answer_pattern) root.appendChild(el("div", { class: "card" }, [el("h2", { text: "🗣 答え方の型" }), el("ol", { class: "pattern" }, e.answer_pattern.map(function (x) { return el("li", { text: x }); })), el("p", { class: "small muted", style: "margin:8px 0 0", text: "「💬 説明」タブのカードはこの型で書いてあります。" })]));
     root.appendChild(el("div", { class: "sec-title", text: "✍️ そのまま使える文章" }));
@@ -907,7 +943,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
 
   // ---------- ✅ 準備 ----------
   var TODOS = [
-    ["rules", "アンバサダーの規約を確認する", "付けるハッシュタグ・PR表記・使ってよいロゴや画像。デスクトップの「Kaiaアンバサダー資料」フォルダに入れてもらえれば、文章やこのページに反映します"],
+    ["rules", "アンバサダーの規約を確認する", "第3期の募集要項は「🛡 心得」タブにまとめ済み。届いた規約（タグ・PR表記・使ってよい画像）はデスクトップの「Kaiaアンバサダー資料」フォルダへ。反映します"],
     ["try", "Unifiを自分で一通り使ってみる", "始める → JPYCを少し入れる → 送る → 円に戻す。自分の体験がいちばん伝わる説明になります（できる範囲で）"],
     ["practice", "「今日おぼえる1枚」を声に出して練習する", "ひとことで言えるようになれば、はじめての人との会話がぐっと楽になります"],
     ["community", "発信する場所を決める", "LINEオープンチャット・Discord・Xなど。決まったら、その場所に合う長さの文章に整えます"],

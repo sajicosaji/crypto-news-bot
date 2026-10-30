@@ -427,6 +427,10 @@ https://kaia-jpyc-desk.pages.dev （検索エンジン除け付き）。本人�
 - ニュースのデータ: 自走ジョブが `kaia/site.json` を **kaia-data ブランチ**へ書き出し（毎朝のまとめ＋3時間おきのニュース一覧）、ページはそれを読むだけ。
   Unifiの話題は LINE NEXT（PR TIMES）・Unifi公式ブログ（Medium、日本語の回だけ）・ニュース検索から集め、まとめの先頭に置く。
   「UniFi」はネットワーク機器の名前でもあるので、LINE・お金の話と一緒に出たときだけUnifiの話とみなす（`mentions_unifi`）。
+- Unifi公式サイト（unifi.me）は画面を後から組み立てる作りだが、裏の公開窓口 `https://api.unifi.me/api/v1/` は
+  ログインなしで読める（`Accept-Language: ja-JP` で日本語）。`announcement`（お知らせ）をニュースの情報源に、
+  `interest/rate`（今のリワード率）を site.json の `unifi` に入れて「データ」タブに出す。
+  FAQ・規約・説明ページの本文を読みたいときは `kaia_site/unifi_official.py`（Playwrightでブラウザを開いて保存）。
 - 説明カード・データ・年表・心得・公式リンクは `kaia_knowledge.yaml`、用語は `kaia_glossary.yaml` に手で書く（日付と出典つき）。
   直したら `python kaia_site/build.py` で `kaia_site/public/knowledge.json` を作り直してから公開する。
 - 公開は kaia_site フォルダで

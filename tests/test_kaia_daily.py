@@ -228,6 +228,7 @@ def test_publish_web_keeps_archive_and_writes_preview(conn, tmp_path, monkeypatc
     k.ensure_schema(conn)
     monkeypatch.setattr(k, "BASE_DIR", tmp_path)
     monkeypatch.setattr(k, "chain_numbers", lambda: {"jpy": 1})
+    monkeypatch.setattr(k, "unifi_rates", lambda now=None: {"jpyc": {"baseRate": 0.02}})
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
     _add(conn, "https://a", story="s", topic="kaia", hours_ago=3)
     cfg = {"kaia_daily": {**_kcfg(), "web": {"enabled": True}}}
@@ -341,3 +342,42 @@ def test_unifi_section_comes_first(conn):
     _add(conn, "https://unifi1", story="unifi1", topic="unifi", kind="unifi", lang="ja", hours_ago=8)
     picked = k.digest_stories(conn, _digest_cfg(), NOW, set())
     assert [g["story"] for g in picked] == ["unifi1", "kaia1"]
+
+
+class _FakeResp:
+    def __init__(self, data):
+        self._data = data
+
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return self._data
+
+
+def test_unifi_announcements_become_feed_entries(monkeypatch):
+    data = {"content": [{"id": "abc", "title": "【お知らせ】CRミッションにJPYCが追加", "content": "<p>本文</p>",
+                         "createdAt": 1792486800000}], "hasNext": False}
+    seen = {}
+
+    def fake_get(url, params=None, timeout=None, headers=None):
+        seen["lang"] = headers.get("Accept-Language")
+        return _FakeResp(data)
+
+    monkeypatch.setattr(k.requests, "get", fake_get)
+    entries = k.unifi_announcement_entries()
+    assert seen["lang"] == "ja-JP"
+    assert entries[0]["link"] == "https://www.unifi.me/announcement/abc"
+    assert k._entry_time(entries[0]).date().isoformat() == "2026-10-20"
+
+
+def test_unifi_rates_by_token(monkeypatch):
+    data = {"interestInfos": [
+        {"contractAddress": "0xd077A400968890Eacc75cdc901F0356c943e4fDb", "baseRate": 0.03, "plusBaseRate": 0.07,
+         "maxRate": 0.1, "kaiaBoostMaxRate": 0.03},
+        {"contractAddress": "0xE7C3D8C9a439feDe00D2600032D5dB0Be71C3c29", "baseRate": 0.02, "maxRate": 0.02}]}
+    monkeypatch.setattr(k.requests, "get", lambda *a, **kw: _FakeResp(data))
+    rates = k.unifi_rates(NOW)
+    assert rates["usdt"]["plusBaseRate"] == 0.07
+    assert rates["jpyc"]["baseRate"] == 0.02
+    assert rates["checked_at"].startswith("2026-10-24")
