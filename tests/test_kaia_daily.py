@@ -394,3 +394,13 @@ def test_daily_snapshots_keep_one_row_per_day():
     today = days[-1]
     # 今日の値は新しい値で上書きし、取れなかったJPYCは前の値を残す
     assert today["kaia_jpy"] == 5.3 and today["jpyc"] == 100 and today["unifi_usdt_plus"] == 0.07
+
+
+def test_negative_words_without_false_alarms():
+    for title in ("JPYC流通量、20億円割れ", "ブーストUSDT追加利息の支払い終了のお知らせ", "Orbit Bridge hacked for $81M",
+                  "JPYC stablecoin falls short of targets", "商品券の購入一時停止について"):
+        assert k.NEGATIVE_WORDS.search(title), title
+    for title in ("KAIA airdrop campaign", "CR Mission Guide", "Unifi Pay正式ローンチ", "JPYC 1周年、累計発行額は120億円超"):
+        assert not k.NEGATIVE_WORDS.search(title), title
+    row = {"title": "JPYC、アップビットで1円割れ", "summary": "", "kind": "media", "lang": "ja", "url": "https://x"}
+    assert k._heuristic_triage(row)["sentiment"] == "negative"

@@ -79,6 +79,17 @@ PRICE_TALK = re.compile(
     r"価格予想|急騰|急落|高騰|暴落|상승|하락|급등|급락|시세",
     re.IGNORECASE,
 )
+# 悪い話・注意が要る話（AIを使わないときの仕分け用。Webページの「⚠️ リスク」の自動ニュースも同じ考え方）
+# 「エアドロップ」「ミッション」などに引っかからないよう、英語は単語の形を決めて拾う
+NEGATIVE_WORDS = re.compile(
+    r"ハッキング|ハック|流出|盗難|不正|詐欺|なりすまし|偽|フィッシング|停止|中止|障害|遅延|不具合|終了|廃止|撤退|閉鎖|"
+    r"上場廃止|取扱い?終了|下落|急落|暴落|続落|最安値|減少|急減|割れ|乖離|赤字|損失|損害|訴訟|提訴|行政処分|業務改善命令|"
+    r"警告|注意喚起|脆弱性|規制強化|罰金|制裁|伸び悩|誤算|未達|届かず|懸念|批判|延期|引き下げ|縮小|減額|"
+    r"\bhack(s|ed|er)?\b|\bexploit(s|ed)?\b|\bbreach|\bscam|\bphish|\boutage|\bhalt(s|ed)?\b|\bsuspend|\bdelist|"
+    r"\blawsuit|\bsued?\b|\bplunge|\bslump|\bdecline[sd]?\b|\blosses\b|\bloss\b|\bdeficit|\bdepeg|\bwarning|\bvulnerab|"
+    r"falls? short|\bmisse[sd]\b|해킹|사기|중단|폐지|급락|하락|손실|소송|제재|경고",
+    re.IGNORECASE,
+)
 # 煽り・投資勧誘ととられる表現。出たら書き直させる
 HYPE_WORDS = re.compile(
     r"爆上げ|爆益|買い時|今が買い|儲か|億り人|ムーン|to the moon|価格予想|仕込み|チャンス到来|今すぐ買",
@@ -518,7 +529,7 @@ def _heuristic_triage(row) -> dict:
         "story": re.sub(r"[^a-z0-9]+", "-", title.lower())[:60] or row["url"],
         "ja_title": title[:60],
         "importance": 4 if row["kind"] in OFFICIAL_KINDS else 3,
-        "sentiment": "neutral",
+        "sentiment": "negative" if NEGATIVE_WORDS.search(title) else "neutral",
         "price_talk": bool(PRICE_TALK.search(title)),
         "japan": row["lang"] == "ja",
     }

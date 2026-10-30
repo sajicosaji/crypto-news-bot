@@ -590,7 +590,6 @@ cards:
     easy: |
       KAIAは、Kaiaの線路を使うときの「運賃」のようなもの（暗号資産）で、値段は毎日上下します。
       Unifiで送るときの手数料（ガス代）は本来KAIAで払いますが、いまはJPYC・USDTなどの送金手数料をKaia財団が一時的に負担しているので、ふつうはKAIAを買わなくても使えます（変わることがあります）。
-      KAIAの今の値段は、このサイトの「ホーム」と「マーケット」で見られます。
     pro: |
       ・用途：取引手数料（ガス代）・ステーキング・ガバナンス。単位は 1 KAIA＝10^18 kei。
       ・発行：1ブロックごとに9.6 KAIAを新規発行（年約3億KAIA・流通量の約5.2%。ガバナンスで変更可能）。配分はバリデーター＆コミュニティ50%（うち貢献報酬CR 10%・ステーキング40%）、Kaia Ecosystem Fund 25%、Kaia Infrastructure Fund 25%。
@@ -1084,3 +1083,242 @@ links:
     items:
       - {t: "金融庁 資金移動業者登録一覧", u: "https://www.fsa.go.jp/menkyo/menkyoj/shikin_idou.pdf"}
       - {t: "消費者庁 ステルスマーケティング", u: "https://www.caa.go.jp/policies/policy/representation/fair_labeling/stealth_marketing/"}
+
+# =========================================================== マイナス方向の話（⚠️ リスクのページ）
+# 本人の方針（2026-10-31）「私はネガティブな人間。アンバサダーでも忖度なくマイナス方向の発信をしていた。サイトにもマイナスの話のページを」
+# 良い話と同じ重さで、危ない話・弱点・下向きの数字・過去の事故を載せる。事実と出典だけ。煽らない・決めつけない。
+# level: 高（お金を失う・取り戻せない可能性）/ 中（不利になる・遅れる・減る）/ 低（知っておくと良い）
+
+risk_fallback:
+  # ブラウザでCoinGeckoが取れないときの控え（2026-10-31時点）
+  kaia_ath_usd: 0.406698
+  kaia_ath_date: "2024-12-02"
+  kaia_atl_usd: 0.02166246
+  kaia_atl_date: "2026-08-19"
+
+risks:
+  # ---- Unifi ----
+  - area: unifi
+    level: 高
+    title: "リワードは「預金」ではなく「貸し出し」。運用先がつまずけば返ってこないことがある"
+    what: "Unifiの利息は、JPYCやUSDTをSuperEarnに貸して受け取る貸し賃です。SuperEarnが損失を出したり破綻したりすると、元本が返ってこない可能性があります。"
+    evidence: "電子決済手段貸借約款10条：預金保険の対象外、元本の返還保証なし、担保なし、資金決済法の分別管理の対象外、他の債権者に優先して返してもらえない。"
+    tip: "生活費やすぐ使うお金は入れない。入れる額を自分で決めておく。"
+    src:
+      - {t: "電子決済手段貸借約款（Unifi公式）", u: "https://www.unifi.me/term/TERMS_OF_SERVICE/AGGREGATOR?lng=ja-JP"}
+  - area: unifi
+    level: 高
+    title: "復旧パスワードをなくすと、お財布に二度と入れない"
+    what: "自己管理型なので、運営も代わりに戻せません。キャッシュを消しただけでもログアウトされ、復旧パスワードが必要になります。"
+    evidence: "公式FAQ：復旧パスワードを紛失すると「アクセスできなくなり、復旧も不可能」。事前に生体認証パスキーを登録していれば資産を新しいお財布へ移せる。"
+    tip: "パスキー（顔・指紋）を先に登録。復旧パスワードは紙に書いて保管。"
+    src:
+      - {t: "Unifi よくある質問（公式）", u: "https://www.unifi.me/faq?lng=ja-JP"}
+  - area: unifi
+    level: 中
+    title: "すぐに引き出せないことがある"
+    what: "ふだんは早く戻りますが、約束されているわけではありません。"
+    evidence: "貸借約款6条：返還期限は申請から最長30営業日。USDTのPLUSモードは戻すのに24時間。公式も「入出金が遅れる場合がある」と注記。SuperEarnにも引き出しの待ち時間（クールダウン）がある。"
+    tip: "数日以内に使う予定のお金は入れない。"
+    src:
+      - {t: "電子決済手段貸借約款（Unifi公式）", u: "https://www.unifi.me/term/TERMS_OF_SERVICE/AGGREGATOR?lng=ja-JP"}
+      - {t: "SuperEarn FAQ", u: "https://docs.superearn.io/en/resources/FAQ"}
+  - area: unifi
+    level: 中
+    title: "利率はどんどん下がってきた"
+    what: "始まったときの「最大年8%」から、条件は段階的に悪くなっています。今の率も予告なく変わります。"
+    evidence: "USDT：ローンチ時 最大8% → 6/9に預け入れ額に応じた年4〜5%が終わりBASIC年3%に。JPYC：年5%キャンペーン → 9/1から年2%。KAIAブースト（最大+3%）は11/3で終了。（PLUSモードは8/6に5%→7%へ上がった変更もある）"
+    tip: "「◯%」という数字は、いつ時点かを必ず確かめる。下の「条件が悪くなった変更」も参照。"
+    src:
+      - {t: "既存USDT年利率特典の終了とBASIC/PLUSモード導入（Unifi公式）", u: "https://www.unifi.me/announcement/019e8254-c9d1-78a3-b1f0-f4d967e7d7b4", d: "2026-06-01"}
+      - {t: "JPYC利息サービス年5%特別特典の終了（Unifi公式ブログ）", u: "https://medium.com/@unifi_x2"}
+      - {t: "ブーストUSDT追加利息の支払い終了（Unifi公式）", u: "https://www.unifi.me/announcement/01a180e8-0a43-7de5-a591-bf6208f64536", d: "2026-10-28"}
+  - area: unifi
+    level: 中
+    title: "キャンペーンが終わると、お金が一気に出ていく"
+    what: "高い利回りで集まったお金は、特典が終わると引き揚げられやすいことが数字に出ています。"
+    evidence: "JPYCのリワードが9/1に年5%→2%になった前後で、Kaia上のJPYCは8/30の約17.8億から9/10の約10.4億へ急減（NADA NEWS。記事は因果を断定していない）。"
+    tip: "「みんな使っている」は、キャンペーン中の数字かどうかで割り引いて見る。"
+    src:
+      - {t: "JPYC流通量、20億円割れ──11日間で約7.1億円減少（NADA NEWS）", u: "https://www.nadanews.com/367541/", d: "2026-09-10"}
+  - area: unifi
+    level: 中
+    title: "運用先のさらに先にもリスクがある（DeFiの連鎖）"
+    what: "SuperEarnはお金をMorpho（Gauntlet運用）・Pendle・RWAなどに回し、別のチェーンへブリッジでも動かします。どこかで事故が起きると影響が及ぶ可能性があります。"
+    evidence: "2025年11月、Stream Financeの破綻（約9,300万ドルの損失）で、Morphoの一部のボールトが損失を負った。SuperEarnの運営の鍵は複数署名（4/5）だがタイムロックはない（HackenProofの説明）。2026年4月のKelp DAOハッキングでは、Unifiは「関係なし」と案内した。"
+    tip: "「監査済み」「大手が運用」でも、ゼロリスクではないと考える。"
+    src:
+      - {t: "Stream Finance meltdown（Protos）", u: "https://protos.com/stream-finance-meltdown-winners-and-losers-in-defi-risk-curator-reckoning/"}
+      - {t: "SuperEarn 脆弱性報奨プログラム（HackenProof）", u: "https://hackenproof.com/programs/superearn-web-and-smart-contracts"}
+      - {t: "Kelp DAOハッキング事件に関するご案内（Unifi公式）", u: "https://www.unifi.me/announcement/019da8e3-5384-7b42-b710-cca7b40a0fc7", d: "2026-04-20"}
+  - area: unifi
+    level: 中
+    title: "運営の責任の範囲は小さく、裁判はアメリカ"
+    what: "トラブルがあっても、運営に補償を求められる範囲は限られています。"
+    evidence: "ウォレット規約17条：LINE NEXTの過失（重過失を除く）による損害は累計1万円まで。Unifi規約・ウォレット規約の準拠法はカリフォルニア州法、裁判所はサンタクララ郡。請求は1年以内（ウォレット規約）。規約は使い続けると改定に同意したとみなされる。"
+    tip: "大きな金額を入れる前に、規約の該当箇所を自分で読む。"
+    src:
+      - {t: "Unifi ウォレット利用規約（公式）", u: "https://www.unifi.me/term/TERMS_OF_SERVICE/WALLET?lng=ja-JP"}
+      - {t: "Unifi サービス利用規約（公式）", u: "https://www.unifi.me/term/TERMS_OF_SERVICE/UNIFI?lng=ja-JP"}
+  - area: unifi
+    level: 中
+    title: "規制の見直しで、サービスが変わったり止まったりする可能性"
+    what: "日本ではステーブルコインのルールが見直し中です。当局の立場が変わると、運営の判断でサービスを止められる規約になっています。"
+    evidence: "Unifi規約2.7：LINE NEXTは暗号資産交換業者・電子決済手段等取引業者ではない。ウォレット規約15条・17条：規制当局の立場の変更などでサービスを停止でき、その場合の責任は負わない。金融庁はステーブルコイン規制を点検中で、2027年初めにロードマップが出る見込みと報道。"
+    tip: "「ずっとこの条件で使える」とは考えない。"
+    src:
+      - {t: "Unifi サービス利用規約（公式）", u: "https://www.unifi.me/term/TERMS_OF_SERVICE/UNIFI?lng=ja-JP"}
+      - {t: "JPYC岡部社長インタビュー（NADA NEWS）", u: "https://www.nadanews.com/387990/", d: "2026-10-27"}
+  - area: unifi
+    level: 低
+    title: "システムのトラブルや、あと出しの変更の前例"
+    what: "大きな事故ではありませんが、支払いの遅れや付与方法の変更が起きています。"
+    evidence: "6/5〜6/8：システムエラーでKAIAリワードの支払いが一部遅延。4/24：KAIAボーナスリワードを「想定を上回る規模」として一括付与→14日間の分割付与に変更。6/11：Apps MarketのNFT販売登録をすべてリセット。"
+    tip: "Unifi公式の「お知らせ」をときどき確かめる。"
+    src:
+      - {t: "KAIA 30% リワードキャンペーン 報酬支払い再開のご案内（Unifi公式）", u: "https://www.unifi.me/announcement/019ea6af-7382-707d-b6ff-a60e9a797419", d: "2026-06-08"}
+      - {t: "KAIA ボーナスリワード 付与方法変更（Unifi公式）", u: "https://www.unifi.me/announcement/019dbf07-9722-7cea-a84a-f47fb4c06ba4", d: "2026-04-24"}
+  - area: unifi
+    level: 低
+    title: "商品券は90日を過ぎると20%引かれる。ガス代無料は一時的"
+    what: "細かい条件で損をしやすいポイントです。"
+    evidence: "商品券：決済から90日以内にバーコードを有効化しないと、20%を引いて自動返金。有効化後は返金不可。ガス代：JPYC・USDTなどの送金手数料は「一時的に」Kaia財団が負担しており、予告なく終わり得る。"
+    tip: "買った日を控える。送金手数料が有料に戻る可能性を頭に置く。"
+    src:
+      - {t: "商品券サービスのリニューアル（Unifi公式）", u: "https://www.unifi.me/announcement/01a15c13-45f4-7f60-afa2-89159305334b", d: "2026-10-21"}
+      - {t: "JPYCとは（Unifi公式・ガス代のFAQ）", u: "https://www.unifi.me/doc/jpyc?lng=ja-JP"}
+
+  # ---- JPYC ----
+  - area: jpyc
+    level: 高
+    title: "伸び悩みと赤字。発行会社1社の経営に左右される"
+    what: "JPYCは1社が発行しています。事業が苦しくなると、サービスの縮小などが起こり得ます。"
+    evidence: "1年目の流通量は約30億円で、社内目標の約4分の1（社長「率直に、伸びてないな」）。日経報道では「現状は赤字」、黒字化には流通額500億〜1,000億円が必要。収益は準備資産の運用益が中心なので、流通が少ないと収入も少ない。"
+    tip: "ニュースの「累計発行額120億円」は、いま出回っている量（約30億円）とは別物。"
+    src:
+      - {t: "JPYC岡部社長「率直に、伸びていない」（NADA NEWS）", u: "https://www.nadanews.com/387990/", d: "2026-10-27"}
+      - {t: "JPYC 1周年（CoinPost）", u: "https://coinpost.jp/?p=745104", d: "2026-10-28"}
+  - area: jpyc
+    level: 中
+    title: "取引所では「1JPYC＝1円」からずれることがある"
+    what: "1円で戻せるのは、本人確認を済ませて公式（JPYC EXやUnifi）で償還した場合です。取引所の値段は需給で動きます。"
+    evidence: "9/17の韓国Upbit上場直後、一時1円の約2.2〜4倍相当まで急騰（参考価格の4.27倍）。9/18夜〜19日には約0.95円相当まで下落。円建ての乖離は三度目と報じられた。公式も在庫不足で一時発行を止めた。"
+    tip: "取引所でJPYCを買うときは、1円より高く買っていないか確かめる。"
+    src:
+      - {t: "JPYC、Upbit上場の影響で価格乖離（NADA NEWS）", u: "https://www.nadanews.com/368542/", d: "2026-09-17"}
+      - {t: "JPYC、アップビットで1円割れ（JinaCoin）", u: "https://jinacoin.ne.jp/jpyc-depeg-20260922/", d: "2026-09-22"}
+      - {t: "Upbit上場で4.27倍｜円建ての乖離は三度目（Innovatopia）", u: "https://innovatopia.jp/tech-economy/tech-economynews/118028/"}
+  - area: jpyc
+    level: 中
+    title: "流通量が短期間で大きく減ることがある"
+    what: "使う人が増え続けているとは限りません。"
+    evidence: "8/25の約28.5億→9/10の約20.0億（約3割減）。年末年始（2025/12/23→2026/1/5）にも約14%減。"
+    tip: "1日の数字ではなく、推移で見る。"
+    src:
+      - {t: "JPYC流通量、20億円割れ（NADA NEWS）", u: "https://www.nadanews.com/367541/", d: "2026-09-10"}
+      - {t: "JPYC、流通量14%急減（CRYPTO TIMES）", u: "https://crypto-times.jp/news-jpycs-circulation-plummets-14/", d: "2026-01-05"}
+  - area: jpyc
+    level: 中
+    title: "1回100万円の上限、国内の取引所では買えない"
+    what: "大きな金額を動かしにくく、日本の暗号資産取引所でも売り買いできません（2026年10月時点）。"
+    evidence: "発行・償還は1回100万円まで（第二種資金移動業の制約）。社長も伸び悩みの最大の壁に挙げている。国内の電子決済手段等取引業者はSBI VCトレードとコインチェックの2社のみ。"
+    tip: "企業や大口の利用は、この上限が緩むかどうかが分かれ目。"
+    src:
+      - {t: "JPYC岡部社長インタビュー（NADA NEWS）", u: "https://www.nadanews.com/387990/", d: "2026-10-27"}
+      - {t: "JPYCの買い方と仕組み（CoinPost）", u: "https://coinpost.jp/crypto/stablecoin/jpyc/"}
+  - area: jpyc
+    level: 高
+    title: "チェーン違いの送金・ニセのJPYC"
+    what: "同じ「JPYC」でもチェーンが違うと別物です。送り先を間違えると戻りません。"
+    evidence: "公式に発行されているのはEthereum・Polygon・Avalanche・Kaiaの4つだけ。ほかのチェーンで「JPYC」と表示されるトークンは公式でない可能性がある。Polygon版をUnifi（Kaia）に送ってしまった例も報告されている。"
+    tip: "送る前に「ネットワーク名」と「アドレス」を確認し、少額で試す。"
+    src:
+      - {t: "JPYCの買い方と仕組み（CoinPost）", u: "https://coinpost.jp/crypto/stablecoin/jpyc/"}
+      - {t: "LINEでJPYC運用！Unifiの始め方（解説記事）", u: "https://jpyc-map.jp/line-unifi-jpyc-kaia-yield/"}
+
+  # ---- Kaia ----
+  - area: kaia
+    level: 高
+    title: "KAIAは最高値から9割以上下がっている"
+    what: "KAIAは値動きの大きい暗号資産です。"
+    evidence: "過去最高値は2024/12/2の約0.41ドル。2026/8/19に最安値。10/9のUpbit上場で1日に約64%上がったあとも、上場直後の高値から大きく下げている。"
+    tip: "上場やニュースでの急騰は、その後に下がることも多い。"
+    src:
+      - {t: "Kaia（CoinGecko）", u: "https://www.coingecko.com/ja/coins/kaia"}
+      - {t: "KAIA、Upbit上場（TokenPost）", u: "https://www.tokenpost.com/news/investing/29444", d: "2026-10-10"}
+  - area: kaia
+    level: 中
+    title: "発行上限がなく、毎年約5%ずつ増える"
+    what: "新しいKAIAが毎日発行されるので、持っている人の取り分は薄まっていきます（希薄化）。"
+    evidence: "1ブロックごとに9.6 KAIAを新規発行、年約3億KAIA（流通量の約5.2%）。CoinGeckoでも最大供給量は「なし」。"
+    tip: "KAIAのリワード（ステーキング約4%）は、この増える分とあわせて考える。"
+    src:
+      - {t: "Token Economy（Kaia公式ドキュメント）", u: "https://docs.kaia.io/learn/token-economics/token-economy/"}
+  - area: kaia
+    level: 中
+    title: "Kaiaの上のお金のサービス（DeFi）は小さく、減っている"
+    what: "「アジア最大級」という宣伝に比べると、実際に預けられているお金は小さい規模です。"
+    evidence: "DefiLlamaのKaiaのTVLは約700万ドル規模で、90日で約1割減（2026/10/31時点）。Kaia財団のCRミッション1の第1期は、参加が少なく予算の98.5%（約246万KAIA）が配られずにバーン予定。認定された預け入れの平均は約73万USDT。"
+    tip: "エコシステムの大きさは、発表の言葉より数字で確かめる。"
+    src:
+      - {t: "Kaia TVL（DefiLlama）", u: "https://defillama.com/chain/kaia"}
+      - {t: "Kaia Q3 2026 エコシステムまとめ（Kaia公式ブログ）", u: "https://blog.kaia.io/kaia-q3-2026-ecosystem-round-up-bridging-real-world-utility-with-institutional-infrastructure/"}
+  - area: kaia
+    level: 中
+    title: "エコシステムで大きなハッキングが起きた前例"
+    what: "Kaiaの前身Klaytnの周りでは、ブリッジや交換サービスが攻撃されています。"
+    evidence: "2023/12/31：Orbit Bridgeが約8,150万ドルを盗まれる（Klaytn上の主要な資産の多くがOrbit経由だった。北朝鮮の関与を指摘する専門家も）。2022年2月：KLAYswapがBGPハイジャックで約190万ドルの被害。Klaytn財団自体は被害なしと発表。"
+    tip: "チェーンをまたぐ「ブリッジ」は、特に狙われやすい。"
+    src:
+      - {t: "Orbit Bridge suffers $82M exploit（Cointelegraph）", u: "https://cointelegraph.com/news/cross-chain-protocol-orbit-bridge-suffers-exploit-hack"}
+      - {t: "KLAYswap Loses $1.9M After BGP Hijack（BankInfoSecurity）", u: "https://www.bankinfosecurity.com/crypto-exchange-klayswap-loses-19m-after-bgp-hijack-a-18518"}
+  - area: kaia
+    level: 低
+    title: "LINEは日本の暗号資産取引所の事業から撤退した"
+    what: "LINEグループの暗号資産の取引サービスは終わっています（Unifiは別サービス）。"
+    evidence: "LINE BITMAX（LINE Xenesis）は2026/6/1にサービス終了。理由は市場環境の変化と競争激化による経営資源の見直し。"
+    tip: "「LINEだから安心」とは切り分けて考える。"
+    src:
+      - {t: "暗号資産「LINE BITMAX」サービス終了（Impress Watch）", u: "https://www.watch.impress.co.jp/docs/news/2090005.html", d: "2026-03-03"}
+
+  # ---- 共通 ----
+  - area: common
+    level: 高
+    title: "詐欺・フィッシング・「承認（Approve）」の悪用"
+    what: "ニセのサイトやサポートを名乗るDMで、パスワードを聞き出したり、資産を動かす許可（Approve）を押させたりする手口があります。"
+    evidence: "Unifiは秘密鍵やSNSのログイン情報を保存していない（ウォレット規約10条）ので、運営がパスワードを聞く必要はない。送金・承認はブロックチェーン上で取り消せない（ウォレット規約11条）。"
+    tip: "公式の入口（LINEのUnifiミニアプリ・unifi.me・jpyc.co.jp）以外では何も押さない。"
+    src:
+      - {t: "Unifi ウォレット利用規約（公式）", u: "https://www.unifi.me/term/TERMS_OF_SERVICE/WALLET?lng=ja-JP"}
+  - area: common
+    level: 中
+    title: "リワードやもうけには税金がかかる"
+    what: "「少し増えた」でも、税金の申告が必要になることがあります。"
+    evidence: "リワード（貸借料）や暗号資産の売買益は課税対象になり得る。暗号資産の利益は今は雑所得の総合課税（住民税とあわせ最大55%）。20%の分離課税は2028年1月からが有力だが未確定。"
+    tip: "記録を残し、迷ったら税務署か税理士に確かめる。"
+    src:
+      - {t: "暗号資産の分離課税はいつから（FAS CALM 税理士コラム）", u: "https://www.fas-calm.co.jp/blog/2026/09/09/crypto-asset-tax-reform-2026-separation-taxation/"}
+
+# 条件が悪くなった変更（新しい順にページで並べる）
+downgrades:
+  - {d: "2026-04-24", area: unifi, t: "KAIAボーナスリワード：「30日後に一括」→「14日間に分割」で付与", why: "想定を上回る規模になったため", u: "https://www.unifi.me/announcement/019dbf07-9722-7cea-a84a-f47fb4c06ba4"}
+  - {d: "2026-06-09", area: unifi, t: "USDT：預け入れ額に応じた年4〜5%（ローンチ時は最大8%）→ BASIC 年3%", why: "Unifi 2.0。PLUSモード（当初5%）は引き出しに24時間待ち", u: "https://www.unifi.me/announcement/019e8254-c9d1-78a3-b1f0-f4d967e7d7b4"}
+  - {d: "2026-09-01", area: unifi, t: "JPYC：年5%（キャンペーン）→ 基本 年2%", why: "期間限定の追加3%の終了", u: "https://medium.com/@unifi_x2"}
+  - {d: "2026-10-21", area: unifi, t: "商品券：90日以内に有効化しないと20%を引いて返金、有効化後は返金不可に", why: "商品券サービスのリニューアル", u: "https://www.unifi.me/announcement/01a15c13-45f4-7f60-afa2-89159305334b"}
+  - {d: "2026-11-03", area: unifi, t: "KAIAブースト（USDTに最大+3%）が終了", why: "11/4以降はKAIAをいくら持っていても上乗せなし", u: "https://www.unifi.me/announcement/01a180e8-0a43-7de5-a591-bf6208f64536"}
+  - {d: "2026-09-17", area: jpyc, t: "JPYCの発行が在庫不足で一時ストップ（Upbit上場直後）", why: "夜間に発行が急増し在庫が足りなくなったと社長が説明", u: "https://www.nadanews.com/368646/"}
+
+# 過去に起きた事故・トラブル・悪いニュース
+incidents:
+  - {d: "2022-02", area: kaia, t: "KLAYswap（Klaytnの交換サービス）がBGPハイジャックで約190万ドルの被害", u: "https://www.bankinfosecurity.com/crypto-exchange-klayswap-loses-19m-after-bgp-hijack-a-18518"}
+  - {d: "2023-12-31", area: kaia, t: "Orbit Bridgeが約8,150万ドルを盗まれる（Klaytn上の主要資産の多くが経由）", u: "https://cointelegraph.com/news/cross-chain-protocol-orbit-bridge-suffers-exploit-hack"}
+  - {d: "2025-11", area: common, t: "Stream Financeの破綻（約9,300万ドル）。Morphoの一部ボールトに損失（SuperEarnの運用先の業界）", u: "https://protos.com/stream-finance-meltdown-winners-and-losers-in-defi-risk-curator-reckoning/"}
+  - {d: "2026-01-05", area: jpyc, t: "JPYCの流通量が年末年始の約2週間で約14%減", u: "https://crypto-times.jp/news-jpycs-circulation-plummets-14/"}
+  - {d: "2026-03-03", area: kaia, t: "LINE BITMAXが6/1でのサービス終了を発表（LINEが暗号資産取引所から撤退）", u: "https://www.watch.impress.co.jp/docs/news/2090005.html"}
+  - {d: "2026-04-20", area: unifi, t: "他社DeFi「Kelp DAO」がハッキング被害。Unifiは「影響なし」と案内", u: "https://www.unifi.me/announcement/019da8e3-5384-7b42-b710-cca7b40a0fc7"}
+  - {d: "2026-06-05", area: unifi, t: "UnifiでシステムエラーによりKAIAリワードの支払いが一部遅延（6/8に解消）", u: "https://www.unifi.me/announcement/019ea6af-7382-707d-b6ff-a60e9a797419"}
+  - {d: "2026-08-19", area: kaia, t: "KAIAが過去最安値（最高値の約5%の水準）", u: "https://www.coingecko.com/ja/coins/kaia"}
+  - {d: "2026-09-10", area: jpyc, t: "JPYCの流通量が20億円割れ。11日間で約7.1億減、Kaia上が中心（Unifiの5%特典終了の時期）", u: "https://www.nadanews.com/367541/"}
+  - {d: "2026-09-17", area: jpyc, t: "JPYCがUpbit上場直後に1円から大きく乖離（一時約2〜4倍相当→翌日以降は約0.95円相当）", u: "https://www.nadanews.com/368542/"}
+  - {d: "2026-10-27", area: jpyc, t: "JPYC発行1年。社長「率直に、伸びてないな」、流通は社内目標の約4分の1", u: "https://www.nadanews.com/387990/"}
+  - {d: "2026-10-28", area: unifi, t: "UnifiがKAIAブースト（USDTの追加利息）の終了を告知（11/3まで）", u: "https://www.unifi.me/announcement/01a180e8-0a43-7de5-a591-bf6208f64536"}
