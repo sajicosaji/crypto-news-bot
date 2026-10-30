@@ -948,6 +948,7 @@ timeline:
   - {d: "2026-07-16", t: "UnifiでKaia財団の特別貢献報酬（CR）ミッションに参加できるように", cat: unifi}
   - {d: "2026-07-24", t: "Kaiaがfinoject（日本の規制対応）と提携", cat: kaia}
   - {d: "2026-07-31", t: "お店向けの「Unifi Pay Direct」（手数料1%・即時精算）リリース", cat: unifi}
+  - {d: "2026-08-06", t: "USDTのPLUSモードが年5%→年7%に", cat: unifi, u: "https://www.unifi.me/announcement/019fcaf8-b488-705a-9038-1ee94f6f38e1"}
   - {d: "2026-08-06", t: "Unifi Pay 正式ローンチ・K-Pick新設", cat: unifi, u: "https://prtimes.jp/main/html/rd/p/000000033.000145432.html"}
   - {d: "2026-08-24", t: "Unifiの中でJPYCの発行・償還ができるように", cat: unifi}
   - {d: "2026-09-01", t: "UnifiのJPYCリワードが基本年2%に（キャンペーン終了）", cat: unifi}
