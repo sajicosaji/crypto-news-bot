@@ -194,6 +194,49 @@ table.tbl th { font-size: 12px; color: var(--ink-3); font-weight: 700; }
 .term .d { color: var(--ink-2); font-size: 14px; margin-top: 2px; }
 .term .p { color: var(--ink-3); font-size: 13px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 4px; }
 
+/* はじめての人向け */
+.intro .intro-row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+.intro .intro-row:last-of-type { border-bottom: 0; }
+.intro .ic { font-size: 22px; line-height: 1.3; }
+.unifi-card .head { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+.unifi-card .value { font-size: 32px; font-weight: 800; line-height: 1.25; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+.unifi-card .value small { font-size: 14px; color: var(--ink-2); margin-left: 4px; }
+.unifi-card .sub { font-size: 13px; color: var(--ink-2); }
+.unifi-card .foot { margin-top: 8px; font-size: 11.5px; color: var(--ink-3); }
+.unifi-card .foot .ok::before { content: "● "; color: var(--accent); }
+.unifi-card .foot .ng::before { content: "● "; color: var(--warn); }
+.calc { background: var(--surface-2); border-radius: 12px; padding: 10px 12px; margin-top: 12px; }
+.calc label { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; }
+.calc-in { width: 8.5em; border: 1.5px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 8px; font-size: 16px; text-align: right; font-variant-numeric: tabular-nums; }
+.calc-out { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; text-align: center; }
+.calc-out div { background: var(--surface); border-radius: 8px; padding: 6px 4px; }
+.calc-out span { display: block; font-size: 11.5px; color: var(--ink-3); }
+.calc-out b { font-size: 15.5px; font-variant-numeric: tabular-nums; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.pill { border: 0; font-size: 12.5px; font-weight: 700; padding: 4px 11px; border-radius: 999px; background: var(--jpyc-bg); color: var(--jpyc); cursor: pointer; }
+.pill.bad { background: var(--bad-bg); color: var(--bad); }
+.tasks { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.task { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; text-align: left; box-shadow: var(--shadow); }
+.task .ic { font-size: 20px; }
+.nums { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.num-pill { display: block; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; box-shadow: var(--shadow); }
+.num-pill span { display: block; font-size: 12px; color: var(--ink-3); }
+.num-pill b { font-size: 17px; font-variant-numeric: tabular-nums; }
+.guide { transition: box-shadow .3s, border-color .3s; }
+.guide.flash, .sec-title.flash { border-color: var(--accent-strong); box-shadow: 0 0 0 3px var(--accent-soft); }
+.gmeta { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 13.5px; margin: 4px 0 0; }
+.gmeta dt { color: var(--ink-3); font-weight: 700; }
+.gmeta dd { margin: 0; }
+.guide ol { margin: 12px 0 0; padding-left: 1.4em; }
+.guide li { margin: 6px 0; }
+.gcaution { margin-top: 10px; background: var(--bad-bg); color: var(--bad); border-radius: 8px; padding: 7px 10px; font-size: 13.5px; }
+.glinks { margin-top: 8px; font-size: 13px; }
+.glinks a { display: block; color: var(--accent-strong); text-decoration: none; padding: 2px 0; }
+details.trouble { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 11px 14px; margin-bottom: 8px; }
+details.trouble summary { cursor: pointer; font-weight: 700; }
+details.trouble .a { margin-top: 6px; font-size: 14px; color: var(--ink-2); }
+details.trouble a { display: inline-block; margin-top: 4px; color: var(--accent-strong); }
+
 /* リスク */
 .risk-lead { background: var(--bad-bg); color: var(--ink); border: 1px solid color-mix(in srgb, var(--bad) 30%, transparent); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px; }
 .risk-lead b { color: var(--bad); }
@@ -250,10 +293,10 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
 <nav class="tabs" aria-label="ページの切り替え">
   <div class="wrap" role="tablist">
     <button class="tab" role="tab" data-tab="home" aria-selected="true">🏠 ホーム</button>
-    <button class="tab" role="tab" data-tab="news" aria-selected="false">🗞 ニュース</button>
-    <button class="tab" role="tab" data-tab="market" aria-selected="false">📈 マーケット</button>
+    <button class="tab" role="tab" data-tab="guide" aria-selected="false">🧭 使い方</button>
     <button class="tab" role="tab" data-tab="risk" aria-selected="false">😈 リスク</button>
-    <button class="tab" role="tab" data-tab="schedule" aria-selected="false">🗓 予定</button>
+    <button class="tab" role="tab" data-tab="news" aria-selected="false">🗞 ニュース</button>
+    <button class="tab" role="tab" data-tab="market" aria-selected="false">📈 データ</button>
     <button class="tab" role="tab" data-tab="learn" aria-selected="false">📚 解説</button>
     <button class="tab" role="tab" data-tab="words" aria-selected="false">📖 用語</button>
   </div>
@@ -261,10 +304,10 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
 <main class="wrap">
   <div id="loading" class="loading">読み込み中…</div>
   <section id="home" hidden></section>
+  <section id="guide" hidden></section>
+  <section id="risk" hidden></section>
   <section id="news" hidden></section>
   <section id="market" hidden></section>
-  <section id="risk" hidden></section>
-  <section id="schedule" hidden></section>
   <section id="learn" hidden></section>
   <section id="words" hidden></section>
 </main>
@@ -609,122 +652,146 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     ]);
   }
 
-  // ---------- 🏠 ホーム ----------
+  // ---------- 🏠 ホーム（はじめての人向け） ----------
+  function isDev(n) { return /GitHub|ガバナンスフォーラム/.test(n.source || "") || /govforum\.|github\.com/.test(n.url || ""); }
+  function isJa(n) { return /[ぁ-んァ-ン]/.test(n.title || ""); }
+  function curRates() { return L.rates || (DATA && DATA.unifi) || null; }
   var homeNodes = {};
+  var calcAmount = Number(store("watch.calc")) || 10000;
   function buildHome() {
     var root = document.getElementById("home");
     root.innerHTML = "";
-    homeNodes.today = el("div", { class: "today" });
-    homeNodes.kaia = el("div", { class: "tile" });
-    homeNodes.jpyc = el("div", { class: "tile" });
-    homeNodes.unifi = el("div", { class: "tile" });
-    homeNodes.net = el("div", { class: "tile" });
+    homeNodes.status = el("div", { class: "today" });
+    homeNodes.rateBig = el("div", { class: "value" });
+    homeNodes.rateSub = el("div", { class: "sub" });
+    homeNodes.calcOut = el("div", { class: "calc-out" });
+    homeNodes.calcNote = el("div", { class: "small muted", style: "margin-top:6px" });
+    homeNodes.rateFoot = el("div", { class: "foot" });
     homeNodes.ann = el("div", { class: "list" });
-    homeNodes.news = el("div", { class: "list" });
     homeNodes.events = el("div", { class: "list" });
+    homeNodes.news = el("div", { class: "list" });
+    homeNodes.nums = el("div", { class: "nums" });
     homeNodes.tip = el("div", { class: "card daily-card" });
-    homeNodes.caution = el("div", { class: "list" });
-    root.appendChild(homeNodes.today);
-    root.appendChild(el("div", { class: "tiles" }, [homeNodes.kaia, homeNodes.jpyc, homeNodes.unifi, homeNodes.net]));
-    root.appendChild(el("div", { class: "sec-title" }, ["📢 Unifi公式のお知らせ", el("button", { class: "more", type: "button", onclick: function () { newsFilter = "official"; renderNews(); show("news"); } }, ["すべて見る →"])]));
+    var input = el("input", { class: "calc-in", type: "number", inputmode: "numeric", min: "0", step: "1000", value: String(calcAmount), "aria-label": "入れるJPYCの数量" });
+    input.addEventListener("input", function () { calcAmount = Math.max(0, Number(input.value) || 0); store("watch.calc", String(calcAmount)); updateCalc(); });
+
+    var intro = el("div", { class: "card intro" }, [el("h2", { text: "はじめての方へ" })].concat(((KB && KB.intro) || []).map(function (i) {
+      return el("div", { class: "intro-row" }, [el("span", { class: "ic", text: i.icon }), el("div", null, [el("b", { text: i.name }), el("div", { class: "small", text: i.text })])]);
+    })).concat([el("div", { style: "margin-top:10px" }, [el("button", { class: "btn", type: "button", onclick: function () { openCard("big-picture"); } }, ["📚 3つの関係をくわしく"])])]));
+    var unifi = el("div", { class: "card unifi-card" }, [
+      el("div", { class: "head" }, [el("span", { class: "badge unifi", text: "Unifi" }), "いまのリワード率（JPYC）"]),
+      homeNodes.rateBig, homeNodes.rateSub,
+      el("div", { class: "calc" }, [el("label", null, ["入れる額", input, "JPYC"]), homeNodes.calcOut, homeNodes.calcNote]),
+      el("div", { class: "pills" }, [
+        el("button", { class: "pill", type: "button", onclick: function () { openGuide("cashout"); } }, ["1JPYC＝1円で円に戻せる"]),
+        el("button", { class: "pill bad", type: "button", onclick: function () { show("risk"); window.scrollTo(0, 0); } }, ["😈 預金ではない（元本保証なし）"])
+      ]),
+      homeNodes.rateFoot
+    ]);
+    var tasks = el("div", { class: "tasks" }, ((KB && KB.guides) || []).map(function (g) {
+      return el("button", { class: "task", type: "button", onclick: function () { openGuide(g.id); } }, [el("span", { class: "ic", text: g.icon }), el("span", { text: g.title })]);
+    }).concat([el("button", { class: "task", type: "button", onclick: function () { openGuide("troubles"); } }, [el("span", { class: "ic", text: "🆘" }), el("span", { text: "困ったとき" })])]));
+    var br = el("div", { class: "list" }, ((KB && KB.beginner_risks) || []).map(function (r) {
+      return el("div", { class: "li" }, [el("div", { class: "t", text: "😈 " + r.t }), el("div", { class: "small muted", text: r.d })]);
+    }));
+
+    root.appendChild(homeNodes.status);
+    root.appendChild(intro);
+    root.appendChild(unifi);
+    root.appendChild(el("div", { class: "sec-title", text: "🧭 やりたいこと" }));
+    root.appendChild(tasks);
+    root.appendChild(el("div", { class: "sec-title" }, ["😈 まず気をつけること", el("button", { class: "more", type: "button", onclick: function () { show("risk"); window.scrollTo(0, 0); } }, ["😈 リスクをすべて見る →"])]));
+    root.appendChild(br);
+    root.appendChild(el("div", { class: "sec-title" }, ["📢 Unifi公式のお知らせ", el("button", { class: "more", type: "button", onclick: function () { newsFilter = "official"; show("news"); renderNews(true); } }, ["すべて見る →"])]));
     root.appendChild(homeNodes.ann);
+    root.appendChild(el("div", { class: "sec-title" }, ["🗓 これからの予定", el("button", { class: "more", type: "button", onclick: function () { show("news"); } }, ["年表を見る →"])]));
+    root.appendChild(homeNodes.events);
     root.appendChild(el("div", { class: "sec-title" }, ["🗞 最新ニュース", el("button", { class: "more", type: "button", onclick: function () { show("news"); } }, ["すべて見る →"])]));
     root.appendChild(homeNodes.news);
-    root.appendChild(el("div", { class: "sec-title" }, ["🗓 これからの予定", el("button", { class: "more", type: "button", onclick: function () { show("schedule"); } }, ["年表を見る →"])]));
-    root.appendChild(homeNodes.events);
-    root.appendChild(el("div", { class: "sec-title" }, ["😈 気をつけたい話", el("button", { class: "more", type: "button", onclick: function () { show("risk"); } }, ["😈 リスクのページへ →"])]));
-    root.appendChild(homeNodes.caution);
+    root.appendChild(el("div", { class: "sec-title" }, ["📈 数字", el("button", { class: "more", type: "button", onclick: function () { show("market"); } }, ["データを見る →"])]));
+    root.appendChild(homeNodes.nums);
     root.appendChild(el("div", { class: "sec-title", text: "💡 今日の豆知識" }));
     root.appendChild(homeNodes.tip);
     updateHome();
   }
-  function foot(parts) { return el("div", { class: "foot" }, parts); }
+  function yenSmall(v) { return v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.round(v).toLocaleString("ja-JP"); }
+  function updateCalc() {
+    var r = curRates(), R = r && r.jpyc ? r.jpyc.baseRate : null;
+    if (R === null || R === undefined) { fill(homeNodes.calcOut, [el("span", { class: "muted", text: "率を取得中…" })]); return; }
+    var d = Math.pow(1 + R, 1 / 365) - 1, A = calcAmount;
+    fill(homeNodes.calcOut, [["1日", A * d], ["30日", A * (Math.pow(1 + d, 30) - 1)], ["1年", A * R]].map(function (x) {
+      return el("div", null, [el("span", { text: x[0] }), el("b", { text: "約" + yenSmall(x[1]) + "円" })]);
+    }));
+    fill(homeNodes.calcNote, ["年" + rate(R) + "のまま続いた場合。付くのは入れた翌日から、毎日 朝9時ごろ。"]);
+  }
   function updateHome() {
-    if (!homeNodes.today) return;
+    if (!homeNodes.status) return;
     var now = new Date();
-    // 今日の動き（文章）
-    var bits = [];
-    if (L.kaia) bits.push(["KAIAは24時間で", el("b", { class: cls(L.kaia.jpy_24h_change), text: pct(L.kaia.jpy_24h_change, true) }), "（" + yen(L.kaia.jpy) + "）"]);
-    var jprev = L.jpycHist && L.jpycHist.points.length ? L.jpycHist.points[L.jpycHist.points.length - 1].v : null;
-    if (L.jpyc) {
-      var jch = jprev ? (L.jpyc.total / jprev - 1) * 100 : null;
-      bits.push(["JPYCの流通量は" + oku(L.jpyc.total) + "JPYC", jch !== null ? ["（前日比 ", el("b", { class: cls(jch), text: pct(jch, true) }), "）"] : ""]);
-    }
-    var rates = L.rates || (DATA && DATA.unifi);
-    if (rates && rates.jpyc) bits.push(["UnifiのJPYCリワードは年" + rate(rates.jpyc.baseRate)]);
+    var r = curRates();
     var news = allNews();
-    var fresh = news.filter(function (n) { return Date.now() - n.t < 24 * 3600 * 1000; });
-    var negWeek = news.filter(function (x) { return negHit(x) && Date.now() - x.t < 7 * 86400000; });
-    bits.push(["この24時間の新しいニュースは" + fresh.length + "件", negWeek.length ? ["（この1週間で注意が必要な話は", el("b", { class: "down", text: negWeek.length + "件" }), "）"] : ""]);
-    var text = el("div", { class: "text" });
-    bits.forEach(function (b, i) { (function add(x) { if (Array.isArray(x)) x.forEach(add); else if (x) text.appendChild(typeof x === "string" ? document.createTextNode(x) : x); })(b); text.appendChild(document.createTextNode(i < bits.length - 1 ? "。" : "。")); });
-    fill(homeNodes.today, [el("div", { class: "when", text: mdw(now.getTime()) + " " + hm(now) + " 現在の動き" }), text]);
-
-    // KAIA価格
-    var k = L.kaia || (DATA && DATA.market && DATA.market.kaia && { jpy: DATA.market.kaia.jpy, usd: DATA.market.kaia.usd, jpy_24h_change: DATA.market.kaia.jpy_24h_change, jpy_market_cap: DATA.market.kaia.jpy_market_cap, stale: true });
-    fill(homeNodes.kaia, k ? [
-      el("div", { class: "head" }, [el("span", { class: "badge kaia", text: "KAIA" }), "Kaiaのコイン 価格"]),
-      el("div", { class: "value" }, [yen(k.jpy), el("small", { class: cls(k.jpy_24h_change), text: pct(k.jpy_24h_change, true) })]),
-      el("div", { class: "sub", text: "$" + (k.usd || 0).toFixed(4) + "　時価総額 約" + oku(k.jpy_market_cap || k.jpy_usd_market_cap, 0) + "円" }),
-      L.chart[30] ? spark(L.chart[30].points, "var(--kaia)") : null,
-      foot([el("span", { class: k.stale ? "ng" : "ok", text: k.stale ? "控えの値（" + (DATA.market.checked_at ? hm(parseDate(DATA.market.checked_at)) : "") + "）" : L.kaia.src + " " + hms(new Date(L.kaia.at)) })])
-    ] : [el("div", { class: "head", text: "KAIA 価格" }), el("div", { class: "empty", text: "取得中…" })]);
-
-    // JPYC流通量
-    var j = L.jpyc;
-    var jfall = !j && DATA && DATA.market && DATA.market.jpyc && DATA.market.jpyc.total ? DATA.market.jpyc : null;
-    var rows = j ? j.rows : jfall ? Object.keys(jfall.by_chain).map(function (key) { var c = CHAINS.filter(function (x) { return x.key === key; })[0]; return { name: key, circ: jfall.by_chain[key], color: c ? c.color : "var(--ink-3)" }; }) : [];
-    var total = j ? j.total : jfall ? jfall.total : 0;
-    rows = rows.slice().sort(function (a, b) { return b.circ - a.circ; });
-    fill(homeNodes.jpyc, total ? [
-      el("div", { class: "head" }, [el("span", { class: "badge jpyc", text: "JPYC" }), "デジタルの円 流通量"]),
-      el("div", { class: "value" }, [oku(total), el("small", { text: "JPYC" })]),
-      el("div", { class: "sub" }, (jprev ? ["前日比 ", el("b", { class: cls(total / jprev - 1), text: pct((total / jprev - 1) * 100, true) }), "　"] : []).concat(["1JPYC＝1円"])),
-      el("div", { class: "bars" }, rows.map(function (r) { return el("span", { style: "width:" + (r.circ / total * 100).toFixed(2) + "%;background:" + r.color, title: r.name }); })),
-      el("div", { class: "legend" }, rows.map(function (r) { return el("span", null, [el("i", { style: "background:" + r.color }), r.name + " " + oku(r.circ)]); })),
-      foot([el("span", { class: j && j.live ? "ok" : "ng", text: j && j.live ? "ブロックチェーンから直接 " + hms(new Date(j.at)) : "DefiLlamaの値" })])
-    ] : [el("div", { class: "head", text: "JPYC 流通量" }), el("div", { class: "empty", text: "取得中…" })]);
-
-    // Unifiのリワード率
-    fill(homeNodes.unifi, rates && (rates.jpyc || rates.usdt) ? [
-      el("div", { class: "head" }, [el("span", { class: "badge unifi", text: "Unifi" }), "LINEのお財布 リワード率"]),
-      el("div", { class: "value" }, ["年" + rate(rates.jpyc ? rates.jpyc.baseRate : null), el("small", { text: "JPYC" })]),
-      rates.usdt ? el("dl", { class: "kv" }, [
-        el("dt", { text: "USDT BASIC" }), el("dd", { text: "年" + rate(rates.usdt.baseRate) }),
-        el("dt", { text: "USDT PLUSモード" }), el("dd", { text: "年" + rate(rates.usdt.plusBaseRate) }),
-        rates.usdt.kaiaBoostMaxRate ? el("dt", { text: "KAIAブースト込み最大" }) : null, rates.usdt.kaiaBoostMaxRate ? el("dd", { text: "年" + rate(rates.usdt.maxRate) }) : null
-      ]) : null,
-      foot([el("span", { class: L.rates ? "ok" : "ng", text: L.rates ? "Unifi公式 " + hms(new Date(L.rates.at)) : "控えの値" })])
-    ] : [el("div", { class: "head", text: "Unifi リワード率" }), el("div", { class: "empty", text: "取得中…" })]);
-
-    // Kaiaネットワーク
-    var n = (DATA && DATA.numbers) || {};
-    var tvlNow = L.tvlHist && L.tvlHist.length ? L.tvlHist[L.tvlHist.length - 1].v : n.tvl;
-    fill(homeNodes.net, [
-      el("div", { class: "head" }, [el("span", { class: "badge kaia", text: "Kaia" }), "ブロックチェーンの今"]),
-      el("div", { class: "value" }, [L.block ? "#" + L.block.toLocaleString("en-US") : "—", el("small", { text: "ブロック" })]),
-      el("dl", { class: "kv" }, [
-        el("dt", { text: "ガス代" }), el("dd", { text: L.gas ? L.gas.toFixed(1) + " Gkei" : "—" }),
-        el("dt", { text: "DeFiの預かり（TVL）" }), el("dd", { text: tvlNow ? "$" + oku(tvlNow) : "—" }),
-        el("dt", { text: "ステーブルコイン合計" }), el("dd", { text: n.stable_usd ? "$" + oku(n.stable_usd) : "—" }),
-        el("dt", { text: "SuperEarn（Unifiの運用先）" }), el("dd", { text: L.superearn ? "$" + oku(L.superearn) : "—" })
-      ]),
-      foot([el("span", { class: L.block ? "ok" : "ng", text: L.block ? "Kaiaノード " + hms(new Date(L.blockAt)) : "取得中" })])
-    ]);
-
-    // お知らせ・ニュース・予定・豆知識
+    var annDay = (L.ann || []).filter(function (a) { return Date.now() - a.t < 24 * 3600 * 1000; }).length;
+    var negWeek = news.filter(function (x) { return negHit(x) && Date.now() - x.t < 7 * 86400000; }).length;
+    fill(homeNodes.status, [el("div", { class: "when", text: mdw(now.getTime()) + " " + hm(now) }), el("div", { class: "text" }, [
+      "UnifiのJPYCリワード 年" + (r && r.jpyc ? rate(r.jpyc.baseRate) : "—") + "。Unifi公式のお知らせ（24時間）" + annDay + "件。",
+      "注意が必要な話（1週間）", el("b", { class: negWeek ? "down" : "", text: negWeek + "件" }), "。"
+    ])]);
+    fill(homeNodes.rateBig, ["年" + (r && r.jpyc ? rate(r.jpyc.baseRate) : "—"), el("small", { text: "JPYC" })]);
+    fill(homeNodes.rateSub, [r && r.usdt ? "USDT（米ドル）は BASIC 年" + rate(r.usdt.baseRate) + "・PLUSモード 年" + rate(r.usdt.plusBaseRate) : ""]);
+    fill(homeNodes.rateFoot, [el("span", { class: L.rates ? "ok" : "ng", text: L.rates ? "Unifi公式 " + hms(new Date(L.rates.at)) : "控えの値" })]);
+    updateCalc();
     var anns = (L.ann || []).slice(0, 3);
     fill(homeNodes.ann, anns.length ? anns.map(newsItem) : [el("div", { class: "empty", text: L.ann ? "お知らせはありません" : "取得中…" })]);
-    fill(homeNodes.news, news.filter(function (x) { return !x.official || x.source !== "Unifi公式のお知らせ"; }).slice(0, 6).map(newsItem).concat(news.length ? [] : [el("div", { class: "empty", text: "ニュースを読み込み中…" })]));
     var evs = upcoming().slice(0, 5);
     fill(homeNodes.events, evs.length ? evs.map(eventRow) : [el("div", { class: "empty", text: "予定はありません" })]);
-    var nextDown = ((KB && KB.downgrades) || []).filter(function (e) { return e.d >= todayJst().slice(0, e.d.length); }).sort(function (a, b) { return a.d < b.d ? -1 : 1; });
-    fill(homeNodes.caution, nextDown.map(function (e) { return datedRow(e, e.why); }).concat(negWeek.slice(0, 3).map(newsItem))
-      .concat(nextDown.length || negWeek.length ? [] : [el("div", { class: "empty", text: "この1週間、注意が必要なニュースはありません" })]));
+    var plain = news.filter(function (x) { return x.source !== "Unifi公式のお知らせ" && !isDev(x) && isJa(x); }).slice(0, 5);
+    fill(homeNodes.news, plain.length ? plain.map(newsItem) : [el("div", { class: "empty", text: news.length ? "新しいニュースはありません" : "読み込み中…" })]);
+    var k = L.kaia || (DATA && DATA.market && DATA.market.kaia);
+    var jt = L.jpyc ? L.jpyc.total : DATA && DATA.market && DATA.market.jpyc ? DATA.market.jpyc.total : null;
+    fill(homeNodes.nums, [
+      el("button", { class: "num-pill", type: "button", onclick: function () { show("market"); } }, [el("span", { text: "JPYCの流通量" }), el("b", { text: jt ? oku(jt) + "JPYC" : "—" })]),
+      el("button", { class: "num-pill", type: "button", onclick: function () { show("market"); } }, [el("span", { text: "KAIAの価格" }), el("b", null, [k ? yen(k.jpy) : "—", k && k.jpy_24h_change !== undefined ? el("small", { class: cls(k.jpy_24h_change), text: " " + pct(k.jpy_24h_change, true) }) : null])])
+    ]);
     var c = cardOfTheDay();
     fill(homeNodes.tip, c ? [el("div", { class: "k", text: "今日の豆知識" }), el("div", { class: "q", text: "Q. " + c.q }), el("div", { text: c.one }),
       el("div", { style: "margin-top:8px" }, [el("button", { class: "btn", type: "button", onclick: function () { openCard(c.id); } }, ["📚 くわしく読む"])])] : []);
   }
+
+  // ---------- 🧭 使い方・困ったとき ----------
+  function renderGuide() {
+    var root = document.getElementById("guide");
+    root.innerHTML = "";
+    if (!KB) return;
+    var guides = KB.guides || [];
+    root.appendChild(el("div", { class: "chips" }, guides.map(function (g) {
+      return el("button", { class: "chip", type: "button", onclick: function () { jumpTo("g-" + g.id); } }, [g.icon + " " + g.title]);
+    }).concat([el("button", { class: "chip", type: "button", onclick: function () { jumpTo("g-troubles"); } }, ["🆘 困ったとき"])])));
+    guides.forEach(function (g) {
+      root.appendChild(el("article", { class: "card guide", id: "g-" + g.id }, [
+        el("h2", { text: g.icon + " " + g.title }),
+        el("dl", { class: "gmeta" }, [el("dt", { text: "必要なもの" }), el("dd", { text: g.need }), el("dt", { text: "かかる時間" }), el("dd", { text: g.time }), el("dt", { text: "お金" }), el("dd", { text: g.cost })]),
+        el("ol", null, (g.steps || []).map(function (s) { return el("li", { text: s }); })),
+        g.caution ? el("div", { class: "gcaution", text: "😈 " + g.caution }) : null,
+        (g.links || []).length ? el("div", { class: "glinks" }, g.links.map(function (x) { return el("a", { href: x.u, target: "_blank", rel: "noopener", text: "🔗 " + x.t }); })) : null
+      ]));
+    });
+    root.appendChild(el("div", { class: "sec-title", id: "g-troubles", text: "🆘 困ったとき" }));
+    (KB.troubles || []).forEach(function (t) {
+      root.appendChild(el("details", { class: "trouble" }, [el("summary", { text: t.q }), el("div", { class: "a", text: t.a }),
+        t.u ? el("a", { class: "small", href: t.u, target: "_blank", rel: "noopener", text: "🔗 公式の説明" }) : null]));
+    });
+    root.appendChild(el("div", { class: "sec-title", text: "📮 問い合わせ先" }));
+    root.appendChild(el("div", { class: "list" }, (KB.contacts || []).map(function (c) {
+      return el("div", { class: "li" }, [c.u ? el("a", { class: "t", href: c.u, target: "_blank", rel: "noopener", text: c.t }) : el("div", { class: "t", text: c.t }), el("div", { class: "small muted", text: c.note })]);
+    })));
+  }
+  function jumpTo(id) {
+    var node = document.getElementById(id);
+    if (!node) return;
+    node.scrollIntoView({ block: "start" });
+    node.classList.add("flash");
+    setTimeout(function () { node.classList.remove("flash"); }, 1800);
+  }
+  function openGuide(id) { show("guide"); jumpTo("g-" + id); }
 
   // ---------- 予定 ----------
   function eventRow(e) {
@@ -745,22 +812,17 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     return ((KB && KB.timeline) || []).filter(function (e) { return e.d >= today.slice(0, e.d.length); }).sort(function (a, b) { return a.d < b.d ? -1 : 1; });
   }
   var tlCat = "all";
-  function renderSchedule() {
-    var root = document.getElementById("schedule");
-    root.innerHTML = "";
-    if (!KB) return;
-    var up = upcoming();
-    root.appendChild(el("div", { class: "sec-title", style: "margin-top:0", text: "🗓 これからの予定" }));
-    root.appendChild(el("div", { class: "list" }, up.length ? up.map(eventRow) : [el("div", { class: "empty", text: "予定はありません" })]));
-    root.appendChild(el("div", { class: "sec-title", text: "📜 これまでの出来事" }));
+  function timelineBlock() {
+    var wrap = el("div");
     var chips = el("div", { class: "chips" }), box = el("div", { class: "list" });
     var cats = [["all", "すべて"], ["unifi", "📱 Unifi"], ["jpyc", "💴 JPYC"], ["kaia", "🟢 Kaia"], ["money", "🏛 制度"]];
     function draw() {
       fill(chips, cats.map(function (c) { return el("button", { class: "chip", type: "button", "aria-pressed": String(tlCat === c[0]), onclick: function () { tlCat = c[0]; draw(); } }, [c[1]]); }));
       var today = todayJst();
-      fill(box, (KB.timeline || []).filter(function (e) { return e.d < today.slice(0, e.d.length) && (tlCat === "all" || e.cat === tlCat); }).slice().reverse().map(eventRow));
+      fill(box, ((KB && KB.timeline) || []).filter(function (e) { return e.d < today.slice(0, e.d.length) && (tlCat === "all" || e.cat === tlCat); }).slice().reverse().map(eventRow));
     }
-    root.appendChild(chips); root.appendChild(box); draw();
+    wrap.appendChild(chips); wrap.appendChild(box); draw();
+    return wrap;
   }
 
   // ---------- 🗞 ニュース ----------
@@ -773,8 +835,17 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     if (!force && sig === newsSig && root.childNodes.length) return;
     newsSig = sig;
     root.innerHTML = "";
-    var filters = [["all", "すべて"], ["caution", "😈 注意"], ["official", "公式の発表"], ["unifi", "Unifi"], ["jpyc", "JPYC"], ["kaia", "Kaia"], ["both", "Kaia × JPYC"], ["stablecoin", "円ステーブルコイン"]];
-    var match = function (x, f) { return f === "all" || (f === "official" ? x.official : f === "caution" ? !!negHit(x) : x.topic === f); };
+    var up = upcoming();
+    if (up.length) {
+      root.appendChild(el("div", { class: "sec-title", style: "margin-top:0", text: "🗓 これからの予定" }));
+      root.appendChild(el("div", { class: "list", style: "margin-bottom:14px" }, up.map(eventRow)));
+    }
+    var filters = [["all", "すべて"], ["caution", "😈 注意"], ["official", "公式の発表"], ["unifi", "Unifi"], ["jpyc", "JPYC"], ["kaia", "Kaia"], ["stablecoin", "円ステーブルコイン"], ["dev", "開発・ガバナンス"]];
+    var match = function (x, f) {
+      if (f === "dev") return isDev(x);
+      if (isDev(x)) return false;
+      return f === "all" || (f === "official" ? x.official : f === "caution" ? !!negHit(x) : f === "kaia" ? (x.topic === "kaia" || x.topic === "both") : f === "jpyc" ? (x.topic === "jpyc" || x.topic === "both") : x.topic === f);
+    };
     root.appendChild(el("div", { class: "chips" }, filters.map(function (f) {
       var n = list.filter(function (x) { return match(x, f[0]); }).length;
       return el("button", { class: "chip", type: "button", "aria-pressed": String(newsFilter === f[0]), onclick: function () { newsFilter = f[0]; store("watch.newsFilter", newsFilter); renderNews(true); } }, [f[1] + " " + n]);
@@ -798,13 +869,81 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
         root.appendChild(el("details", { class: "card", style: "padding:10px 14px;margin-bottom:8px" }, [el("summary", { style: "cursor:pointer;font-weight:700", text: mdw(a.date) + "　" + (items.length ? "話題 " + items.length + "件" : (a.headline || "")) }), inner]));
       });
     }
+    root.appendChild(el("div", { class: "sec-title", text: "📜 これまでの出来事" }));
+    root.appendChild(timelineBlock());
   }
 
-  // ---------- 📈 マーケット ----------
+  // ---------- 📈 データ ----------
+  function foot(parts) { return el("div", { class: "foot" }, parts); }
+  function dataTiles() {
+    var tiles = { kaia: el("div", { class: "tile" }), jpyc: el("div", { class: "tile" }), unifi: el("div", { class: "tile" }), net: el("div", { class: "tile" }) };
+    var bits = [];
+    if (L.kaia) bits.push(["KAIAは24時間で", el("b", { class: cls(L.kaia.jpy_24h_change), text: pct(L.kaia.jpy_24h_change, true) }), "（" + yen(L.kaia.jpy) + "）"]);
+    var jprev = L.jpycHist && L.jpycHist.points.length ? L.jpycHist.points[L.jpycHist.points.length - 1].v : null;
+    if (L.jpyc) {
+      var jch = jprev ? (L.jpyc.total / jprev - 1) * 100 : null;
+      bits.push(["JPYCの流通量は" + oku(L.jpyc.total) + "JPYC", jch !== null ? ["（前日比 ", el("b", { class: cls(jch), text: pct(jch, true) }), "）"] : ""]);
+    }
+    var text = el("div", { class: "text" });
+    bits.forEach(function (b) { (function add(x) { if (Array.isArray(x)) x.forEach(add); else if (x) text.appendChild(typeof x === "string" ? document.createTextNode(x) : x); })(b); text.appendChild(document.createTextNode("。")); });
+    var now = new Date();
+    var today = el("div", { class: "today" }, [el("div", { class: "when", text: mdw(now.getTime()) + " " + hm(now) }), text]);
+
+    var k = L.kaia || (DATA && DATA.market && DATA.market.kaia && { jpy: DATA.market.kaia.jpy, usd: DATA.market.kaia.usd, jpy_24h_change: DATA.market.kaia.jpy_24h_change, jpy_market_cap: DATA.market.kaia.jpy_market_cap, stale: true });
+    fill(tiles.kaia, k ? [
+      el("div", { class: "head" }, [el("span", { class: "badge kaia", text: "KAIA" }), "Kaiaのコイン 価格"]),
+      el("div", { class: "value" }, [yen(k.jpy), el("small", { class: cls(k.jpy_24h_change), text: pct(k.jpy_24h_change, true) })]),
+      el("div", { class: "sub", text: "$" + (k.usd || 0).toFixed(4) + "　時価総額 約" + oku(k.jpy_market_cap, 0) + "円" }),
+      L.chart[30] ? spark(L.chart[30].points, "var(--kaia)") : null,
+      foot([el("span", { class: k.stale ? "ng" : "ok", text: k.stale ? "控えの値" : L.kaia.src + " " + hms(new Date(L.kaia.at)) })])
+    ] : [el("div", { class: "head", text: "KAIA 価格" }), el("div", { class: "empty", text: "取得中…" })]);
+
+    var j = L.jpyc;
+    var jfall = !j && DATA && DATA.market && DATA.market.jpyc && DATA.market.jpyc.total ? DATA.market.jpyc : null;
+    var rows = j ? j.rows : jfall ? Object.keys(jfall.by_chain).map(function (key) { var c = CHAINS.filter(function (x) { return x.key === key; })[0]; return { name: key, circ: jfall.by_chain[key], color: c ? c.color : "var(--ink-3)" }; }) : [];
+    var total = j ? j.total : jfall ? jfall.total : 0;
+    rows = rows.slice().sort(function (a, b) { return b.circ - a.circ; });
+    fill(tiles.jpyc, total ? [
+      el("div", { class: "head" }, [el("span", { class: "badge jpyc", text: "JPYC" }), "デジタルの円 流通量"]),
+      el("div", { class: "value" }, [oku(total), el("small", { text: "JPYC" })]),
+      el("div", { class: "sub" }, (jprev ? ["前日比 ", el("b", { class: cls(total / jprev - 1), text: pct((total / jprev - 1) * 100, true) })] : [])),
+      el("div", { class: "bars" }, rows.map(function (r) { return el("span", { style: "width:" + (r.circ / total * 100).toFixed(2) + "%;background:" + r.color, title: r.name }); })),
+      el("div", { class: "legend" }, rows.map(function (r) { return el("span", null, [el("i", { style: "background:" + r.color }), r.name + " " + oku(r.circ)]); })),
+      foot([el("span", { class: j && j.live ? "ok" : "ng", text: j && j.live ? "ブロックチェーン " + hms(new Date(j.at)) : "DefiLlama" })])
+    ] : [el("div", { class: "head", text: "JPYC 流通量" }), el("div", { class: "empty", text: "取得中…" })]);
+
+    var rates = curRates();
+    fill(tiles.unifi, rates && (rates.jpyc || rates.usdt) ? [
+      el("div", { class: "head" }, [el("span", { class: "badge unifi", text: "Unifi" }), "リワード率"]),
+      el("div", { class: "value" }, ["年" + rate(rates.jpyc ? rates.jpyc.baseRate : null), el("small", { text: "JPYC" })]),
+      rates.usdt ? el("dl", { class: "kv" }, [
+        el("dt", { text: "USDT BASIC" }), el("dd", { text: "年" + rate(rates.usdt.baseRate) }),
+        el("dt", { text: "USDT PLUSモード" }), el("dd", { text: "年" + rate(rates.usdt.plusBaseRate) }),
+        rates.usdt.kaiaBoostMaxRate ? el("dt", { text: "KAIAブースト込み最大" }) : null, rates.usdt.kaiaBoostMaxRate ? el("dd", { text: "年" + rate(rates.usdt.maxRate) }) : null
+      ]) : null,
+      foot([el("span", { class: L.rates ? "ok" : "ng", text: L.rates ? "Unifi公式 " + hms(new Date(L.rates.at)) : "控えの値" })])
+    ] : [el("div", { class: "head", text: "Unifi リワード率" }), el("div", { class: "empty", text: "取得中…" })]);
+
+    var n = (DATA && DATA.numbers) || {};
+    var tvlNow = L.tvlHist && L.tvlHist.length ? L.tvlHist[L.tvlHist.length - 1].v : n.tvl;
+    fill(tiles.net, [
+      el("div", { class: "head" }, [el("span", { class: "badge kaia", text: "Kaia" }), "ブロックチェーン"]),
+      el("div", { class: "value" }, [L.block ? "#" + L.block.toLocaleString("en-US") : "—", el("small", { text: "ブロック" })]),
+      el("dl", { class: "kv" }, [
+        el("dt", { text: "ガス代" }), el("dd", { text: L.gas ? L.gas.toFixed(1) + " Gkei" : "—" }),
+        el("dt", { text: "DeFiの預かり（TVL）" }), el("dd", { text: tvlNow ? "$" + oku(tvlNow) : "—" }),
+        el("dt", { text: "ステーブルコイン合計" }), el("dd", { text: n.stable_usd ? "$" + oku(n.stable_usd) : "—" }),
+        el("dt", { text: "SuperEarn（Unifiの運用先）" }), el("dd", { text: L.superearn ? "$" + oku(L.superearn) : "—" })
+      ]),
+      foot([el("span", { class: L.block ? "ok" : "ng", text: L.block ? "Kaiaノード " + hms(new Date(L.blockAt)) : "取得中" })])
+    ]);
+    return el("div", null, [today, el("div", { class: "tiles", style: "margin-bottom:14px" }, [tiles.kaia, tiles.jpyc, tiles.unifi, tiles.net])]);
+  }
   var kaiaDays = Number(store("watch.kaiaDays")) || 30;
   function renderMarket() {
     var root = document.getElementById("market");
     root.innerHTML = "";
+    root.appendChild(dataTiles());
     var grid = el("div", { class: "charts" });
     // KAIA価格
     var seg = el("span", { class: "seg" }, [[7, "7日"], [30, "30日"], [90, "90日"], [365, "1年"]].map(function (o) {
@@ -814,7 +953,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     grid.appendChild(el("div", { class: "card chart-card" }, [
       el("h2", null, ["KAIA 価格（円）", el("span", { class: "now", text: L.kaia ? yen(L.kaia.jpy) : "" })]),
       el("div", { style: "margin:-2px 0 8px" }, [seg]),
-      kc ? chart(kc.points, "var(--kaia)", function (v) { return yen(v); }) : el("div", { class: "empty", text: "読み込み中…" }),
+      kc ? chart(kc.points, "var(--kaia)", function (v) { return yen(v); }) : el("div", { class: "empty", text: "読み込み中…" })
     ]));
     // JPYC流通量
     var jh = L.jpycHist;
@@ -827,12 +966,12 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
         el("tr", null, [el("th", { text: "チェーン" }), el("th", { text: "流通量" }), el("th", { text: "割合" }), el("th", { text: "発行済み総数" })])
       ].concat(L.jpyc.rows.slice().sort(function (a, b) { return b.circ - a.circ; }).map(function (r) {
         return el("tr", null, [el("td", null, [el("span", { class: "dotc", style: "background:" + r.color }), r.name]), el("td", { text: oku(r.circ) }), el("td", { text: pct(r.circ / L.jpyc.total * 100) }), el("td", { text: r.minted ? oku(r.minted) : "—" })]);
-      })))]) : null,
+      })))]) : null
     ]));
     // Kaia TVL
     grid.appendChild(el("div", { class: "card chart-card" }, [
       el("h2", null, ["Kaia のDeFi預かり（TVL・ドル）", el("span", { class: "now", text: L.tvlHist && L.tvlHist.length ? "$" + oku(L.tvlHist[L.tvlHist.length - 1].v) : "" })]),
-      L.tvlHist ? chart(L.tvlHist.slice(-90), "var(--both)", function (v) { return "$" + oku(v); }) : el("div", { class: "empty", text: "読み込み中…" }),
+      L.tvlHist ? chart(L.tvlHist.slice(-90), "var(--both)", function (v) { return "$" + oku(v); }) : el("div", { class: "empty", text: "読み込み中…" })
     ]));
     // Kaia上の円ステーブルコイン
     var n = (DATA && DATA.numbers) || {};
@@ -840,7 +979,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
       var start = Date.now() - (n.jpy_history.length - 1) * 86400000;
       grid.appendChild(el("div", { class: "card chart-card" }, [
         el("h2", null, ["Kaia上の日本円ステーブルコイン", el("span", { class: "now", text: n.jpy ? oku(n.jpy) + "円" : "" })]),
-        chart(n.jpy_history.map(function (v, i) { return { t: start + i * 86400000, v: v }; }), "var(--jpyc)", function (v) { return oku(v) + "円"; }),
+        chart(n.jpy_history.map(function (v, i) { return { t: start + i * 86400000, v: v }; }), "var(--jpyc)", function (v) { return oku(v) + "円"; })
       ]));
     }
     root.appendChild(grid);
@@ -853,7 +992,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
       ].concat(days.slice(0, 60).map(function (d) {
         return el("tr", null, [el("td", { text: mdw(d.date) }), el("td", { text: d.kaia_jpy ? yen(d.kaia_jpy) : "—" }), el("td", { text: d.jpyc ? oku(d.jpyc) : "—" }),
           el("td", { text: rate(d.unifi_jpyc) }), el("td", { text: rate(d.unifi_usdt) }), el("td", { text: rate(d.unifi_usdt_plus) })]);
-      })))]),
+      })))])
     ] : [el("div", { class: "empty", text: "記録は今日から始まります" })]));
   }
 
@@ -1018,7 +1157,11 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     riskSig = sig;
     root.innerHTML = "";
     if (!KB) return;
-    root.appendChild(el("div", { class: "sec-title", style: "margin-top:4px", text: "😈 数字で見る下向きのサイン" }));
+    root.appendChild(el("div", { class: "sec-title", style: "margin-top:0", text: "😈 はじめての人がまず知っておくこと" }));
+    root.appendChild(el("div", { class: "list" }, (KB.beginner_risks || []).map(function (r) {
+      return el("div", { class: "li" }, [el("div", { class: "t", text: r.t }), el("div", { class: "small muted", text: r.d })]);
+    })));
+    root.appendChild(el("div", { class: "sec-title", text: "😈 数字で見る下向きのサイン" }));
     root.appendChild(el("div", { class: "metrics" }, riskMetrics()));
     // 注意が必要なニュース
     var neg = allNews().filter(function (x) { return negHit(x); });
@@ -1045,7 +1188,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     root.appendChild(el("div", { class: "list" }, (KB.incidents || []).slice().sort(function (a, b) { return a.d < b.d ? 1 : -1; }).map(function (e) { return datedRow(e); })));
   }
 
-  var RENDER = { home: buildHome, news: function () { renderNews(true); }, market: renderMarket, risk: function () { renderRisk(true); }, schedule: renderSchedule, learn: renderLearn, words: renderWords };
+  var RENDER = { home: buildHome, guide: renderGuide, risk: function () { renderRisk(true); }, news: function () { renderNews(true); }, market: renderMarket, learn: renderLearn, words: renderWords };
   var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
   var current = "home";
   function show(name) {

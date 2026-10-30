@@ -937,7 +937,6 @@ timeline:
   - {d: "2026-03-09", t: "Unifiローンチ記念：USDTを最大 年8%（通常は預け入れ額に応じて4〜5%）", cat: unifi}
   - {d: "2026-04-20", t: "他社DeFi「Kelp DAO」のハッキング事件。Unifiは「一切関係なし」と案内", cat: unifi}
   - {d: "2026-05-06", t: "「Prime」第1回：USDTを11/4までロックして年10%（上限300万USDT）", cat: unifi}
-  - {d: "2026-05-13", t: "Unifi 第2期アンバサダー募集（活動 5/22〜8/14）", cat: unifi}
   - {d: "2026-05-15", t: "JPYC EXがKaiaに対応・発行上限を「1回100万円」に", cat: jpyc, u: "https://prtimes.jp/main/html/rd/p/000000315.000054018.html"}
   - {d: "2026-05-22", t: "UnifiでJPYCが使えるように", cat: unifi, u: "https://prtimes.jp/main/html/rd/p/000000318.000054018.html"}
   - {d: "2026-05-28", t: "ブリッジ機能：14のネットワークのUSDTを入金すると自動でKaiaに変換", cat: unifi}
@@ -950,7 +949,6 @@ timeline:
   - {d: "2026-07-24", t: "Kaiaがfinoject（日本の規制対応）と提携", cat: kaia}
   - {d: "2026-07-31", t: "お店向けの「Unifi Pay Direct」（手数料1%・即時精算）リリース", cat: unifi}
   - {d: "2026-08-06", t: "Unifi Pay 正式ローンチ・K-Pick新設", cat: unifi, u: "https://prtimes.jp/main/html/rd/p/000000033.000145432.html"}
-  - {d: "2026-08-06", t: "USDTのPLUSモードが年5%→年7%に。第3期アンバサダー募集（活動 8/14〜11/6）", cat: unifi, u: "https://www.unifi.me/announcement/019fd60c-511f-7030-81ff-3cfccc79af5c"}
   - {d: "2026-08-24", t: "Unifiの中でJPYCの発行・償還ができるように", cat: unifi}
   - {d: "2026-09-01", t: "UnifiのJPYCリワードが基本年2%に（キャンペーン終了）", cat: unifi}
   - {d: "2026-09-10", t: "韓国のお店でUSDTのQR払い・10%キャッシュバック（訪韓外国人向け）", cat: unifi}
@@ -964,6 +962,8 @@ timeline:
   - {d: "2026-10-21", t: "Unifiの商品券がリニューアル（ポイント還元・バーコード有効化方式）", cat: unifi}
   - {d: "2026-10-27", t: "JPYC 発行1周年（累計発行120億円超）", cat: jpyc, u: "https://coinpost.jp/?p=745104"}
   - {d: "2026-11", t: "（予定）Kaia 貢献報酬の未払い分の初回自動バーン", cat: kaia}
+  - {d: "2026-10-31", t: "韓国のお店でのUSDTのQR払い10%キャッシュバックが終了", cat: unifi, u: "https://www.unifi.me/announcement/01a088b5-8f62-7ab1-afa9-69f4d9b67b80"}
+  - {d: "2026-11-01", t: "（予定）Unifi mini 出席チェック第5回・ミッション＆ラッキーボール シーズン5が終了（朝）", cat: unifi, u: "https://www.unifi.me/announcement/01a0f0a8-ce5f-7a60-a3d4-962e14686a0a"}
   - {d: "2026-11-03", t: "（予定）KAIAブースト（USDTの追加利息）が終了", cat: unifi, u: "https://www.unifi.me/announcement/01a180e8-0a43-7de5-a591-bf6208f64536"}
   - {d: "2026-11-04", t: "（予定）Prime第1回の満期（元本とリワードを一括で受け取り）", cat: unifi}
 
@@ -1322,3 +1322,172 @@ incidents:
   - {d: "2026-09-17", area: jpyc, t: "JPYCがUpbit上場直後に1円から大きく乖離（一時約2〜4倍相当→翌日以降は約0.95円相当）", u: "https://www.nadanews.com/368542/"}
   - {d: "2026-10-27", area: jpyc, t: "JPYC発行1年。社長「率直に、伸びてないな」、流通は社内目標の約4分の1", u: "https://www.nadanews.com/387990/"}
   - {d: "2026-10-28", area: unifi, t: "UnifiがKAIAブースト（USDTの追加利息）の終了を告知（11/3まで）", u: "https://www.unifi.me/announcement/01a180e8-0a43-7de5-a591-bf6208f64536"}
+
+# =========================================================== はじめての人向け（2026-10-31）
+# 本人の方針「Unifiで初めて仮想通貨に触った人が、このサイトを見ればアンバサダーがいなくてもほとんど成立するように」
+# やりたいこと別の手順（guides）・困ったとき（troubles）・問い合わせ先（contacts）・まず気をつけること（beginner_risks）
+
+intro:
+  - {icon: "📱", name: "Unifi（ユニファイ）", text: "LINEの中で使えるお財布。運営はLINEヤフーの関連会社LINE NEXT。"}
+  - {icon: "💴", name: "JPYC", text: "1JPYC＝1円のデジタルの円。本人確認をすれば1円で円に戻せる。"}
+  - {icon: "🟢", name: "Kaia（カイア）", text: "Unifiを動かしているブロックチェーン。KAIAはその上のコインで、値段が毎日上下する。"}
+
+guides:
+  - id: start
+    icon: "🔰"
+    title: "はじめる"
+    need: "LINEアカウント（Google・Apple・NAVER・Kakaoでも可）"
+    time: "数分"
+    cost: "無料"
+    steps:
+      - "LINEの検索で「Unifi」と入れ、Unifi mini（LINEミニアプリ）を開く。新しいアプリのインストールはいらない"
+      - "LINEアカウントでログインする"
+      - "復旧パスワードを決める（8文字以上、英字・数字・記号を混ぜる）。機種変更などで必要になる合鍵なので、紙に書いて保管する"
+      - "パスコード（6桁の数字）を決める。送る・払うときに使う"
+      - "「マイ ＞ 認証・セキュリティ」で、復旧用の生体認証パスキー（顔・指紋）を登録する"
+      - "UnifiのLINE公式アカウントを友だち追加する（キャンペーンや期限のお知らせが届く）"
+    caution: "復旧パスワードをなくし、パスキーも登録していないと、そのお財布には二度と入れない。"
+    links:
+      - {t: "Unifi mini を開く", u: "https://miniapp.line.me/unifi"}
+      - {t: "Unifi 公式LINEアカウント", u: "https://line.me/R/ti/p/@unifi.me"}
+  - id: deposit
+    icon: "💴"
+    title: "JPYC（デジタルの円）を入れる"
+    need: "マイナンバーカード、本人名義の銀行口座、スマホ（LIQUID eKYCアプリ）"
+    time: "初回だけ本人確認の審査に数時間〜数日。2回目からは振込の確認後に自動で入る"
+    cost: "JPYC社の発行手数料は当面無料。銀行の振込手数料は自分持ち"
+    steps:
+      - "UnifiのJPYCの画面で発行を選び、ほしい数量を入れる（1回3,000〜100万JPYC、1JPYC＝1円）"
+      - "はじめてのときは、JPYC EXの本人確認（マイナンバーカード＋LIQUID eKYCアプリ＋本人名義の銀行口座）"
+      - "案内された口座に円を振り込む"
+      - "入金が確認されると、JPYCが自動でUnifiのお財布に入る"
+      - "ほかのお財布から送る場合は、Unifiの「入金する」で出るアドレスに、Kaiaネットワーク版のJPYCを送る"
+    caution: "イーサリアム・ポリゴンなどKaia以外のネットワークのJPYCを送ると、届かずに戻らないことがある。"
+    links:
+      - {t: "デジタル円JPYC、Unifiで発行・償還（Unifi公式）", u: "https://medium.com/@unifi_x2/%E3%83%87%E3%82%B8%E3%82%BF%E3%83%AB%E5%86%86jpyc-unifi%E3%81%A7%E3%81%9D%E3%81%AE%E3%81%BE%E3%81%BE%E7%99%BA%E8%A1%8C-%E5%84%9F%E9%82%84%E3%81%A7%E3%81%8D%E3%81%BE%E3%81%99-2bd3fa072d0a"}
+  - id: earn
+    icon: "📈"
+    title: "増やす（リワード）"
+    need: "UnifiにJPYCかUSDTが入っていること"
+    time: "入れた翌日から、毎日 日本時間の朝9時ごろに付く"
+    cost: "手数料なし・最低額なし・いつでも出し入れ自由"
+    steps:
+      - "はじめに、リワードの規約への同意と「Approve（承認）」をする"
+      - "あとは入れておくだけで、毎日リワードが付く。付いた分にもまた付く（複利）"
+      - "USDTは自分で「PLUSモード」に切り替えると率が上がる。PLUSから戻すときは24時間待つ"
+    caution: "預金ではなく、SuperEarnへの貸し出し。元本の保証はなく、率は予告なく変わる。"
+    links:
+      - {t: "電子決済手段貸借約款（リワードの契約）", u: "https://www.unifi.me/term/TERMS_OF_SERVICE/AGGREGATOR?lng=ja-JP"}
+  - id: use
+    icon: "🛍"
+    title: "使う（支払い・商品券）"
+    need: "UnifiにJPYCかUSDT、またはクレジットカード（商品券のみ）"
+    time: "その場"
+    cost: "Unifi独自の手数料0%（ネットワークなどの手数料が別にかかる場合あり）"
+    steps:
+      - "韓国の商品券（オリーブヤング・ダイソー・CU・メガコーヒー・キョチョンチキンなど）：Unifiの商品券から、クレジットカードかJPYCで買う"
+      - "商品券は、使うときに「MYショッピング」で「バーコードを有効化」して店で見せる"
+      - "韓国のお店でのQR払い（USDT・訪韓外国人向け）：画面上の「Pay」から店のQRを読み、金額を入れる"
+      - "MOLTS（LINE NEXTの高級品マーケット）ではJPYCで支払える"
+    caution: "商品券は決済から90日以内に有効化しないと20%引かれて返金。有効化した後は返金できない。日本の街のお店で使える場所はまだ少ない。"
+    links:
+      - {t: "Unifi 商品券", u: "https://www.unifi.me/benefits-mini/category/voucher"}
+  - id: cashout
+    icon: "🏦"
+    title: "円に戻す（償還）"
+    need: "JPYC EXの本人確認が済んでいること、本人名義の銀行口座"
+    time: "すぐ終わらないことがある"
+    cost: "JPYC社の償還手数料は当面無料"
+    steps:
+      - "UnifiのJPYCの画面で償還を選ぶ"
+      - "数量を入れる（1回3,000〜100万JPYC）"
+      - "登録した本人名義の口座に、1JPYC＝1円で振り込まれる"
+    caution: "本人名義の口座にしか戻せない。リワードに回している分を出すときは、戻るまで時間がかかることがある（規約上は申請から最長30営業日）。"
+    links:
+      - {t: "デジタル円JPYC、Unifiで発行・償還（Unifi公式）", u: "https://medium.com/@unifi_x2/%E3%83%87%E3%82%B8%E3%82%BF%E3%83%AB%E5%86%86jpyc-unifi%E3%81%A7%E3%81%9D%E3%81%AE%E3%81%BE%E3%81%BE%E7%99%BA%E8%A1%8C-%E5%84%9F%E9%82%84%E3%81%A7%E3%81%8D%E3%81%BE%E3%81%99-2bd3fa072d0a"}
+  - id: send
+    icon: "📤"
+    title: "送る"
+    need: "相手のお財布のアドレス（Kaiaネットワーク対応のもの）"
+    time: "数秒"
+    cost: "JPYC・USDTの送金手数料（ガス代）は今はKaia財団が一時的に負担"
+    steps:
+      - "「マイ資産 ＞ 送金」を開き、USDTかJPYCを選ぶ"
+      - "相手のアドレスを入れるか、QRコードを読む"
+      - "金額を入れて、アドレスと金額をもう一度確かめる"
+      - "パスコードを入れて送る"
+    caution: "送った後は取り消せない。はじめは少額で試す。相手のお財布がKaiaネットワークに対応しているか確かめる。"
+    links:
+      - {t: "JPYCとは（Unifi公式・送金のFAQ）", u: "https://www.unifi.me/doc/jpyc?lng=ja-JP"}
+  - id: campaign
+    icon: "🎁"
+    title: "キャンペーンに参加する"
+    need: "UnifiのLINE公式アカウントの友だち追加（多くのキャンペーンの条件）"
+    time: "キャンペーンによる"
+    cost: "無料（多くは一定額の保有が条件）"
+    steps:
+      - "Unifiの「お知らせ」かLINE公式アカウントで、いまのキャンペーンを確かめる"
+      - "条件（最低保有額・期間・連続出席・友だち追加など）を読む"
+      - "当選したリワードは、Unifi登録時に作られたお財布にだけ届く"
+    caution: "予算がなくなると早く終わる。条件を1つでも満たさないともらえない。複数アカウントは対象外。"
+    links:
+      - {t: "Unifi お知らせ", u: "https://www.unifi.me/announcement?lng=ja-JP"}
+  - id: quit
+    icon: "👋"
+    title: "やめる（退会）"
+    need: "なし"
+    time: "数分"
+    cost: "無料"
+    steps:
+      - "残高を出金する（USDTが残っていると退会できない）"
+      - "「マイ ＞ ウォレット ＞ プライベートキーを確認する」で秘密鍵を控える（退会後はUnifiで見られない）"
+      - "「マイ情報」の一番下の退会案内から手続きする"
+    caution: "Unifiポイントは消え、再登録しても戻らない。"
+    links:
+      - {t: "Unifi よくある質問", u: "https://www.unifi.me/faq?lng=ja-JP"}
+
+troubles:
+  - q: "復旧パスワードを忘れた"
+    a: "復旧用の生体認証パスキーを登録していれば、新しいお財布を作って資産を移せる。登録していなければ、そのお財布には入れず、復旧もできない。"
+    u: "https://www.unifi.me/faq?lng=ja-JP"
+  - q: "パスコード（6桁）を忘れた"
+    a: "パスコードの入力画面で「パスワードを忘れました」→「再設定する」。もう一度ログインして復旧パスワードを入れると再設定できる。復旧パスワードも分からないと再設定できない。"
+    u: "https://www.unifi.me/faq?lng=ja-JP"
+  - q: "急にログアウトされた・画面が開かない"
+    a: "ブラウザのキャッシュを消すと直ることがあるが、ログアウトされる。復旧パスワードが分からないまま消すと、資産に入れなくなるおそれがある。"
+    u: "https://www.unifi.me/faq?lng=ja-JP"
+  - q: "送ったのに届かない"
+    a: "送ったネットワークを確かめる。UnifiのJPYCはKaiaネットワークのみ（USDTは14のネットワークから入金でき、自動でKaiaのものに変わる）。取引はKaiascanで確認できる。違うネットワークに送った分は、運営でも戻せないことが多い。"
+    u: "https://kaiascan.io/"
+  - q: "リワードが付いていない"
+    a: "付くのは入れた翌日から、毎日 日本時間の朝9時ごろ。はじめに規約への同意とApprove（承認）が必要。"
+    u: "https://www.unifi.me/guide?lng=ja-JP"
+  - q: "円に戻すのに時間がかかる"
+    a: "初回は本人確認の審査に数時間〜数日かかる。リワードに回している分は、規約上は申請から最長30営業日で戻すことになっている。"
+    u: "https://www.unifi.me/term/TERMS_OF_SERVICE/AGGREGATOR?lng=ja-JP"
+  - q: "USDTをすぐ出せない"
+    a: "PLUSモードの分は、BASICに戻すのに24時間かかり、その後に出金できる。"
+    u: "https://www.unifi.me/faq?lng=ja-JP"
+  - q: "商品券のバーコードが出ない・期限が心配"
+    a: "使うときに「MYショッピング」から「バーコードを有効化」する。決済から90日以内。LINE公式アカウントを友だち追加しておくと、期限の7日前と1日前に通知が来る。"
+    u: "https://www.unifi.me/announcement/01a15c13-45f4-7f60-afa2-89159305334b"
+  - q: "「Unifiサポート」を名乗る人からDMや電話が来た"
+    a: "相手にしない。Unifiは秘密鍵やログイン情報を保存しておらず、パスワードを聞く理由がない。問い合わせは公式のフォームから自分で送る。"
+    u: "https://contact.unifi.me/"
+  - q: "キャンペーンのリワードがもらえない"
+    a: "条件（最低保有額・連続出席・友だち追加の継続・期間）を1つでも外すと対象外になる。予算がなくなって早く終わることもある。"
+    u: "https://www.unifi.me/announcement?lng=ja-JP"
+
+contacts:
+  - {t: "Unifi お問い合わせフォーム", u: "https://contact.unifi.me/", note: "アカウント・入出金のトラブル"}
+  - {t: "Unifi よくある質問", u: "https://www.unifi.me/faq?lng=ja-JP", note: "パスワード・入金・退会など"}
+  - {t: "Unifi 公式LINEアカウント", u: "https://line.me/R/ti/p/@unifi.me", note: "キャンペーン・期限のお知らせ"}
+  - {t: "JPYC 公式サイト", u: "https://jpyc.co.jp/", note: "JPYCの発行・償還（JPYC EX）"}
+  - {t: "消費者ホットライン 188（電話）", u: "", note: "詐欺かもしれないと思ったとき"}
+
+beginner_risks:
+  - {t: "復旧パスワードをなくすと、お財布に二度と入れない", d: "先に生体認証パスキーを登録しておく。"}
+  - {t: "リワードは預金ではない。元本の保証はない", d: "生活費やすぐ使うお金は入れない。"}
+  - {t: "送り先のネットワークを間違えると戻らない", d: "JPYCはKaiaネットワーク。はじめは少額で。"}
+  - {t: "「サポート」を名乗るDM・ニセサイトは詐欺", d: "パスワードや秘密鍵を聞く運営はいない。"}
+  - {t: "率やキャンペーンは突然変わる・終わる", d: "数字は「いつ時点か」を確かめる。"}
