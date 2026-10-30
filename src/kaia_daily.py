@@ -209,6 +209,7 @@ UNIFI_API = "https://api.unifi.me/api/v1"
 # Unifiの利率の窓口が返すコントラクトアドレス（Kaia上のUSDTとJPYC）
 UNIFI_TOKENS = {"0xd077a400968890eacc75cdc901f0356c943e4fdb": "usdt",
                 "0xe7c3d8c9a439fede00d2600032d5db0be71c3c29": "jpyc"}
+UNIFI_TOKENS_REV = {v: k for k, v in UNIFI_TOKENS.items()}
 
 
 def _unifi_get(path: str, **params) -> dict | None:
@@ -254,6 +255,61 @@ def unifi_rates(now: datetime | None = None) -> dict:
     if out:
         out["checked_at"] = (now or now_jst()).isoformat()
     return out
+
+
+JPYC_LLAMA_ID = "355"  # DefiLlamaのJPYC（電子決済手段版）。流通量＝総数−JPYC社の発行用・償還用ウォレット
+
+
+def jpyc_supply() -> dict:
+    """JPYCの流通量（DefiLlama）。チェーン別・合計・直近90日の推移。取れなければ空。"""
+    resp = _http_get(f"https://stablecoins.llama.fi/stablecoin/{JPYC_LLAMA_ID}")
+    if resp is None:
+        return {}
+    try:
+        data = resp.json()
+    except ValueError:
+        return {}
+    if str(data.get("address", "")).lower() != UNIFI_TOKENS_REV["jpyc"]:
+        logger.warning("DefiLlamaのJPYCの記録が想定と違います address=%s", data.get("address"))
+        return {}
+    by_chain = {c: round(v.get("peggedJPY", 0)) for c, v in (data.get("currentChainBalances") or {}).items()}
+    hist = [(t["date"], (t.get("circulating") or {}).get("peggedJPY")) for t in (data.get("tokens") or [])]
+    hist = [(d, v) for d, v in hist if v][-90:]
+    return {"total": sum(by_chain.values()), "by_chain": by_chain,
+            "history": [round(v) for _, v in hist],
+            "history_start": datetime.fromtimestamp(hist[0][0], tz=timezone.utc).date().isoformat() if hist else None}
+
+
+def kaia_price() -> dict:
+    """KAIAの価格（CoinGecko）。円・ドル・24時間の変化・時価総額。"""
+    resp = _http_get("https://api.coingecko.com/api/v3/simple/price?ids=kaia&vs_currencies=jpy,usd"
+                     "&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true")
+    try:
+        k = (resp.json() if resp is not None else {}).get("kaia") or {}
+    except ValueError:
+        k = {}
+    if not k.get("jpy"):
+        return {}
+    return {"jpy": k["jpy"], "usd": k.get("usd"), "jpy_24h_change": k.get("jpy_24h_change"),
+            "jpy_market_cap": k.get("jpy_market_cap"), "jpy_24h_vol": k.get("jpy_24h_vol")}
+
+
+def daily_snapshots(site: dict, now: datetime, market: dict, unifi: dict, numbers: dict, keep: int = 400) -> list[dict]:
+    """毎日の記録（KAIA価格・JPYC流通量・Unifiの率・Kaiaの数字）。同じ日は最新の値で上書きし、取れなかった項目は前の値を残す。"""
+    today = now.date().isoformat()
+    snap = {
+        "kaia_jpy": (market.get("kaia") or {}).get("jpy"),
+        "jpyc": (market.get("jpyc") or {}).get("total"),
+        "jpyc_chains": (market.get("jpyc") or {}).get("by_chain"),
+        "unifi_jpyc": (unifi.get("jpyc") or {}).get("baseRate"),
+        "unifi_usdt": (unifi.get("usdt") or {}).get("baseRate"),
+        "unifi_usdt_plus": (unifi.get("usdt") or {}).get("plusBaseRate"),
+        "kaia_tvl": numbers.get("tvl"),
+        "kaia_stable_usd": numbers.get("stable_usd"),
+    }
+    days = {d["date"]: d for d in site.get("daily", []) if d.get("date")}
+    days[today] = {**days.get(today, {}), **{k: v for k, v in snap.items() if v is not None}, "date": today}
+    return [days[d] for d in sorted(days)][-keep:]
 
 
 def _decode(resp: requests.Response) -> str:
@@ -1471,11 +1527,16 @@ def publish_web(conn, cfg: dict, now: datetime, entry: dict | None = None, site:
         "status": site_status(conn, cfg),
         "numbers": chain_numbers() or site.get("numbers") or {},
         "unifi": unifi_rates(now) or site.get("unifi") or {},
+        # ページはブラウザから直接最新値を取りに行く。取れなかったときのための控え
+        "market": {"kaia": kaia_price() or (site.get("market") or {}).get("kaia") or {},
+                   "jpyc": jpyc_supply() or (site.get("market") or {}).get("jpyc") or {},
+                   "checked_at": now.isoformat()},
         "news": news_board(conn, now, days=w.get("news_days", 7)),
         "archive": archive[: w.get("archive_days", 90)],
         "topics": [{"id": t["id"], "theme": THEME_LABELS.get(t["theme"], t["theme"]), "title": t["title"],
                     "urls": t.get("urls", [])} for t in load_topics()],
     }
+    payload["daily"] = daily_snapshots(site, now, payload["market"], payload["unifi"], payload["numbers"])
     if dry_run or _gh_target(cfg) is None:
         preview = BASE_DIR / "data" / "kaia_site_preview.json"
         preview.parent.mkdir(parents=True, exist_ok=True)

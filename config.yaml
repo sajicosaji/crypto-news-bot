@@ -616,10 +616,10 @@ kaia_daily:
     repo: "sajicosaji/crypto-news-bot"
     branch: "kaia-data"
     path: "kaia/site.json"
-    refresh_hours: 3             # ニュース一覧と準備状況はこの間隔で更新（文章は書かないので安い）
+    refresh_hours: 1             # ニュース一覧・数字はこの間隔で更新（AIは使わないので無料）
     news_days: 7                 # ニュース一覧に出す日数
     archive_days: 90             # まとめの履歴を残す日数
-    prep_mode: true              # アンバサダーの準備期間中（ページに「準備期間」と出す）
+    prep_mode: false             # 2026-10-31 アンバサダーの準備から「毎日追える情報サイト」に方針変更
   # 本人の方針（2026-10-28）「課金はしたくない。無料でできる範囲で」→ Claude APIは呼ばない。
   # まとめは見出しモード（見出し・抜粋・出典リンク）。説明カードや基本データは kaia_knowledge.yaml に手で書く。
   # true に戻すと、APIキーが有効なら下のモデルでAI要約とX本文を書く（有料）。

@@ -4,86 +4,62 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Unifi・JPYC・Kaia デスク</title>
-<meta name="description" content="Unifiアンバサダーの準備と回答集。Unifi・JPYC・Kaiaをやさしく、正確に説明するための場所">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2315201a'/%3E%3Cpath d='M14 20a8 8 0 0 1 8-8h20a8 8 0 0 1 8 8v14a8 8 0 0 1-8 8H30l-9 8v-8h1a8 8 0 0 1-8-8z' fill='none' stroke='%2337d67a' stroke-width='5' stroke-linejoin='round'/%3E%3Cpath d='M25 22l7 8 7-8M32 30v10M26 31h12' stroke='%2337d67a' stroke-width='4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<title>Unifi・JPYC・Kaia ウォッチ</title>
+<meta name="description" content="Unifi・JPYC・Kaiaの価格・流通量・リワード率・ニュースを、毎日リアルタイムで追えるサイト">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2315201a'/%3E%3Cpath d='M10 40l12-12 10 9 20-20' fill='none' stroke='%2337d67a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='52' cy='17' r='5' fill='%2337d67a'/%3E%3C/svg%3E">
 <style>
 :root {
-  --bg: #f3f5f1;
-  --surface: #ffffff;
-  --surface-2: #ecefe8;
-  --ink: #141a15;
-  --ink-2: #48514a;
-  --ink-3: #78827a;
-  --line: #dce1d8;
-  --accent: #06c755;
-  --accent-ink: #ffffff;
-  --accent-strong: #058a3c;
-  --accent-soft: #dcf6e6;
-  --unifi: #058a3c;
-  --unifi-bg: #dcf6e6;
-  --kaia: #5b7a00;
-  --kaia-bg: #eef8c9;
-  --jpyc: #1d5fd1;
-  --jpyc-bg: #e1ebff;
-  --both: #0b7a6c;
-  --both-bg: #d8f3ee;
-  --stable: #8a5a00;
-  --stable-bg: #f8ecd2;
-  --money: #6a4bb5;
-  --money-bg: #ece6fb;
-  --warn: #a64b00;
-  --warn-bg: #fff1e0;
-  --bad: #b3261e;
-  --bad-bg: #fde8e6;
-  --good: #2f7d32;
+  --bg: #f3f5f1; --surface: #ffffff; --surface-2: #ecefe8; --ink: #141a15; --ink-2: #48514a; --ink-3: #78827a; --line: #dce1d8;
+  --accent: #06c755; --accent-ink: #ffffff; --accent-strong: #058a3c; --accent-soft: #dcf6e6;
+  --unifi: #058a3c; --unifi-bg: #dcf6e6; --kaia: #5b7a00; --kaia-bg: #eef8c9; --jpyc: #1d5fd1; --jpyc-bg: #e1ebff;
+  --both: #0b7a6c; --both-bg: #d8f3ee; --stable: #8a5a00; --stable-bg: #f8ecd2; --money: #6a4bb5; --money-bg: #ece6fb;
+  --up: #0f8a4b; --down: #c0392b; --warn: #a64b00; --warn-bg: #fff1e0; --bad: #b3261e; --bad-bg: #fde8e6; --good: #2f7d32;
+  --c-eth: #6b7cff; --c-pol: #8247e5; --c-ava: #e84142; --c-kaia: #9ac30a;
   --shadow: 0 1px 2px rgba(20, 26, 21, .06), 0 4px 16px rgba(20, 26, 21, .05);
-  --radius: 14px;
-  --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
+  --radius: 14px; --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0d110e; --surface: #161c18; --surface-2: #1e2620; --ink: #ecf2ed; --ink-2: #b6c0b8; --ink-3: #829085;
-    --line: #2a332c; --accent: #2fd273; --accent-ink: #06210f; --accent-strong: #5fe39a; --accent-soft: #12301f;
+    --bg: #0d110e; --surface: #161c18; --surface-2: #1e2620; --ink: #ecf2ed; --ink-2: #b6c0b8; --ink-3: #829085; --line: #2a332c;
+    --accent: #2fd273; --accent-ink: #06210f; --accent-strong: #5fe39a; --accent-soft: #12301f;
     --unifi: #5fe39a; --unifi-bg: #12301f; --kaia: #c9f53a; --kaia-bg: #26300f; --jpyc: #8fb4ff; --jpyc-bg: #17233d;
     --both: #63d6c4; --both-bg: #11302b; --stable: #f0c06a; --stable-bg: #33270f; --money: #c4b0ff; --money-bg: #261d3d;
-    --warn: #ffb86b; --warn-bg: #36240f; --bad: #ff8a80; --bad-bg: #3a1714; --good: #81c784;
+    --up: #4fd18b; --down: #ff7b6e; --warn: #ffb86b; --warn-bg: #36240f; --bad: #ff8a80; --bad-bg: #3a1714; --good: #81c784;
+    --c-eth: #8f9cff; --c-pol: #a77bff; --c-ava: #ff6b6b; --c-kaia: #c9f53a;
     --shadow: 0 1px 2px rgba(0, 0, 0, .3); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0d110e; --surface: #161c18; --surface-2: #1e2620; --ink: #ecf2ed; --ink-2: #b6c0b8; --ink-3: #829085;
-  --line: #2a332c; --accent: #2fd273; --accent-ink: #06210f; --accent-strong: #5fe39a; --accent-soft: #12301f;
+  --bg: #0d110e; --surface: #161c18; --surface-2: #1e2620; --ink: #ecf2ed; --ink-2: #b6c0b8; --ink-3: #829085; --line: #2a332c;
+  --accent: #2fd273; --accent-ink: #06210f; --accent-strong: #5fe39a; --accent-soft: #12301f;
   --unifi: #5fe39a; --unifi-bg: #12301f; --kaia: #c9f53a; --kaia-bg: #26300f; --jpyc: #8fb4ff; --jpyc-bg: #17233d;
   --both: #63d6c4; --both-bg: #11302b; --stable: #f0c06a; --stable-bg: #33270f; --money: #c4b0ff; --money-bg: #261d3d;
-  --warn: #ffb86b; --warn-bg: #36240f; --bad: #ff8a80; --bad-bg: #3a1714; --good: #81c784;
+  --up: #4fd18b; --down: #ff7b6e; --warn: #ffb86b; --warn-bg: #36240f; --bad: #ff8a80; --bad-bg: #3a1714; --good: #81c784;
+  --c-eth: #8f9cff; --c-pol: #a77bff; --c-ava: #ff6b6b; --c-kaia: #c9f53a;
   --shadow: 0 1px 2px rgba(0, 0, 0, .3); color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-padding-top: 64px; }
-body {
-  margin: 0; background: var(--bg); color: var(--ink);
-  font: 15px/1.75 system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", sans-serif;
-  padding-bottom: env(safe-area-inset-bottom);
-}
+body { margin: 0; background: var(--bg); color: var(--ink); padding-bottom: env(safe-area-inset-bottom);
+  font: 15px/1.7 system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", sans-serif; }
 a { color: inherit; }
 button, input { font: inherit; color: inherit; }
-.wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 0 16px; }
+.num { font-variant-numeric: tabular-nums; }
 
-/* ヘッダー */
-header.top { padding: 18px 0 10px; }
+header.top { padding: 16px 0 10px; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .mark { width: 36px; height: 36px; border-radius: 10px; background: #15201a; display: grid; place-items: center; flex: none; }
 .mark svg { width: 26px; height: 26px; }
 .brand h1 { font-size: 18px; line-height: 1.25; margin: 0; letter-spacing: .01em; }
 .brand .sub { font-size: 12px; color: var(--ink-3); }
-.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
-.badge.prep { background: var(--accent); color: var(--accent-ink); }
-.badge.free { background: var(--surface-2); color: var(--ink-2); }
-.updated { margin-left: auto; text-align: right; font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
+.live { margin-left: auto; text-align: right; font-size: 11.5px; color: var(--ink-3); line-height: 1.45; white-space: nowrap; }
+.live .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); margin-right: 5px; vertical-align: 1px; }
+.live.on .dot { background: var(--accent); box-shadow: 0 0 0 0 rgba(6, 199, 85, .6); animation: pulse 2s infinite; }
+.live.on .state { color: var(--accent-strong); font-weight: 700; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(6, 199, 85, .55); } 70% { box-shadow: 0 0 0 7px rgba(6, 199, 85, 0); } 100% { box-shadow: 0 0 0 0 rgba(6, 199, 85, 0); } }
 
-/* タブ */
 nav.tabs { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
 nav.tabs .wrap { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
 nav.tabs .wrap::-webkit-scrollbar { display: none; }
@@ -99,71 +75,14 @@ section[hidden] { display: none; }
 .small { font-size: 12.5px; }
 .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .spacer { flex: 1; }
+.sec-title { display: flex; align-items: baseline; gap: 8px; font-size: 14px; font-weight: 800; color: var(--ink); margin: 22px 2px 10px; }
+.sec-title .more { margin-left: auto; font-size: 12.5px; font-weight: 600; color: var(--accent-strong); background: none; border: 0; cursor: pointer; padding: 0; }
 .howto { font-size: 13px; color: var(--ink-2); margin: 0 0 12px; }
-.sec-title { font-size: 13px; font-weight: 800; color: var(--ink-2); margin: 22px 2px 8px; letter-spacing: .02em; }
-
-/* 読む人の切り替え */
-.audience { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-.aud { border: 1.5px solid var(--line); background: var(--surface); border-radius: 12px; padding: 9px 12px; text-align: left; cursor: pointer; line-height: 1.35; }
-.aud .n { display: block; font-weight: 800; font-size: 14.5px; }
-.aud .d { display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
-.aud[aria-pressed="true"] { border-color: var(--accent-strong); background: var(--accent-soft); }
-.aud[aria-pressed="true"] .d { color: var(--ink-2); }
-
-/* ボタン・お知らせ */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); padding: 7px 13px; border-radius: 10px; cursor: pointer; font-size: 13.5px; font-weight: 600; text-decoration: none; min-height: 38px; }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.btn.ghost { background: transparent; }
-.btn:active { transform: translateY(1px); }
-.btn.done { background: var(--both-bg); border-color: var(--both-bg); color: var(--both); }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); padding: 7px 13px; border-radius: 10px; cursor: pointer; font-size: 13.5px; font-weight: 600; text-decoration: none; min-height: 36px; }
 .notice { border-radius: 10px; padding: 10px 12px; font-size: 13.5px; margin-top: 10px; }
 .notice.warn { background: var(--warn-bg); color: var(--warn); }
-.notice.bad { background: var(--bad-bg); color: var(--bad); }
 .notice.info { background: var(--surface-2); color: var(--ink-2); }
-.notice ul { margin: 4px 0 0; padding-left: 1.2em; }
-.empty { text-align: center; padding: 30px 16px; color: var(--ink-3); }
-.empty .big { font-size: 30px; margin-bottom: 6px; }
-pre.text { white-space: pre-wrap; word-break: break-word; margin: 0; padding: 14px; background: var(--surface-2); border-radius: 10px; font: inherit; font-size: 14.5px; line-height: 1.75; max-height: 62vh; overflow: auto; }
-
-/* 今日の1枚 */
-.daily { border: 1.5px solid var(--accent-strong); background: linear-gradient(180deg, var(--accent-soft), var(--surface) 70%); }
-.daily .k { font-size: 12px; font-weight: 800; color: var(--accent-strong); letter-spacing: .04em; }
-.daily .q { font-size: 17px; font-weight: 800; margin: 2px 0 4px; line-height: 1.5; }
-.daily .a { font-size: 15px; }
-
-/* まとめ */
-.lead-date { font-size: 13px; color: var(--ink-3); }
-.lead-title { font-size: 18px; font-weight: 800; margin: 2px 0 4px; line-height: 1.45; }
-.copy-card { border: 1.5px solid var(--accent-strong); }
-.copy-card .big-copy { width: 100%; min-height: 48px; font-size: 16px; margin-top: 4px; }
-.copy-card details { margin-top: 10px; }
-.copy-card summary, details.more summary { cursor: pointer; font-size: 13px; color: var(--ink-3); }
-.copy-card pre.text { margin-top: 8px; }
-.box-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.box-head h3 { font-size: 14px; margin: 0; }
-.box-head .count { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.item { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; gap: 12px; }
-.item .num { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-size: 13px; font-weight: 800; margin-top: 1px; }
-.item .body { flex: 1; min-width: 0; }
-.item .t { font-weight: 800; font-size: 15.5px; line-height: 1.5; }
-.item .s { margin-top: 4px; color: var(--ink-2); }
-.item .p { margin-top: 8px; background: var(--accent-soft); border-radius: 8px; padding: 6px 10px; font-size: 14px; }
-.item .src { margin-top: 8px; font-size: 12.5px; }
-.item .src a { color: var(--ink-3); }
-.rel { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.rel button { border: 1px dashed var(--accent-strong); background: transparent; color: var(--accent-strong); border-radius: 999px; padding: 2px 10px; font-size: 12.5px; cursor: pointer; }
-.words dt { font-weight: 800; margin-top: 10px; }
-.words dt:first-child { margin-top: 0; }
-.words dd { margin: 2px 0 0; color: var(--ink-2); font-size: 14px; }
-details.hist { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; }
-details.hist > summary { list-style: none; cursor: pointer; padding: 11px 14px; display: flex; gap: 10px; align-items: center; }
-details.hist > summary::-webkit-details-marker { display: none; }
-details.hist > summary .d { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 64px; }
-details.hist > summary .h { flex: 1; font-size: 14px; }
-details.hist .inner { padding: 0 14px 14px; }
-
-/* チップ・検索 */
+.empty { text-align: center; padding: 26px 16px; color: var(--ink-3); }
 .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: 10px; }
 .chips::-webkit-scrollbar { display: none; }
 .chip { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
@@ -171,703 +90,751 @@ details.hist .inner { padding: 0 14px 14px; }
 .search { width: 100%; border: 1.5px solid var(--line); background: var(--surface); border-radius: 12px; padding: 10px 14px; font-size: 15px; margin-bottom: 10px; }
 .search:focus { outline: none; border-color: var(--accent-strong); }
 
-/* 説明カード */
-.qa { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; margin-bottom: 12px; transition: box-shadow .3s, border-color .3s; }
-.qa.flash { border-color: var(--accent-strong); box-shadow: 0 0 0 3px var(--accent-soft); }
-.qa .cat { font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
-.qa .q { font-size: 16.5px; font-weight: 800; line-height: 1.5; margin: 2px 0 8px; }
-.qa .one { background: var(--accent-soft); border-left: 4px solid var(--accent-strong); border-radius: 6px 10px 10px 6px; padding: 8px 12px; font-weight: 700; }
-.qa .body { white-space: pre-line; margin-top: 10px; color: var(--ink); }
-.qa .body.pro { font-size: 14px; color: var(--ink-2); }
-.qa details.more { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
-.qa details.more .body { margin-top: 6px; }
-.qa .caution { margin-top: 10px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 7px 10px; font-size: 13.5px; }
-.qa .srcs { margin-top: 10px; font-size: 12px; color: var(--ink-3); }
-.qa .srcs a { display: block; color: var(--ink-3); padding: 1px 0; text-decoration: none; }
-.qa .srcs a:hover { text-decoration: underline; }
+/* 今日の動き */
+.today { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; margin-bottom: 14px; }
+.today .when { font-size: 12.5px; color: var(--ink-3); }
+.today .text { font-size: 15.5px; font-weight: 700; line-height: 1.65; margin-top: 2px; }
+.up { color: var(--up); } .down { color: var(--down); }
 
-/* データ */
-.facts { width: 100%; border-collapse: collapse; font-size: 14px; }
-.facts th, .facts td { text-align: left; vertical-align: top; padding: 8px 6px; border-bottom: 1px solid var(--line); }
-.facts th { width: 30%; color: var(--ink-2); font-weight: 700; font-size: 13px; }
-.facts td .note { display: block; font-size: 12px; color: var(--ink-3); margin-top: 2px; }
-.facts tr:last-child th, .facts tr:last-child td { border-bottom: 0; }
-.mono { font-family: var(--mono); font-size: 12.5px; word-break: break-all; }
-.tl { list-style: none; margin: 0; padding: 0; position: relative; }
-.tl li { display: grid; grid-template-columns: 92px 1fr; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
-.tl li:last-child { border-bottom: 0; }
-.tl .d { font-variant-numeric: tabular-nums; color: var(--ink-3); font-size: 13px; }
-.tl .future .t { color: var(--ink-3); }
-.dotc { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
-.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
-.stat .label { font-size: 12.5px; color: var(--ink-3); }
-.stat .value { font-size: 25px; font-weight: 800; letter-spacing: -.01em; font-variant-numeric: tabular-nums; line-height: 1.3; margin: 2px 0; }
-.stat .value small { font-size: 14px; font-weight: 600; margin-left: 2px; }
-.stat .exact { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.stat .explain { font-size: 12.5px; color: var(--ink-2); margin-top: 6px; line-height: 1.6; }
-.delta { font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--ink-2); }
-.spark { width: 100%; height: 56px; margin-top: 8px; display: block; }
-.spark path.line { fill: none; stroke: var(--jpyc); stroke-width: 2; }
-.spark path.area { fill: var(--jpyc-bg); }
-.links a { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); text-decoration: none; font-size: 14px; }
-.links a:last-child { border-bottom: 0; }
-.links a .h { margin-left: auto; font-size: 11.5px; color: var(--ink-3); }
+/* タイル */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; display: flex; flex-direction: column; min-height: 168px; }
+.tile .head { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+.tile .badge { font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 999px; }
+.badge.unifi { background: var(--unifi-bg); color: var(--unifi); }
+.badge.jpyc { background: var(--jpyc-bg); color: var(--jpyc); }
+.badge.kaia { background: var(--kaia-bg); color: var(--kaia); }
+.tile .value { font-size: 28px; font-weight: 800; letter-spacing: -.01em; line-height: 1.25; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+.tile .value small { font-size: 14px; font-weight: 700; margin-left: 3px; color: var(--ink-2); }
+.tile .sub { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.tile .foot { margin-top: auto; padding-top: 8px; font-size: 11.5px; color: var(--ink-3); display: flex; gap: 6px; flex-wrap: wrap; }
+.tile .foot .ok::before { content: "● "; color: var(--accent); }
+.tile .foot .ng::before { content: "● "; color: var(--warn); }
+.spark { width: 100%; height: 44px; margin-top: 8px; display: block; }
+.bars { display: flex; height: 10px; border-radius: 6px; overflow: hidden; margin-top: 10px; background: var(--surface-2); }
+.bars span { display: block; height: 100%; }
+.legend { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; margin-top: 6px; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: 0; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 13px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.kv dt { color: var(--ink-3); }
+.kv dd { margin: 0; text-align: right; font-weight: 600; }
 
-/* ニュース */
-.day { font-size: 12.5px; font-weight: 700; color: var(--ink-3); margin: 18px 2px 8px; }
-.news { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
-.news a.title { display: block; font-weight: 700; text-decoration: none; line-height: 1.5; }
-.news a.title:hover { text-decoration: underline; }
-.news .orig { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
-.meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+/* リスト */
+.list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.li { display: block; padding: 11px 14px; border-bottom: 1px solid var(--line); text-decoration: none; }
+.li:last-child { border-bottom: 0; }
+.li .t { font-weight: 700; line-height: 1.5; }
+.li a.t { text-decoration: none; }
+.li a.t:hover { text-decoration: underline; }
+.li .orig { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.meta { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 12px; color: var(--ink-3); margin-top: 4px; }
 .topic { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 6px; }
 .topic.unifi { background: var(--unifi-bg); color: var(--unifi); }
 .topic.kaia { background: var(--kaia-bg); color: var(--kaia); }
 .topic.jpyc { background: var(--jpyc-bg); color: var(--jpyc); }
 .topic.both { background: var(--both-bg); color: var(--both); }
 .topic.stablecoin, .topic.money { background: var(--stable-bg); color: var(--stable); }
-.flag { font-size: 11.5px; font-weight: 700; padding: 1px 7px; border-radius: 6px; }
+.flag { font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 6px; }
+.flag.new { background: var(--accent); color: var(--accent-ink); }
 .flag.bad { background: var(--bad-bg); color: var(--bad); }
 .flag.warn { background: var(--warn-bg); color: var(--warn); }
-.flag.done { background: var(--surface-2); color: var(--ink-2); }
-details.others { margin-top: 6px; font-size: 12.5px; }
+.flag.official { background: var(--surface-2); color: var(--ink-2); }
+.day { font-size: 12.5px; font-weight: 800; color: var(--ink-3); margin: 18px 2px 8px; }
+.rel { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.rel button { border: 1px dashed var(--accent-strong); background: transparent; color: var(--accent-strong); border-radius: 999px; padding: 1px 10px; font-size: 12px; cursor: pointer; }
+details.others { margin-top: 4px; font-size: 12.5px; }
 details.others summary { cursor: pointer; color: var(--ink-3); }
 details.others a { display: block; color: var(--ink-2); padding: 2px 0; }
+.ev { display: grid; grid-template-columns: 84px 1fr auto; gap: 10px; align-items: baseline; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.ev:last-child { border-bottom: 0; }
+.ev .d { font-variant-numeric: tabular-nums; color: var(--ink-2); font-weight: 700; font-size: 13px; }
+.ev .left { font-size: 12px; font-weight: 800; color: var(--accent-strong); white-space: nowrap; }
+.ev.past .left { color: var(--ink-3); font-weight: 600; }
+.dotc { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
 
-/* 用語 */
+/* チャート */
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 12px; }
+.chart-card h2 { display: flex; align-items: baseline; gap: 8px; }
+.chart-card h2 .now { margin-left: auto; font-size: 18px; font-variant-numeric: tabular-nums; }
+.chart svg { width: 100%; height: 150px; display: block; }
+.chart .axis { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; margin-top: 4px; }
+.chart .range { font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 3px 10px; font-size: 12.5px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+table.tbl th, table.tbl td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+table.tbl th:first-child, table.tbl td:first-child { text-align: left; }
+table.tbl th { font-size: 12px; color: var(--ink-3); font-weight: 700; }
+.tbl-wrap { overflow-x: auto; }
+
+/* 解説 */
+.audience { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.aud { border: 1.5px solid var(--line); background: var(--surface); border-radius: 12px; padding: 8px 12px; text-align: left; cursor: pointer; line-height: 1.35; }
+.aud .n { display: block; font-weight: 800; font-size: 14px; }
+.aud .d { display: block; font-size: 11.5px; color: var(--ink-3); }
+.aud[aria-pressed="true"] { border-color: var(--accent-strong); background: var(--accent-soft); }
+.qa { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; margin-bottom: 12px; transition: box-shadow .3s, border-color .3s; }
+.qa.flash { border-color: var(--accent-strong); box-shadow: 0 0 0 3px var(--accent-soft); }
+.qa .cat { font-size: 11.5px; font-weight: 700; color: var(--ink-3); }
+.qa .q { font-size: 16px; font-weight: 800; line-height: 1.5; margin: 2px 0 8px; }
+.qa .one { background: var(--accent-soft); border-left: 4px solid var(--accent-strong); border-radius: 6px 10px 10px 6px; padding: 8px 12px; font-weight: 700; }
+.qa .body { white-space: pre-line; margin-top: 10px; }
+.qa .body.pro { font-size: 14px; color: var(--ink-2); }
+.qa details.more { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 8px; }
+.qa details.more summary { cursor: pointer; font-size: 13px; color: var(--ink-3); }
+.qa .caution { margin-top: 10px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 7px 10px; font-size: 13.5px; }
+.qa .srcs { margin-top: 10px; font-size: 12px; color: var(--ink-3); }
+.qa .srcs a { display: block; color: var(--ink-3); padding: 1px 0; text-decoration: none; }
+.qa .srcs a:hover { text-decoration: underline; }
+.daily-card .k { font-size: 12px; font-weight: 800; color: var(--accent-strong); letter-spacing: .04em; }
+.daily-card .q { font-size: 16px; font-weight: 800; margin: 2px 0 4px; line-height: 1.5; }
 .term { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 11px 14px; margin-bottom: 8px; }
 .term .n { font-weight: 800; }
 .term .d { color: var(--ink-2); font-size: 14px; margin-top: 2px; }
 .term .p { color: var(--ink-3); font-size: 13px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 4px; }
 
-/* 心得 */
-.dodont { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.dodont ul { margin: 0; padding-left: 1.2em; font-size: 14px; }
-.dodont li { margin: 4px 0; }
-.dodont .ok h3 { color: var(--good); margin-top: 0; }
-.dodont .ng h3 { color: var(--bad); margin-top: 0; }
-ol.pattern { margin: 0; padding-left: 1.4em; }
-.tpl pre.text { font-size: 14px; }
+/* 情報源 */
+.src-row { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; align-items: baseline; }
+.src-row:last-child { border-bottom: 0; }
+.src-row .w { color: var(--ink-3); font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
 
-/* 準備 */
-.check { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); }
-.check:last-child { border-bottom: 0; }
-.dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; flex: none; font-size: 14px; font-weight: 800; }
-.dot.ok { background: var(--both-bg); color: var(--both); }
-.dot.wait { background: var(--warn-bg); color: var(--warn); }
-.dot.ng { background: var(--bad-bg); color: var(--bad); }
-.dot.off { background: var(--surface-2); color: var(--ink-3); }
-.check .what, .todo .what { font-weight: 700; }
-.check .how, .todo .how { font-size: 13px; color: var(--ink-2); }
-.todo { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
-.todo:last-child { border-bottom: 0; }
-.todo input { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--accent-strong); flex: none; }
-.todo.checked .what { text-decoration: line-through; color: var(--ink-3); }
-.src-list { margin: 6px 0 0; padding: 0; list-style: none; font-size: 13px; }
-.src-list li { display: flex; gap: 8px; padding: 2px 0; }
-.src-list .n { margin-left: auto; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
-
-footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 16px 28px; }
-.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 10; }
-.toast.show { opacity: 1; }
+footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 16px 28px; line-height: 1.7; }
 .loading { padding: 40px 0; text-align: center; color: var(--ink-3); }
 @media (max-width: 520px) {
-  .dodont { grid-template-columns: 1fr; }
-  .facts th { width: 34%; }
-  .tl li { grid-template-columns: 80px 1fr; }
-}
-@media (max-width: 420px) {
-  .lead-title { font-size: 17px; }
-  .stat .value { font-size: 22px; }
+  .tile .value { font-size: 25px; }
+  .ev { grid-template-columns: 70px 1fr auto; }
   .tab { padding: 11px 9px 10px; font-size: 13.5px; }
+  .live .long { display: none; }
 }
 </style>
 </head>
 <body>
 <header class="top">
   <div class="wrap brand">
-    <div class="mark" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M10 18a8 8 0 0 1 8-8h28a8 8 0 0 1 8 8v18a8 8 0 0 1-8 8H30l-10 9v-9h-2a8 8 0 0 1-8-8z" fill="none" stroke="#37d67a" stroke-width="5" stroke-linejoin="round"/><path d="M24 19l8 9 8-9M32 28v11M25 29h14" stroke="#37d67a" stroke-width="4" stroke-linecap="round" fill="none"/></svg></div>
+    <div class="mark" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M8 42l13-13 10 9 21-21" fill="none" stroke="#37d67a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="52" cy="17" r="5" fill="#37d67a"/></svg></div>
     <div>
-      <h1>Unifi・JPYC・Kaia デスク</h1>
-      <div class="sub">アンバサダーの準備と回答集 <span id="prepBadge" class="badge prep" hidden>準備期間</span></div>
+      <h1>Unifi・JPYC・Kaia ウォッチ</h1>
+      <div class="sub">価格・流通量・リワード率・ニュースを毎日リアルタイムで</div>
     </div>
-    <div class="updated" id="updated"></div>
+    <div class="live" id="live" aria-live="polite"><span class="dot"></span><span class="state">接続中…</span><br><span class="when"></span></div>
   </div>
 </header>
 <nav class="tabs" aria-label="ページの切り替え">
   <div class="wrap" role="tablist">
-    <button class="tab" role="tab" data-tab="today" aria-selected="true">📰 今日</button>
-    <button class="tab" role="tab" data-tab="explain" aria-selected="false">💬 説明</button>
-    <button class="tab" role="tab" data-tab="data" aria-selected="false">📋 データ</button>
+    <button class="tab" role="tab" data-tab="home" aria-selected="true">🏠 ホーム</button>
     <button class="tab" role="tab" data-tab="news" aria-selected="false">🗞 ニュース</button>
+    <button class="tab" role="tab" data-tab="market" aria-selected="false">📈 マーケット</button>
+    <button class="tab" role="tab" data-tab="schedule" aria-selected="false">🗓 予定</button>
+    <button class="tab" role="tab" data-tab="learn" aria-selected="false">📚 解説</button>
     <button class="tab" role="tab" data-tab="words" aria-selected="false">📖 用語</button>
-    <button class="tab" role="tab" data-tab="manner" aria-selected="false">🛡 心得</button>
-    <button class="tab" role="tab" data-tab="status" aria-selected="false">✅ 準備</button>
+    <button class="tab" role="tab" data-tab="sources" aria-selected="false">🔌 情報源</button>
   </div>
 </nav>
 <main class="wrap">
   <div id="loading" class="loading">読み込み中…</div>
-  <section id="today" hidden></section>
-  <section id="explain" hidden></section>
-  <section id="data" hidden></section>
+  <section id="home" hidden></section>
   <section id="news" hidden></section>
+  <section id="market" hidden></section>
+  <section id="schedule" hidden></section>
+  <section id="learn" hidden></section>
   <section id="words" hidden></section>
-  <section id="manner" hidden></section>
-  <section id="status" hidden></section>
+  <section id="sources" hidden></section>
 </main>
-<footer id="foot">
-  ニュースは毎朝7時にまとめ、3時間おきに一覧を自動で更新しています（無料・AIは使っていません）。<br>
-  情報共有が目的で、投資を勧めるものではありません。
+<footer>
+  価格はCoinGecko、JPYCの流通量はブロックチェーンから直接（DefiLlamaと同じ計算）、Unifiは公式サイト、ニュースは各社の発表と報道から。<br>
+  ページを開いている間は自動で新しい値に更新されます。情報提供が目的で、投資を勧めるものではありません。
 </footer>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 (function () {
   "use strict";
+  // ---------- 情報源 ----------
   var DATA_URL = "https://raw.githubusercontent.com/sajicosaji/crypto-news-bot/kaia-data/kaia/site.json";
   var KB_URL = "knowledge.json";
-  var TOPIC_NAMES = { unifi: "Unifi", both: "Kaia × JPYC", kaia: "Kaia", jpyc: "JPYC", stablecoin: "円ステーブルコイン", money: "制度", start: "全体像", safety: "安全", talk: "会話" };
+  var JPYC = "0xe7c3d8c9a439fede00d2600032d5db0be71c3c29";
+  // DefiLlamaと同じ計算：流通量＝総数−JPYC社の発行用ウォレット−償還用ウォレット
+  var JPYC_ISSUER = ["8549e82239a88f463ab6e55ad1895b629a00def3", "b808af91bdc577bfb3f9c91470f3286dd076e5c1"];
+  var CHAINS = [
+    { key: "Polygon", name: "Polygon", rpc: "https://polygon-bor-rpc.publicnode.com", color: "var(--c-pol)" },
+    { key: "Ethereum", name: "Ethereum", rpc: "https://ethereum-rpc.publicnode.com", color: "var(--c-eth)" },
+    { key: "Kaia", name: "Kaia", rpc: "https://public-en.node.kaia.io", color: "var(--c-kaia)" },
+    { key: "Avalanche", name: "Avalanche", rpc: "https://avalanche-c-chain-rpc.publicnode.com", color: "var(--c-ava)" }
+  ];
+  var KAIA_RPC = "https://public-en.node.kaia.io";
+  var GECKO = "https://api.coingecko.com/api/v3";
+  var UNIFI = "https://api.unifi.me/api/v1";
+  var LLAMA = "https://api.llama.fi";
+  var LLAMA_SC = "https://stablecoins.llama.fi";
+  var TOPIC_NAMES = { unifi: "Unifi", both: "Kaia × JPYC", kaia: "Kaia", jpyc: "JPYC", stablecoin: "円ステーブルコイン", money: "制度", start: "全体像", safety: "安全" };
   var CAT_COLORS = { unifi: "var(--unifi)", jpyc: "var(--jpyc)", kaia: "var(--kaia)", money: "var(--money)" };
   var WEEK = "日月火水木金土";
+
   var DATA = null, KB = null;
+  var L = { kaia: null, chart: {}, jpyc: null, jpycHist: null, rates: null, ann: null, block: null, gas: null, tvl: null, tvlHist: null, superearn: null };
+  var STATUS = {};  // 情報源ごとの最後の成功・失敗
 
   // ---------- 小さな道具 ----------
   function el(tag, attrs, children) {
     var node = document.createElement(tag);
-    if (attrs) {
-      Object.keys(attrs).forEach(function (k) {
-        var v = attrs[k];
-        if (v === null || v === undefined || v === false) return;
-        if (k === "class") node.className = v;
-        else if (k === "text") node.textContent = v;
-        else if (k.slice(0, 2) === "on") node.addEventListener(k.slice(2), v);
-        else node.setAttribute(k, v === true ? "" : v);
-      });
-    }
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      var v = attrs[k];
+      if (v === null || v === undefined || v === false) return;
+      if (k === "class") node.className = v;
+      else if (k === "text") node.textContent = v;
+      else if (k.slice(0, 2) === "on") node.addEventListener(k.slice(2), v);
+      else node.setAttribute(k, v === true ? "" : v);
+    });
     (children || []).forEach(function (c) {
       if (c === null || c === undefined || c === false) return;
       node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
     });
     return node;
   }
+  function fill(node, children) { node.innerHTML = ""; children.forEach(function (c) { if (c) node.appendChild(typeof c === "string" ? document.createTextNode(c) : c); }); return node; }
   function store(key, value) {
-    try {
-      if (value === undefined) return window.localStorage.getItem(key);
-      window.localStorage.setItem(key, value);
-    } catch (e) { return null; }
+    try { if (value === undefined) return window.localStorage.getItem(key); window.localStorage.setItem(key, value); } catch (e) { return null; }
     return null;
-  }
-  function toast(msg) {
-    var t = document.getElementById("toast");
-    t.textContent = msg;
-    t.classList.add("show");
-    clearTimeout(toast._t);
-    toast._t = setTimeout(function () { t.classList.remove("show"); }, 1600);
-  }
-  function copyText(text, button) {
-    function done() {
-      toast("コピーしました");
-      if (button) {
-        var label = button.textContent;
-        button.classList.add("done");
-        button.textContent = "✓ コピー済み";
-        setTimeout(function () { button.classList.remove("done"); button.textContent = label; }, 1800);
-      }
-    }
-    function fallback() {
-      var ta = el("textarea", { style: "position:fixed;top:-1000px;opacity:0", readonly: true });
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      ta.setSelectionRange(0, text.length);
-      var ok = false;
-      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
-      document.body.removeChild(ta);
-      if (ok) done(); else toast("コピーできませんでした。長押しで選んでください");
-    }
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(done, fallback);
-    } else {
-      fallback();
-    }
-  }
-  function copyBtn(label, getText, cls) {
-    var b = el("button", { class: "btn " + (cls || "primary"), type: "button" }, [label]);
-    b.addEventListener("click", function () { copyText(typeof getText === "function" ? getText() : getText, b); });
-    return b;
   }
   function parseDate(iso) { var d = new Date(iso); return isNaN(d) ? null : d; }
   function jstParts(d) {
     var j = new Date(d.getTime() + 9 * 3600 * 1000);
-    return { y: j.getUTCFullYear(), m: j.getUTCMonth() + 1, d: j.getUTCDate(), w: WEEK[j.getUTCDay()], h: j.getUTCHours(), mi: j.getUTCMinutes() };
+    return { y: j.getUTCFullYear(), m: j.getUTCMonth() + 1, d: j.getUTCDate(), w: WEEK[j.getUTCDay()], h: j.getUTCHours(), mi: j.getUTCMinutes(), s: j.getUTCSeconds() };
   }
-  function mdw(iso) {
-    var d = parseDate(iso.length === 10 ? iso + "T12:00:00+09:00" : iso);
-    if (!d) return iso;
+  function mdw(x) {
+    var d = typeof x === "number" ? new Date(x) : parseDate(String(x).length === 10 ? x + "T12:00:00+09:00" : x);
+    if (!d) return String(x);
     var p = jstParts(d);
     return p.m + "/" + p.d + "（" + p.w + "）";
   }
-  function ymd(s) {  // "2026-05-15" → "2026/5/15"、"2026-05" → "2026/5"
-    var p = String(s).split("-");
-    return p[0] + (p[1] ? "/" + Number(p[1]) : "") + (p[2] ? "/" + Number(p[2]) : "");
-  }
   function hm(d) { var p = jstParts(d); return p.h + ":" + String(p.mi).padStart(2, "0"); }
-  function ago(iso) {
-    var d = parseDate(iso);
+  function hms(d) { var p = jstParts(d); return hm(d) + ":" + String(p.s).padStart(2, "0"); }
+  function ymd(s) { var p = String(s).split("-"); return p[0] + (p[1] ? "/" + Number(p[1]) : "") + (p[2] ? "/" + Number(p[2]) : ""); }
+  function todayJst() { var p = jstParts(new Date()); return p.y + "-" + String(p.m).padStart(2, "0") + "-" + String(p.d).padStart(2, "0"); }
+  function ago(t) {
+    var d = typeof t === "number" ? new Date(t) : parseDate(t);
     if (!d) return "";
     var s = (Date.now() - d.getTime()) / 1000;
     if (s < 3600) return Math.max(1, Math.round(s / 60)) + "分前";
     if (s < 86400) return Math.round(s / 3600) + "時間前";
     return Math.round(s / 86400) + "日前";
   }
-  function todayJst() { var p = jstParts(new Date()); return p.y + "-" + String(p.m).padStart(2, "0") + "-" + String(p.d).padStart(2, "0"); }
-  function jaAmount(x) {
-    if (x >= 1e8) return (x / 1e8).toFixed(2) + "億";
-    if (x >= 1e4) return Math.round(x / 1e4).toLocaleString("ja-JP") + "万";
+  function oku(x, digits) {
+    if (x === null || x === undefined || isNaN(x)) return "—";
+    if (Math.abs(x) >= 1e8) return (x / 1e8).toFixed(digits === undefined ? 2 : digits) + "億";
+    if (Math.abs(x) >= 1e4) return Math.round(x / 1e4).toLocaleString("ja-JP") + "万";
     return Math.round(x).toLocaleString("ja-JP");
   }
-  function delta(now, before) {
-    if (!before) return "";
-    var p = (now / before - 1) * 100;
-    return (p >= 0 ? "▲ +" : "▼ ") + p.toFixed(1) + "%";
-  }
+  function yen(x) { return x >= 100 ? "¥" + Math.round(x).toLocaleString("ja-JP") : "¥" + x.toFixed(x >= 10 ? 2 : 3).replace(/0$/, ""); }
+  function pct(x, sign) { if (x === null || x === undefined || isNaN(x)) return "—"; var v = Math.round(x * 100) / 100; return (sign && v > 0 ? "+" : "") + v.toFixed(Math.abs(v) < 10 ? 2 : 1) + "%"; }
+  function rate(x) { return x === null || x === undefined ? "—" : (Math.round(x * 1000) / 10) + "%"; }
+  function cls(x) { return x > 0 ? "up" : x < 0 ? "down" : ""; }
   function host(url) { try { return new URL(url).hostname.replace(/^www\./, ""); } catch (e) { return ""; } }
-  function topicTag(t) { return el("span", { class: "topic " + (TOPIC_NAMES[t] ? t : "kaia"), text: TOPIC_NAMES[t] || "Kaia" }); }
   function norm(s) { return String(s || "").normalize("NFKC").toLowerCase(); }
+  function topicTag(t) { return el("span", { class: "topic " + (TOPIC_NAMES[t] ? t : "kaia"), text: TOPIC_NAMES[t] || "Kaia" }); }
 
-  // ---------- 読む人の切り替え ----------
-  var AUD = [
-    { key: "easy", name: "🔰 はじめての人向け", desc: "やさしい言葉・たとえ話" },
-    { key: "pro", name: "⚡ 慣れている人向け", desc: "数字・日付・出典で" }
-  ];
-  var audience = store("kaia.audience") === "pro" ? "pro" : "easy";
-  function audienceSwitch() {
-    var box = el("div", { class: "audience", role: "group", "aria-label": "話す相手に合わせて切り替え" });
-    AUD.forEach(function (a) {
-      box.appendChild(el("button", {
-        class: "aud", type: "button", "aria-pressed": String(audience === a.key),
-        onclick: function () {
-          if (audience === a.key) return;
-          audience = a.key;
-          store("kaia.audience", audience);
-          var y = window.scrollY;
-          renderAll();
-          window.scrollTo(0, y);
-        }
-      }, [el("span", { class: "n", text: a.name }), el("span", { class: "d", text: a.desc })]));
+  function ok(name) { STATUS[name] = { ok: true, at: Date.now() }; markLive(); }
+  function ng(name, e) { STATUS[name] = { ok: false, at: Date.now(), err: String(e && e.message || e) }; }
+  function getJson(url, opts) {
+    return fetch(url, opts || { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
+  }
+  function rpcBatch(url, calls) {
+    var body = calls.map(function (c, i) { return { jsonrpc: "2.0", id: i + 1, method: c[0], params: c[1] }; });
+    return fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (arr) {
+        if (!Array.isArray(arr)) throw new Error("batch not supported");
+        arr.sort(function (a, b) { return a.id - b.id; });
+        return arr.map(function (x) { if (x.error) throw new Error(x.error.message); return x.result; });
+      });
+  }
+  function tok(hex) { var b = BigInt(hex); return Number(b / 1000000000000n) / 1e6; } // 18桁の数量 → 数
+  var lastLive = 0;
+  function markLive() {
+    lastLive = Date.now();
+    var box = document.getElementById("live");
+    box.className = "live on";
+    box.querySelector(".state").textContent = "ライブ";
+    box.querySelector(".when").textContent = hms(new Date()) + " 更新";
+  }
+  setInterval(function () {
+    if (lastLive && Date.now() - lastLive > 3 * 60 * 1000) {
+      var box = document.getElementById("live");
+      box.className = "live";
+      box.querySelector(".state").textContent = "更新が止まっています";
+    }
+  }, 30000);
+
+  // ---------- 取りに行く（ブラウザから直接） ----------
+  function fetchKaia() {
+    return getJson(GECKO + "/simple/price?ids=kaia&vs_currencies=jpy,usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true")
+      .then(function (d) { if (!d.kaia || !d.kaia.jpy) throw new Error("no data"); L.kaia = d.kaia; L.kaia.at = Date.now(); ok("kaia"); })
+      .catch(function (e) { ng("kaia", e); });
+  }
+  function fetchKaiaChart(days) {
+    if (L.chart[days] && Date.now() - L.chart[days].at < 30 * 60 * 1000) return Promise.resolve();
+    return getJson(GECKO + "/coins/kaia/market_chart?vs_currency=jpy&days=" + days + (days > 90 ? "&interval=daily" : ""))
+      .then(function (d) { L.chart[days] = { at: Date.now(), points: (d.prices || []).map(function (p) { return { t: p[0], v: p[1] }; }) }; ok("kaiaChart"); })
+      .catch(function (e) { ng("kaiaChart", e); });
+  }
+  function fetchJpyc() {
+    var calls = [["eth_call", [{ to: JPYC, data: "0x18160ddd" }, "latest"]]].concat(JPYC_ISSUER.map(function (a) {
+      return ["eth_call", [{ to: JPYC, data: "0x70a08231" + "000000000000000000000000" + a }, "latest"]];
+    }));
+    var fallback = (DATA && DATA.market && DATA.market.jpyc && DATA.market.jpyc.by_chain) || {};
+    return Promise.all(CHAINS.map(function (c) {
+      return rpcBatch(c.rpc, calls).then(function (r) {
+        var total = tok(r[0]), held = tok(r[1]) + tok(r[2]);
+        ok("jpyc-" + c.key);
+        return { key: c.key, name: c.name, color: c.color, circ: total - held, minted: total, live: true };
+      }).catch(function (e) {
+        ng("jpyc-" + c.key, e);
+        return fallback[c.key] !== undefined ? { key: c.key, name: c.name, color: c.color, circ: fallback[c.key], live: false } : null;
+      });
+    })).then(function (rows) {
+      rows = rows.filter(Boolean);
+      if (!rows.length) return;
+      L.jpyc = { rows: rows, total: rows.reduce(function (s, r) { return s + r.circ; }, 0), minted: rows.reduce(function (s, r) { return s + (r.minted || 0); }, 0),
+        live: rows.every(function (r) { return r.live; }), complete: rows.length === CHAINS.length, at: Date.now() };
     });
-    return box;
+  }
+  function fetchJpycHist() {
+    if (L.jpycHist && Date.now() - L.jpycHist.at < 60 * 60 * 1000) return Promise.resolve();
+    return getJson(LLAMA_SC + "/stablecoin/355").then(function (d) {
+      var pts = (d.tokens || []).map(function (t) { return { t: t.date * 1000, v: (t.circulating || {}).peggedJPY }; }).filter(function (p) { return p.v; });
+      L.jpycHist = { at: Date.now(), points: pts.slice(-180) };
+      ok("jpycHist");
+    }).catch(function (e) { ng("jpycHist", e); });
+  }
+  function fetchRates() {
+    return getJson(UNIFI + "/interest/rate", { cache: "no-store", headers: { "Accept-Language": "ja-JP" } }).then(function (d) {
+      var out = {};
+      (d.interestInfos || []).forEach(function (i) {
+        var a = String(i.contractAddress || "").toLowerCase();
+        if (a === "0xd077a400968890eacc75cdc901f0356c943e4fdb") out.usdt = i;
+        if (a === JPYC) out.jpyc = i;
+      });
+      if (!out.usdt && !out.jpyc) throw new Error("no data");
+      out.at = Date.now();
+      L.rates = out;
+      ok("rates");
+    }).catch(function (e) { ng("rates", e); });
+  }
+  function fetchAnn() {
+    return getJson(UNIFI + "/announcement?size=20", { cache: "no-store", headers: { "Accept-Language": "ja-JP" } }).then(function (d) {
+      L.ann = (d.content || []).map(function (a) {
+        return { title: a.title, url: "https://www.unifi.me/announcement/" + a.id, source: "Unifi公式のお知らせ", label: "Unifi公式（LINE NEXT）",
+          topic: "unifi", date: new Date(a.createdAt).toISOString(), t: a.createdAt, official: true, kind: a.announcementType };
+      });
+      ok("ann");
+    }).catch(function (e) { ng("ann", e); });
+  }
+  function fetchBlock() {
+    return rpcBatch(KAIA_RPC, [["eth_blockNumber", []], ["eth_gasPrice", []]]).then(function (r) {
+      L.block = parseInt(r[0], 16); L.gas = parseInt(r[1], 16) / 1e9; L.blockAt = Date.now();
+      ok("block");
+    }).catch(function (e) { ng("block", e); });
+  }
+  function fetchTvl() {
+    if (L.tvl && Date.now() - L.tvl.at < 30 * 60 * 1000) return Promise.resolve();
+    return Promise.all([
+      getJson(LLAMA + "/v2/historicalChainTvl/Kaia").then(function (d) {
+        var pts = d.map(function (x) { return { t: x.date * 1000, v: x.tvl }; }).slice(-180);
+        L.tvlHist = pts; ok("tvl");
+      }).catch(function (e) { ng("tvl", e); }),
+      getJson(LLAMA + "/tvl/superearn").then(function (v) { L.superearn = Number(v); ok("superearn"); }).catch(function (e) { ng("superearn", e); })
+    ]).then(function () { L.tvl = { at: Date.now() }; });
+  }
+  function fetchSite() {
+    return getJson(DATA_URL + "?t=" + Math.floor(Date.now() / 60000)).then(function (d) { DATA = d; ok("site"); }).catch(function (e) { ng("site", e); });
+  }
+
+  // ---------- 小さなグラフ ----------
+  function svgEl(tag, attrs) { var n = document.createElementNS("http://www.w3.org/2000/svg", tag); Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); }); return n; }
+  function pathOf(points, w, h, pad) {
+    var vs = points.map(function (p) { return p.v; });
+    var min = Math.min.apply(null, vs), max = Math.max.apply(null, vs), span = max - min || 1;
+    var t0 = points[0].t, t1 = points[points.length - 1].t, ts = t1 - t0 || 1;
+    var d = points.map(function (p, i) {
+      return (i ? "L" : "M") + ((p.t - t0) / ts * w).toFixed(1) + " " + (h - pad - (p.v - min) / span * (h - pad * 2)).toFixed(1);
+    }).join(" ");
+    return { d: d, min: min, max: max };
+  }
+  function spark(points, color) {
+    if (!points || points.length < 3) return null;
+    var w = 300, h = 44, s = svgEl("svg", { viewBox: "0 0 " + w + " " + h, preserveAspectRatio: "none", class: "spark", role: "img", "aria-label": "推移" });
+    var p = pathOf(points, w, h, 3);
+    s.appendChild(svgEl("path", { d: p.d + " L" + w + " " + h + " L0 " + h + " Z", fill: color, opacity: ".12" }));
+    s.appendChild(svgEl("path", { d: p.d, fill: "none", stroke: color, "stroke-width": "2", "vector-effect": "non-scaling-stroke" }));
+    return s;
+  }
+  function chart(points, color, fmt) {
+    if (!points || points.length < 3) return el("div", { class: "empty", text: "グラフを読み込めませんでした" });
+    var w = 600, h = 150, s = svgEl("svg", { viewBox: "0 0 " + w + " " + h, preserveAspectRatio: "none", role: "img", "aria-label": "推移のグラフ" });
+    [0.25, 0.5, 0.75].forEach(function (y) { s.appendChild(svgEl("line", { x1: 0, x2: w, y1: h * y, y2: h * y, stroke: "currentColor", opacity: ".08" })); });
+    var p = pathOf(points, w, h, 6);
+    s.appendChild(svgEl("path", { d: p.d + " L" + w + " " + h + " L0 " + h + " Z", fill: color, opacity: ".12" }));
+    s.appendChild(svgEl("path", { d: p.d, fill: "none", stroke: color, "stroke-width": "2.2", "vector-effect": "non-scaling-stroke" }));
+    var first = points[0].v, last = points[points.length - 1].v, ch = (last / first - 1) * 100;
+    return el("div", { class: "chart" }, [
+      s,
+      el("div", { class: "axis" }, [el("span", { text: mdw(points[0].t) }), el("span", { text: mdw(points[points.length - 1].t) })]),
+      el("div", { class: "range" }, ["期間中の最高 " + fmt(p.max) + "　最低 " + fmt(p.min) + "　期間の変化 ", el("b", { class: cls(ch), text: pct(ch, true) })])
+    ]);
   }
 
   // ---------- 説明カードとのつながり ----------
   var cardRes = [];
+  function visibleCards() { return ((KB && KB.cards) || []).filter(function (c) { return !c.hidden; }); }
   function prepareCards() {
     cardRes = [];
-    ((KB && KB.cards) || []).forEach(function (c) {
-      if (!c.tags) return;
-      try { cardRes.push({ card: c, re: new RegExp(c.tags) }); } catch (e) { /* 読めない条件は使わない */ }
-    });
-    // 「JPYCってなに？」のような広いカードは、具体的なカードより後に出す
+    visibleCards().forEach(function (c) { if (c.tags) try { cardRes.push({ card: c, re: new RegExp(c.tags) }); } catch (e) { /* 使わない */ } });
     cardRes.sort(function (a, b) { return (a.card.generic ? 1 : 0) - (b.card.generic ? 1 : 0); });
   }
-  function relatedCards(text, limit) {
-    var out = [];
-    for (var i = 0; i < cardRes.length && out.length < (limit || 2); i++) {
-      if (cardRes[i].re.test(text)) out.push(cardRes[i].card);
-    }
-    return out;
-  }
   function relButtons(text) {
-    var cards = relatedCards(text, 2);
-    if (!cards.length) return null;
-    return el("div", { class: "rel" }, cards.map(function (c) {
-      return el("button", { type: "button", onclick: function () { openCard(c.id); } }, ["💬 説明するなら「" + c.q + "」"]);
-    }));
-  }
-  function openCard(id) {
-    explainState.cat = "all";
-    explainState.query = "";
-    renderExplain();
-    show("explain");
-    var node = document.getElementById("card-" + id);
-    if (node) {
-      node.scrollIntoView({ block: "start" });
-      node.classList.add("flash");
-      setTimeout(function () { node.classList.remove("flash"); }, 1800);
-    }
-  }
-  function cardOfTheDay() {
-    var cards = (KB && KB.cards) || [];
-    if (!cards.length) return null;
-    var p = jstParts(new Date());
-    var n = Math.floor(Date.UTC(p.y, p.m - 1, p.d) / 86400000);
-    return cards[n % cards.length];
+    var out = [];
+    for (var i = 0; i < cardRes.length && out.length < 1; i++) if (cardRes[i].re.test(text)) out.push(cardRes[i].card);
+    if (!out.length) return null;
+    return el("div", { class: "rel" }, out.map(function (c) { return el("button", { type: "button", onclick: function () { openCard(c.id); } }, ["📚 解説：" + c.q]); }));
   }
 
-  // ---------- 📰 今日 ----------
-  function versionOf(a) {
-    var vs = a.versions || [];
-    for (var i = 0; i < vs.length; i++) if (vs[i].key === audience) return vs[i];
-    if (vs.length) return vs[0];
-    return a.community_text ? { key: "pro", label: "コミュニティ向け", text: a.community_text } : null;
-  }
-  function fieldsOf(it) {
-    if (audience === "easy") return { t: it.easy_title || it.title, s: it.easy_summary || it.summary, p: it.easy_point || "" };
-    return { t: it.title, s: it.summary, p: it.point || "" };
-  }
-  function renderEntry(a, container, isToday) {
-    var v = versionOf(a);
-    var items = a.items || [];
-    var lead = a.mode === "ai" || !items.length ? (a.headline || "") : (isToday ? "今日" : mdw(a.date)) + "のニュース " + items.length + "件";
-    // AIを使っていた頃の注意書きは、無料モードでは関係ないので出さない
-    var warns = (a.warnings || []).filter(function (w) { return w.indexOf("AIの要約") < 0; });
-    container.appendChild(el("div", { class: "card" }, [
-      el("div", { class: "row" }, [el("span", { class: "lead-date", text: mdw(a.date) + "のまとめ" }), el("span", { class: "spacer" }), el("span", { class: "small muted", text: a.label || "" })]),
-      el("div", { class: "lead-title", text: lead }),
-      a.mode !== "ai" ? el("p", { class: "small muted", style: "margin:2px 0 0", text: "見出しと記事の一部をそのまま載せています。説明するときは、各ニュースの「💬」から説明カードを開けます。" }) : null,
-      warns.length ? el("div", { class: "notice warn" }, ["⚠️ 貼る前に確かめてほしい点", el("ul", null, warns.map(function (w) { return el("li", { text: w }); }))]) : null
-    ]));
-    if (v && v.text) {
-      var big = copyBtn("📋 コピーする", v.text, "primary big-copy");
-      container.appendChild(el("div", { class: "card copy-card" }, [
-        el("div", { class: "box-head" }, [el("h3", { text: "コミュニティに貼る文章" }), el("span", { class: "count", text: v.text.length + "字" })]),
-        el("p", { class: "small muted", style: "margin:-2px 0 6px", text: (a.versions ? (audience === "easy" ? "はじめての人向け" : "慣れている人向け") + "の文章です。" : "") + "LINEオープンチャット・Discordなどにそのまま貼れます。" }),
-        big,
-        el("details", { open: !items.length }, [el("summary", { text: "貼る文章をそのまま見る" }), el("pre", { class: "text", text: v.text })])
-      ]));
-    }
-    var lastTopic = "";
-    items.forEach(function (it, i) {
-      if (it.topic !== lastTopic) {
-        container.appendChild(el("div", { class: "sec-title" }, [topicTag(it.topic), " の話題"]));
-        lastTopic = it.topic;
-      }
-      var f = fieldsOf(it);
-      container.appendChild(el("article", { class: "item" }, [
-        el("span", { class: "num", text: String(i + 1) }),
-        el("div", { class: "body" }, [
-          el("div", { class: "t", text: f.t }),
-          f.s ? el("div", { class: "s", text: f.s }) : null,
-          f.p ? el("div", { class: "p", text: (audience === "easy" ? "💡 ひとことで言うと：" : "👉 ") + f.p }) : null,
-          relButtons((it.title || "") + " " + (it.summary || "")),
-          el("div", { class: "src" }, [el("a", { href: it.url, target: "_blank", rel: "noopener", text: "🔗 " + it.source + "（" + it.label + "）の記事を開く" })])
-        ])
-      ]));
+  // ---------- ニュース（サイトのデータ＋Unifi公式のお知らせ） ----------
+  function allNews() {
+    var seen = {}, out = [];
+    ((DATA && DATA.news) || []).concat(L.ann || []).forEach(function (n) {
+      if (!n || !n.url || seen[n.url]) return;
+      var t = n.t || (parseDate(n.date) || new Date(0)).getTime();
+      if (n.official === undefined) n.official = /公式/.test(n.label || "");
+      seen[n.url] = 1;
+      out.push(Object.assign({}, n, { t: t }));
     });
-    if (audience === "easy" && a.glossary && a.glossary.length) {
-      var dl = el("dl", { class: "words" });
-      a.glossary.forEach(function (g) { dl.appendChild(el("dt", { text: g.term })); dl.appendChild(el("dd", { text: g.desc })); });
-      container.appendChild(el("div", { class: "card", style: "margin-top:14px" }, [el("h2", { text: "📖 今日のことば" }), dl]));
-    }
-    if (a.cautions && a.cautions.length) {
-      container.appendChild(el("div", { class: "card" }, [
-        el("h2", { text: "🔎 知っておきたいニュース" }),
-        el("p", { class: "small muted", text: "まとめには入れていません（悪いニュース・注意が必要な話）", style: "margin:0 0 6px" }),
-        el("div", null, a.cautions.map(function (c) { return el("a", { href: c.url, target: "_blank", rel: "noopener", style: "display:block;padding:3px 0", text: c.title }); }))
-      ]));
-    }
+    var cutoff = Date.now() - 14 * 86400000;
+    return out.filter(function (n) { return n.t >= cutoff; }).sort(function (a, b) { return b.t - a.t; });
   }
-  function renderToday(root) {
+  function newsItem(n) {
+    var flags = [];
+    if (Date.now() - n.t < 24 * 3600 * 1000) flags.push(el("span", { class: "flag new", text: "NEW" }));
+    if (n.official) flags.push(el("span", { class: "flag official", text: "公式" }));
+    if (n.negative) flags.push(el("span", { class: "flag bad", text: "注意" }));
+    if (n.price_talk) flags.push(el("span", { class: "flag warn", text: "値動き" }));
+    var others = (n.others || []).length ? el("details", { class: "others" }, [
+      el("summary", { text: "ほかの報道 " + n.others.length + "件" }),
+      el("div", null, n.others.map(function (o) { return el("a", { href: o.url, target: "_blank", rel: "noopener", text: "・" + o.source }); }))
+    ]) : null;
+    return el("div", { class: "li" }, [
+      el("a", { class: "t", href: n.url, target: "_blank", rel: "noopener", text: n.title }),
+      n.original_title ? el("div", { class: "orig", text: n.original_title }) : null,
+      el("div", { class: "meta" }, [topicTag(n.topic)].concat(flags).concat([el("span", { text: n.source + "｜" + mdw(n.t) + " " + hm(new Date(n.t)) + "（" + ago(n.t) + "）" })])),
+      relButtons((n.title || "") + " " + (n.original_title || "")),
+      others
+    ]);
+  }
+
+  // ---------- 🏠 ホーム ----------
+  var homeNodes = {};
+  function buildHome() {
+    var root = document.getElementById("home");
     root.innerHTML = "";
-    root.appendChild(audienceSwitch());
+    homeNodes.today = el("div", { class: "today" });
+    homeNodes.kaia = el("div", { class: "tile" });
+    homeNodes.jpyc = el("div", { class: "tile" });
+    homeNodes.unifi = el("div", { class: "tile" });
+    homeNodes.net = el("div", { class: "tile" });
+    homeNodes.ann = el("div", { class: "list" });
+    homeNodes.news = el("div", { class: "list" });
+    homeNodes.events = el("div", { class: "list" });
+    homeNodes.tip = el("div", { class: "card daily-card" });
+    root.appendChild(homeNodes.today);
+    root.appendChild(el("div", { class: "tiles" }, [homeNodes.kaia, homeNodes.jpyc, homeNodes.unifi, homeNodes.net]));
+    root.appendChild(el("div", { class: "sec-title" }, ["📢 Unifi公式のお知らせ", el("button", { class: "more", type: "button", onclick: function () { newsFilter = "official"; renderNews(); show("news"); } }, ["すべて見る →"])]));
+    root.appendChild(homeNodes.ann);
+    root.appendChild(el("div", { class: "sec-title" }, ["🗞 最新ニュース", el("button", { class: "more", type: "button", onclick: function () { show("news"); } }, ["すべて見る →"])]));
+    root.appendChild(homeNodes.news);
+    root.appendChild(el("div", { class: "sec-title" }, ["🗓 これからの予定", el("button", { class: "more", type: "button", onclick: function () { show("schedule"); } }, ["年表を見る →"])]));
+    root.appendChild(homeNodes.events);
+    root.appendChild(el("div", { class: "sec-title", text: "💡 今日の豆知識" }));
+    root.appendChild(homeNodes.tip);
+    updateHome();
+  }
+  function foot(parts) { return el("div", { class: "foot" }, parts); }
+  function updateHome() {
+    if (!homeNodes.today) return;
+    var now = new Date();
+    // 今日の動き（文章）
+    var bits = [];
+    if (L.kaia) bits.push(["KAIAは24時間で", el("b", { class: cls(L.kaia.jpy_24h_change), text: pct(L.kaia.jpy_24h_change, true) }), "（" + yen(L.kaia.jpy) + "）"]);
+    var jprev = L.jpycHist && L.jpycHist.points.length ? L.jpycHist.points[L.jpycHist.points.length - 1].v : null;
+    if (L.jpyc) {
+      var jch = jprev ? (L.jpyc.total / jprev - 1) * 100 : null;
+      bits.push(["JPYCの流通量は" + oku(L.jpyc.total) + "JPYC", jch !== null ? ["（前日比 ", el("b", { class: cls(jch), text: pct(jch, true) }), "）"] : ""]);
+    }
+    var rates = L.rates || (DATA && DATA.unifi);
+    if (rates && rates.jpyc) bits.push(["UnifiのJPYCリワードは年" + rate(rates.jpyc.baseRate)]);
+    var news = allNews();
+    var fresh = news.filter(function (n) { return Date.now() - n.t < 24 * 3600 * 1000; });
+    bits.push(["この24時間の新しいニュースは" + fresh.length + "件"]);
+    var text = el("div", { class: "text" });
+    bits.forEach(function (b, i) { (function add(x) { if (Array.isArray(x)) x.forEach(add); else if (x) text.appendChild(typeof x === "string" ? document.createTextNode(x) : x); })(b); text.appendChild(document.createTextNode(i < bits.length - 1 ? "。" : "。")); });
+    fill(homeNodes.today, [el("div", { class: "when", text: mdw(now.getTime()) + " " + hm(now) + " 現在の動き" }), text]);
+
+    // KAIA価格
+    var k = L.kaia || (DATA && DATA.market && DATA.market.kaia && { jpy: DATA.market.kaia.jpy, usd: DATA.market.kaia.usd, jpy_24h_change: DATA.market.kaia.jpy_24h_change, jpy_market_cap: DATA.market.kaia.jpy_market_cap, stale: true });
+    fill(homeNodes.kaia, k ? [
+      el("div", { class: "head" }, [el("span", { class: "badge kaia", text: "KAIA" }), "Kaiaのコイン 価格"]),
+      el("div", { class: "value" }, [yen(k.jpy), el("small", { class: cls(k.jpy_24h_change), text: pct(k.jpy_24h_change, true) })]),
+      el("div", { class: "sub", text: "$" + (k.usd || 0).toFixed(4) + "　時価総額 約" + oku(k.jpy_market_cap || k.jpy_usd_market_cap, 0) + "円" }),
+      L.chart[30] ? spark(L.chart[30].points, "var(--kaia)") : null,
+      foot([el("span", { class: k.stale ? "ng" : "ok", text: k.stale ? "控えの値（" + (DATA.market.checked_at ? hm(parseDate(DATA.market.checked_at)) : "") + "）" : "CoinGecko " + hms(new Date(L.kaia.at)) }), el("span", { text: "グラフは30日" })])
+    ] : [el("div", { class: "head", text: "KAIA 価格" }), el("div", { class: "empty", text: "取得中…" })]);
+
+    // JPYC流通量
+    var j = L.jpyc;
+    var jfall = !j && DATA && DATA.market && DATA.market.jpyc && DATA.market.jpyc.total ? DATA.market.jpyc : null;
+    var rows = j ? j.rows : jfall ? Object.keys(jfall.by_chain).map(function (key) { var c = CHAINS.filter(function (x) { return x.key === key; })[0]; return { name: key, circ: jfall.by_chain[key], color: c ? c.color : "var(--ink-3)" }; }) : [];
+    var total = j ? j.total : jfall ? jfall.total : 0;
+    rows = rows.slice().sort(function (a, b) { return b.circ - a.circ; });
+    fill(homeNodes.jpyc, total ? [
+      el("div", { class: "head" }, [el("span", { class: "badge jpyc", text: "JPYC" }), "デジタルの円 流通量"]),
+      el("div", { class: "value" }, [oku(total), el("small", { text: "JPYC" })]),
+      el("div", { class: "sub" }, (jprev ? ["前日比 ", el("b", { class: cls(total / jprev - 1), text: pct((total / jprev - 1) * 100, true) }), "　"] : []).concat(["1JPYC＝1円"])),
+      el("div", { class: "bars" }, rows.map(function (r) { return el("span", { style: "width:" + (r.circ / total * 100).toFixed(2) + "%;background:" + r.color, title: r.name }); })),
+      el("div", { class: "legend" }, rows.map(function (r) { return el("span", null, [el("i", { style: "background:" + r.color }), r.name + " " + oku(r.circ)]); })),
+      foot([el("span", { class: j && j.live ? "ok" : "ng", text: j && j.live ? "ブロックチェーンから直接 " + hms(new Date(j.at)) : "DefiLlamaの値" }), el("span", { text: "JPYC社の手元分を除く" })])
+    ] : [el("div", { class: "head", text: "JPYC 流通量" }), el("div", { class: "empty", text: "取得中…" })]);
+
+    // Unifiのリワード率
+    fill(homeNodes.unifi, rates && (rates.jpyc || rates.usdt) ? [
+      el("div", { class: "head" }, [el("span", { class: "badge unifi", text: "Unifi" }), "LINEのお財布 リワード率"]),
+      el("div", { class: "value" }, ["年" + rate(rates.jpyc ? rates.jpyc.baseRate : null), el("small", { text: "JPYC" })]),
+      rates.usdt ? el("dl", { class: "kv" }, [
+        el("dt", { text: "USDT BASIC" }), el("dd", { text: "年" + rate(rates.usdt.baseRate) }),
+        el("dt", { text: "USDT PLUSモード" }), el("dd", { text: "年" + rate(rates.usdt.plusBaseRate) }),
+        rates.usdt.kaiaBoostMaxRate ? el("dt", { text: "KAIAブースト込み最大" }) : null, rates.usdt.kaiaBoostMaxRate ? el("dd", { text: "年" + rate(rates.usdt.maxRate) }) : null
+      ]) : null,
+      foot([el("span", { class: L.rates ? "ok" : "ng", text: L.rates ? "Unifi公式 " + hms(new Date(L.rates.at)) : "控えの値" }), el("span", { text: "元本保証なし・預金ではありません" })])
+    ] : [el("div", { class: "head", text: "Unifi リワード率" }), el("div", { class: "empty", text: "取得中…" })]);
+
+    // Kaiaネットワーク
+    var n = (DATA && DATA.numbers) || {};
+    var tvlNow = L.tvlHist && L.tvlHist.length ? L.tvlHist[L.tvlHist.length - 1].v : n.tvl;
+    fill(homeNodes.net, [
+      el("div", { class: "head" }, [el("span", { class: "badge kaia", text: "Kaia" }), "ブロックチェーンの今"]),
+      el("div", { class: "value" }, [L.block ? "#" + L.block.toLocaleString("en-US") : "—", el("small", { text: "ブロック" })]),
+      el("dl", { class: "kv" }, [
+        el("dt", { text: "ガス代" }), el("dd", { text: L.gas ? L.gas.toFixed(1) + " Gkei" : "—" }),
+        el("dt", { text: "DeFiの預かり（TVL）" }), el("dd", { text: tvlNow ? "$" + oku(tvlNow) : "—" }),
+        el("dt", { text: "ステーブルコイン合計" }), el("dd", { text: n.stable_usd ? "$" + oku(n.stable_usd) : "—" }),
+        el("dt", { text: "SuperEarn（Unifiの運用先）" }), el("dd", { text: L.superearn ? "$" + oku(L.superearn) : "—" })
+      ]),
+      foot([el("span", { class: L.block ? "ok" : "ng", text: L.block ? "Kaiaノード " + hms(new Date(L.blockAt)) : "取得中" }), el("span", { text: "1秒ごとにブロックが進みます" })])
+    ]);
+
+    // お知らせ・ニュース・予定・豆知識
+    var anns = (L.ann || []).slice(0, 3);
+    fill(homeNodes.ann, anns.length ? anns.map(newsItem) : [el("div", { class: "empty", text: L.ann ? "お知らせはありません" : "取得中…" })]);
+    fill(homeNodes.news, news.filter(function (x) { return !x.official || x.source !== "Unifi公式のお知らせ"; }).slice(0, 6).map(newsItem).concat(news.length ? [] : [el("div", { class: "empty", text: "ニュースを読み込み中…" })]));
+    var evs = upcoming().slice(0, 5);
+    fill(homeNodes.events, evs.length ? evs.map(eventRow) : [el("div", { class: "empty", text: "予定はありません" })]);
     var c = cardOfTheDay();
-    if (c) {
-      root.appendChild(el("div", { class: "card daily" }, [
-        el("div", { class: "k", text: "今日おぼえる1枚" }),
-        el("div", { class: "q", text: "Q. " + c.q }),
-        el("div", { class: "a", text: c.one }),
-        el("div", { class: "actions" }, [
-          el("button", { class: "btn", type: "button", onclick: function () { openCard(c.id); } }, ["💬 くわしい説明を開く"]),
-          copyBtn("📋 ひとことをコピー", c.one, "ghost")
-        ])
-      ]));
+    fill(homeNodes.tip, c ? [el("div", { class: "k", text: "今日の豆知識" }), el("div", { class: "q", text: "Q. " + c.q }), el("div", { text: c.one }),
+      el("div", { style: "margin-top:8px" }, [el("button", { class: "btn", type: "button", onclick: function () { openCard(c.id); } }, ["📚 くわしく読む"])])] : []);
+  }
+
+  // ---------- 予定 ----------
+  function eventRow(e) {
+    var today = todayJst(), d = e.d, future = d >= today.slice(0, d.length);
+    var left = "";
+    if (d.length === 10) {
+      var diff = Math.round((new Date(d + "T00:00:00+09:00") - new Date(today + "T00:00:00+09:00")) / 86400000);
+      left = diff === 0 ? "今日" : diff > 0 ? "あと" + diff + "日" : -diff + "日前";
+    } else if (future) left = "予定";
+    return el("div", { class: "ev" + (future ? "" : " past") }, [
+      el("span", { class: "d", text: ymd(d) }),
+      el("span", null, [el("span", { class: "dotc", style: "background:" + (CAT_COLORS[e.cat] || "var(--ink-3)") }), e.u ? el("a", { href: e.u, target: "_blank", rel: "noopener", text: e.t.replace(/^（予定）/, "") }) : e.t.replace(/^（予定）/, "")]),
+      el("span", { class: "left", text: left })
+    ]);
+  }
+  function upcoming() {
+    var today = todayJst();
+    return ((KB && KB.timeline) || []).filter(function (e) { return e.d >= today.slice(0, e.d.length); }).sort(function (a, b) { return a.d < b.d ? -1 : 1; });
+  }
+  var tlCat = "all";
+  function renderSchedule() {
+    var root = document.getElementById("schedule");
+    root.innerHTML = "";
+    if (!KB) return;
+    var up = upcoming();
+    root.appendChild(el("div", { class: "sec-title", style: "margin-top:0", text: "🗓 これからの予定" }));
+    root.appendChild(el("div", { class: "list" }, up.length ? up.map(eventRow) : [el("div", { class: "empty", text: "予定はありません" })]));
+    root.appendChild(el("div", { class: "sec-title", text: "📜 これまでの出来事" }));
+    var chips = el("div", { class: "chips" }), box = el("div", { class: "list" });
+    var cats = [["all", "すべて"], ["unifi", "📱 Unifi"], ["jpyc", "💴 JPYC"], ["kaia", "🟢 Kaia"], ["money", "🏛 制度"]];
+    function draw() {
+      fill(chips, cats.map(function (c) { return el("button", { class: "chip", type: "button", "aria-pressed": String(tlCat === c[0]), onclick: function () { tlCat = c[0]; draw(); } }, [c[1]]); }));
+      var today = todayJst();
+      fill(box, (KB.timeline || []).filter(function (e) { return e.d < today.slice(0, e.d.length) && (tlCat === "all" || e.cat === tlCat); }).slice().reverse().map(eventRow));
     }
-    var hour = (DATA && DATA.status && DATA.status.digest_hour) || 7;
+    root.appendChild(chips); root.appendChild(box); draw();
+    root.appendChild(el("p", { class: "small muted", style: "margin-top:10px", text: "予定と年表は、各社の公式発表・報道を確認してまとめています（" + (KB.as_of ? ymd(KB.as_of) : "") + "時点）。" }));
+  }
+
+  // ---------- 🗞 ニュース ----------
+  var newsFilter = store("watch.newsFilter") || "all";
+  var newsSig = "";
+  function renderNews(force) {
+    var root = document.getElementById("news");
+    var list = allNews();
+    var sig = newsFilter + "|" + list.length + "|" + (list[0] && list[0].url) + "|" + ((DATA && DATA.updated_at) || "");
+    if (!force && sig === newsSig && root.childNodes.length) return;
+    newsSig = sig;
+    root.innerHTML = "";
+    var filters = [["all", "すべて"], ["official", "公式の発表"], ["unifi", "Unifi"], ["jpyc", "JPYC"], ["kaia", "Kaia"], ["both", "Kaia × JPYC"], ["stablecoin", "円ステーブルコイン"]];
+    var match = function (x, f) { return f === "all" || (f === "official" ? x.official : x.topic === f); };
+    root.appendChild(el("p", { class: "howto", text: "直近2週間のニュースと公式発表。1時間おきに新しい記事を集め、Unifiのお知らせはページを開くたびに公式から直接読み込みます。" }));
+    root.appendChild(el("div", { class: "chips" }, filters.map(function (f) {
+      var n = list.filter(function (x) { return match(x, f[0]); }).length;
+      return el("button", { class: "chip", type: "button", "aria-pressed": String(newsFilter === f[0]), onclick: function () { newsFilter = f[0]; store("watch.newsFilter", newsFilter); renderNews(true); } }, [f[1] + " " + n]);
+    })));
+    var shown = list.filter(function (x) { return match(x, newsFilter); });
+    if (!shown.length) root.appendChild(el("div", { class: "card empty", text: DATA || L.ann ? "この区分のニュースはまだありません" : "読み込み中…" }));
+    var lastDay = "", box = null;
+    shown.forEach(function (n) {
+      var day = mdw(n.t);
+      if (day !== lastDay) { root.appendChild(el("div", { class: "day", text: day })); box = el("div", { class: "list" }); root.appendChild(box); lastDay = day; }
+      box.appendChild(newsItem(n));
+    });
     var arc = (DATA && DATA.archive) || [];
-    root.appendChild(el("div", { class: "sec-title", text: "📰 ニュースのまとめ" }));
-    if (!DATA) {
-      root.appendChild(el("div", { class: "notice warn", text: "ニュースのデータを読み込めませんでした。説明・データ・用語・心得のタブは使えます。" }));
-      return;
-    }
-    var a = arc[0];
-    if (!a) {
-      root.appendChild(el("div", { class: "card empty" }, [el("div", { class: "big", text: "🌱" }), "まだまとめがありません。毎朝" + hour + "時に自動で作られます。"]));
-    } else {
-      if (a.date !== todayJst()) {
-        root.appendChild(el("div", { class: "notice info", style: "margin:0 0 14px", text: "今日のまとめはまだです（毎朝" + hour + "時ごろ。新しいニュースが無い日はお休み）。下は " + mdw(a.date) + " のまとめです。" }));
-      }
-      renderEntry(a, root, a.date === todayJst());
-    }
-    if (arc.length > 1) {
-      root.appendChild(el("div", { class: "sec-title", text: "📚 これまでのまとめ（" + (arc.length - 1) + "日分）" }));
-      arc.slice(1).forEach(function (h) {
-        var inner = el("div", { class: "inner" });
-        var count = (h.items || []).length;
-        var d = el("details", { class: "hist" }, [
-          el("summary", null, [el("span", { class: "d", text: mdw(h.date) }), el("span", { class: "h", text: h.mode === "ai" || !count ? (h.headline || "") : "ニュース " + count + "件" })]),
-          inner
-        ]);
-        d.addEventListener("toggle", function () { if (d.open && !inner.childNodes.length) renderEntry(h, inner, false); });
-        root.appendChild(d);
+    if (arc.length) {
+      root.appendChild(el("div", { class: "sec-title", text: "📰 毎朝のまとめ（" + arc.length + "日分）" }));
+      arc.forEach(function (a) {
+        var items = a.items || [];
+        var inner = el("div", { class: "list", style: "margin-top:6px" }, items.map(function (it) {
+          return el("div", { class: "li" }, [el("a", { class: "t", href: it.url, target: "_blank", rel: "noopener", text: it.easy_title || it.title }), el("div", { class: "meta" }, [topicTag(it.topic), el("span", { text: it.source + "｜" + it.label })])]);
+        }));
+        root.appendChild(el("details", { class: "card", style: "padding:10px 14px;margin-bottom:8px" }, [el("summary", { style: "cursor:pointer;font-weight:700", text: mdw(a.date) + "　" + (items.length ? "話題 " + items.length + "件" : (a.headline || "")) }), inner]));
       });
     }
   }
 
-  // ---------- 💬 説明 ----------
-  var explainState = { cat: store("kaia.explainCat") || "all", query: "" };
-  function cardText(c) {
-    var lines = [c.one];
-    if (audience === "pro" && c.pro) {
-      lines.push("", c.pro);
-      var srcs = (c.src || []).slice(0, 2).map(function (s) { return "・" + s.t + (s.d ? "（" + ymd(s.d) + "）" : "") + " " + s.u; });
-      if (srcs.length) lines.push("", "出典：", srcs.join("\n"));
-    } else {
-      lines.push("", c.easy);
+  // ---------- 📈 マーケット ----------
+  var kaiaDays = Number(store("watch.kaiaDays")) || 30;
+  function renderMarket() {
+    var root = document.getElementById("market");
+    root.innerHTML = "";
+    var grid = el("div", { class: "charts" });
+    root.appendChild(el("p", { class: "howto", text: "グラフは公開データから、このページで直接作っています。値は自動で更新されます。" }));
+    // KAIA価格
+    var seg = el("span", { class: "seg" }, [[7, "7日"], [30, "30日"], [90, "90日"], [365, "1年"]].map(function (o) {
+      return el("button", { type: "button", "aria-pressed": String(kaiaDays === o[0]), onclick: function () { kaiaDays = o[0]; store("watch.kaiaDays", String(kaiaDays)); fetchKaiaChart(kaiaDays).then(renderMarket); } }, [o[1]]);
+    }));
+    var kc = L.chart[kaiaDays];
+    grid.appendChild(el("div", { class: "card chart-card" }, [
+      el("h2", null, ["KAIA 価格（円）", el("span", { class: "now", text: L.kaia ? yen(L.kaia.jpy) : "" })]),
+      el("div", { style: "margin:-2px 0 8px" }, [seg]),
+      kc ? chart(kc.points, "var(--kaia)", function (v) { return yen(v); }) : el("div", { class: "empty", text: "読み込み中…" }),
+      el("p", { class: "small muted", style: "margin:6px 0 0", text: "出典：CoinGecko" })
+    ]));
+    // JPYC流通量
+    var jh = L.jpycHist;
+    var jpts = jh ? jh.points.slice(-90) : null;
+    if (jpts && L.jpyc) jpts = jpts.concat([{ t: Date.now(), v: L.jpyc.total }]);
+    grid.appendChild(el("div", { class: "card chart-card" }, [
+      el("h2", null, ["JPYC 流通量（90日）", el("span", { class: "now", text: L.jpyc ? oku(L.jpyc.total) : "" })]),
+      jpts ? chart(jpts, "var(--jpyc)", function (v) { return oku(v); }) : el("div", { class: "empty", text: "読み込み中…" }),
+      L.jpyc ? el("div", { class: "tbl-wrap", style: "margin-top:10px" }, [el("table", { class: "tbl" }, [
+        el("tr", null, [el("th", { text: "チェーン" }), el("th", { text: "流通量" }), el("th", { text: "割合" }), el("th", { text: "発行済み総数" })])
+      ].concat(L.jpyc.rows.slice().sort(function (a, b) { return b.circ - a.circ; }).map(function (r) {
+        return el("tr", null, [el("td", null, [el("span", { class: "dotc", style: "background:" + r.color }), r.name]), el("td", { text: oku(r.circ) }), el("td", { text: pct(r.circ / L.jpyc.total * 100) }), el("td", { text: r.minted ? oku(r.minted) : "—" })]);
+      })))]) : null,
+      el("p", { class: "small muted", style: "margin:6px 0 0", text: "流通量＝各チェーンの発行済み総数−JPYC社の発行用・償還用ウォレットの残高（DefiLlamaと同じ計算）。推移はDefiLlamaの日次値、右端は今の値。" })
+    ]));
+    // Kaia TVL
+    grid.appendChild(el("div", { class: "card chart-card" }, [
+      el("h2", null, ["Kaia のDeFi預かり（TVL・ドル）", el("span", { class: "now", text: L.tvlHist && L.tvlHist.length ? "$" + oku(L.tvlHist[L.tvlHist.length - 1].v) : "" })]),
+      L.tvlHist ? chart(L.tvlHist.slice(-90), "var(--both)", function (v) { return "$" + oku(v); }) : el("div", { class: "empty", text: "読み込み中…" }),
+      el("p", { class: "small muted", style: "margin:6px 0 0", text: "Kaiaの上の貸し借り・交換サービスに預けられている資産の合計。出典：DefiLlama（90日）" })
+    ]));
+    // Kaia上の円ステーブルコイン
+    var n = (DATA && DATA.numbers) || {};
+    if (n.jpy_history && n.jpy_history.length > 2) {
+      var start = Date.now() - (n.jpy_history.length - 1) * 86400000;
+      grid.appendChild(el("div", { class: "card chart-card" }, [
+        el("h2", null, ["Kaia上の日本円ステーブルコイン", el("span", { class: "now", text: n.jpy ? oku(n.jpy) + "円" : "" })]),
+        chart(n.jpy_history.map(function (v, i) { return { t: start + i * 86400000, v: v }; }), "var(--jpyc)", function (v) { return oku(v) + "円"; }),
+        el("p", { class: "small muted", style: "margin:6px 0 0", text: "Kaiaの上のJPYCなどの合計（30日）。UnifiのJPYCはここに入ります。出典：DefiLlama" })
+      ]));
     }
-    return lines.join("\n");
+    root.appendChild(grid);
+    // 毎日の記録
+    var days = ((DATA && DATA.daily) || []).slice().reverse();
+    root.appendChild(el("div", { class: "sec-title", text: "📒 毎日の記録" }));
+    root.appendChild(el("div", { class: "card" }, days.length ? [
+      el("div", { class: "tbl-wrap" }, [el("table", { class: "tbl" }, [
+        el("tr", null, ["日付", "KAIA", "JPYC流通量", "Unifi JPYC", "Unifi USDT", "PLUS"].map(function (h) { return el("th", { text: h }); }))
+      ].concat(days.slice(0, 60).map(function (d) {
+        return el("tr", null, [el("td", { text: mdw(d.date) }), el("td", { text: d.kaia_jpy ? yen(d.kaia_jpy) : "—" }), el("td", { text: d.jpyc ? oku(d.jpyc) : "—" }),
+          el("td", { text: rate(d.unifi_jpyc) }), el("td", { text: rate(d.unifi_usdt) }), el("td", { text: rate(d.unifi_usdt_plus) })]);
+      })))]),
+      el("p", { class: "small muted", style: "margin:8px 0 0", text: "1時間おきに記録し、その日の最後の値を残しています（2026年10月31日から）。Unifiの率が変わったらここで分かります。" })
+    ] : [el("div", { class: "empty", text: "記録は今日から始まります" })]));
   }
+
+  // ---------- 📚 解説 ----------
+  var audience = store("kaia.audience") === "pro" ? "pro" : "easy";
+  function audienceSwitch(rerender) {
+    return el("div", { class: "audience", role: "group", "aria-label": "読み方の切り替え" }, [["easy", "🔰 やさしく", "たとえ話・ふつうの言葉で"], ["pro", "⚡ くわしく", "数字・日付・出典で"]].map(function (a) {
+      return el("button", { class: "aud", type: "button", "aria-pressed": String(audience === a[0]), onclick: function () { if (audience === a[0]) return; audience = a[0]; store("kaia.audience", audience); renderLearn(); renderWords(); } }, [el("span", { class: "n", text: a[1] }), el("span", { class: "d", text: a[2] })]);
+    }));
+  }
+  var learnState = { cat: "all", query: "" };
   function qaCard(c) {
     var catLabel = "";
     (KB.categories || []).forEach(function (x) { if (x.id === c.cat) catLabel = x.label; });
     var main = audience === "pro" && c.pro ? el("div", { class: "body pro", text: c.pro }) : el("div", { class: "body", text: c.easy });
     var other = audience === "pro"
-      ? el("details", { class: "more" }, [el("summary", { text: "🔰 やさしい言い方を見る" }), el("div", { class: "body", text: c.easy })])
-      : (c.pro ? el("details", { class: "more" }, [el("summary", { text: "⚡ 詳しい人に聞かれたら（数字・日付）" }), el("div", { class: "body pro", text: c.pro })]) : null);
+      ? el("details", { class: "more" }, [el("summary", { text: "🔰 やさしい説明を見る" }), el("div", { class: "body", text: c.easy })])
+      : (c.pro ? el("details", { class: "more" }, [el("summary", { text: "⚡ くわしく（数字・日付）" }), el("div", { class: "body pro", text: c.pro })]) : null);
     return el("article", { class: "qa", id: "card-" + c.id }, [
-      el("div", { class: "cat", text: catLabel }),
-      el("div", { class: "q", text: "Q. " + c.q }),
-      el("div", { class: "one", text: c.one }),
-      main,
-      other,
+      el("div", { class: "cat", text: catLabel }), el("div", { class: "q", text: "Q. " + c.q }), el("div", { class: "one", text: c.one }), main, other,
       c.caution ? el("div", { class: "caution", text: "⚠️ " + c.caution }) : null,
-      (c.src || []).length ? el("div", { class: "srcs" }, ["出典"].concat((c.src || []).map(function (s) {
-        return el("a", { href: s.u, target: "_blank", rel: "noopener", text: "🔗 " + s.t + (s.d ? "（" + ymd(s.d) + "）" : "") });
-      }))) : null,
-      el("div", { class: "actions" }, [copyBtn("📋 答えをコピー", function () { return cardText(c); }, "")])
+      (c.src || []).length ? el("div", { class: "srcs" }, ["出典"].concat(c.src.map(function (s) { return el("a", { href: s.u, target: "_blank", rel: "noopener", text: "🔗 " + s.t + (s.d ? "（" + ymd(s.d) + "）" : "") }); }))) : null
     ]);
   }
-  function renderExplain() {
-    var root = document.getElementById("explain");
+  function renderLearn() {
+    var root = document.getElementById("learn");
     root.innerHTML = "";
-    if (!KB) { root.appendChild(el("div", { class: "notice bad", text: "説明カードを読み込めませんでした" })); return; }
-    root.appendChild(el("p", { class: "howto", text: "よく聞かれる質問への答え方です。まず「ひとことで」を言って、相手に合わせて続けます。" + (KB.as_of ? "（" + ymd(KB.as_of) + "時点の情報）" : "") }));
+    if (!KB) return;
+    root.appendChild(el("p", { class: "howto", text: "Unifi・JPYC・Kaiaのしくみを、よくある質問の形で。" + (KB.as_of ? "（" + ymd(KB.as_of) + "時点で確認した内容）" : "") }));
     root.appendChild(audienceSwitch());
-    var input = el("input", { class: "search", type: "search", placeholder: "🔍 さがす（例：税金、送金、怪しい、利息）", "aria-label": "説明カードをさがす" });
-    input.value = explainState.query;
-    var chips = el("div", { class: "chips", role: "group", "aria-label": "分類で絞り込む" });
-    var list = el("div");
-    function matches(c) {
-      if (explainState.cat !== "all" && c.cat !== explainState.cat) return false;
-      var q = norm(explainState.query).trim();
-      if (!q) return true;
-      var hay = norm([c.q, c.one, c.easy, c.pro, (c.ask || []).join(" ")].join(" "));
-      return q.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
-    }
+    var input = el("input", { class: "search", type: "search", placeholder: "🔍 さがす（例：利息、送金、税金、パスワード）", "aria-label": "解説をさがす" });
+    input.value = learnState.query;
+    var chips = el("div", { class: "chips" }), list = el("div");
+    var cats = [{ id: "all", label: "すべて" }].concat((KB.categories || []).filter(function (c) { return c.id !== "talk"; }));
     function draw() {
-      chips.innerHTML = "";
-      [{ id: "all", label: "すべて" }].concat(KB.categories || []).forEach(function (cat) {
-        chips.appendChild(el("button", { class: "chip", type: "button", "aria-pressed": String(explainState.cat === cat.id), onclick: function () {
-          explainState.cat = cat.id; store("kaia.explainCat", cat.id); draw();
-        } }, [cat.label]));
+      fill(chips, cats.map(function (c) { return el("button", { class: "chip", type: "button", "aria-pressed": String(learnState.cat === c.id), onclick: function () { learnState.cat = c.id; draw(); } }, [c.label]); }));
+      var q = norm(learnState.query).trim();
+      var shown = visibleCards().filter(function (c) {
+        if (learnState.cat !== "all" && c.cat !== learnState.cat) return false;
+        if (!q) return true;
+        var hay = norm([c.q, c.one, c.easy, c.pro, (c.ask || []).join(" ")].join(" "));
+        return q.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
       });
-      list.innerHTML = "";
-      var shown = (KB.cards || []).filter(matches);
-      if (!shown.length) {
-        list.appendChild(el("div", { class: "card empty" }, [el("div", { class: "big", text: "🤔" }), "見つかりませんでした。", el("br"), "ここに無い質問は、Claudeに聞いてください。集めた資料から調べて答えます。"]));
-        return;
-      }
-      shown.forEach(function (c) { list.appendChild(qaCard(c)); });
-      list.appendChild(el("p", { class: "small muted", style: "text-align:center;margin-top:16px", text: "ここに無い質問は、Claudeに相談してください。答えが決まったら、このページにも足します。" }));
+      fill(list, shown.length ? shown.map(qaCard) : [el("div", { class: "card empty", text: "見つかりませんでした" })]);
     }
-    input.addEventListener("input", function () { explainState.query = input.value; draw(); });
-    root.appendChild(input);
-    root.appendChild(chips);
-    root.appendChild(list);
-    draw();
+    input.addEventListener("input", function () { learnState.query = input.value; draw(); });
+    root.appendChild(input); root.appendChild(chips); root.appendChild(list); draw();
   }
-
-  // ---------- 📋 データ ----------
-  function sparkline(values) {
-    var w = 300, h = 56, pad = 4;
-    var min = Math.min.apply(null, values), max = Math.max.apply(null, values);
-    var span = max - min || 1;
-    var pts = values.map(function (v, i) { return [(i / (values.length - 1)) * w, h - pad - ((v - min) / span) * (h - pad * 2)]; });
-    var line = pts.map(function (p, i) { return (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" ");
-    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
-    svg.setAttribute("preserveAspectRatio", "none");
-    svg.setAttribute("class", "spark");
-    svg.setAttribute("role", "img");
-    svg.setAttribute("aria-label", "直近30日の推移");
-    var area = document.createElementNS(svg.namespaceURI, "path");
-    area.setAttribute("class", "area");
-    area.setAttribute("d", line + " L" + w + " " + h + " L0 " + h + " Z");
-    var path = document.createElementNS(svg.namespaceURI, "path");
-    path.setAttribute("class", "line");
-    path.setAttribute("d", line);
-    svg.appendChild(area);
-    svg.appendChild(path);
-    return svg;
+  function openCard(id) {
+    learnState.cat = "all"; learnState.query = "";
+    renderLearn(); show("learn");
+    var node = document.getElementById("card-" + id);
+    if (node) { node.scrollIntoView({ block: "start" }); node.classList.add("flash"); setTimeout(function () { node.classList.remove("flash"); }, 1800); }
   }
-  function liveNumbers() {
-    var n = (DATA && DATA.numbers) || {};
-    if (!n.stable_usd && !n.tvl && !n.jpy) return null;
-    var cards = el("div", { class: "stats" });
-    if (n.jpy) {
-      cards.appendChild(el("div", { class: "stat" }, [
-        el("div", { class: "label", text: "Kaia上の日本円ステーブルコイン（JPYCなど）" }),
-        el("div", { class: "value" }, ["約" + jaAmount(n.jpy), el("small", { text: "円" })]),
-        el("div", { class: "exact", text: Math.round(n.jpy).toLocaleString("ja-JP") + "円" }),
-        el("div", { class: "delta", text: n.jpy_30d ? "30日前から " + delta(n.jpy, n.jpy_30d) : "" }),
-        n.jpy_history && n.jpy_history.length > 2 ? sparkline(n.jpy_history) : null,
-        el("div", { class: "explain", text: "Kaiaの上にある「デジタルの円」の合計。UnifiのJPYCはここに含まれます。グラフは直近30日。" })
-      ]));
-    }
-    if (n.stable_usd) {
-      cards.appendChild(el("div", { class: "stat" }, [
-        el("div", { class: "label", text: "Kaia上のステーブルコイン（合計）" }),
-        el("div", { class: "value" }, ["約" + jaAmount(n.stable_usd), el("small", { text: "ドル" })]),
-        el("div", { class: "exact", text: "$" + Math.round(n.stable_usd).toLocaleString("en-US") }),
-        el("div", { class: "delta", text: "7日前から " + delta(n.stable_usd, n.stable_usd_7d) + "　30日前から " + delta(n.stable_usd, n.stable_usd_30d) }),
-        el("div", { class: "explain", text: "円やドルと同じ値段のデジタルのお金（USDT・JPYCなど）が、Kaiaの上にどれだけあるか。" })
-      ]));
-    }
-    if (n.tvl) {
-      cards.appendChild(el("div", { class: "stat" }, [
-        el("div", { class: "label", text: "Kaia上のDeFiに預けられている資産（TVL）" }),
-        el("div", { class: "value" }, ["約" + jaAmount(n.tvl), el("small", { text: "ドル" })]),
-        el("div", { class: "exact", text: "$" + Math.round(n.tvl).toLocaleString("en-US") }),
-        el("div", { class: "delta", text: "7日前から " + delta(n.tvl, n.tvl_7d) }),
-        el("div", { class: "explain", text: "Kaiaの上の、お金の貸し借りや交換のサービスに預けられている資産の合計。" })
-      ]));
-    }
-    return el("div", null, [cards, el("p", { class: "small muted", style: "margin:8px 2px 0" }, [
-      "出典: ", el("a", { href: "https://defillama.com/stablecoins/Kaia", target: "_blank", rel: "noopener", text: "DefiLlama" }),
-      "（" + (n.stable_date ? mdw(n.stable_date) + "時点・" : "") + "自動で更新）"
-    ])]);
-  }
-  function pct(x) { return (Math.round(x * 1000) / 10) + "%"; }
-  function unifiRates() {
-    var u = DATA && DATA.unifi;
-    if (!u || (!u.jpyc && !u.usdt)) return null;
-    var cards = el("div", { class: "stats" });
-    if (u.jpyc) {
-      cards.appendChild(el("div", { class: "stat" }, [
-        el("div", { class: "label", text: "JPYC（デジタルの円）" }),
-        el("div", { class: "value" }, ["年" + pct(u.jpyc.baseRate || 0)]),
-        el("div", { class: "explain", text: "Unifiに入れておくだけで毎日付く基本の率。" + (u.jpyc.promotionRate ? "キャンペーン中：年" + pct(u.jpyc.promotionRate) : "") })
-      ]));
-    }
-    if (u.usdt) {
-      cards.appendChild(el("div", { class: "stat" }, [
-        el("div", { class: "label", text: "USDT（デジタルの米ドル）" }),
-        el("div", { class: "value" }, ["年" + pct(u.usdt.baseRate || 0), el("small", { text: "　PLUS 年" + pct(u.usdt.plusBaseRate || 0) })]),
-        el("div", { class: "explain", text: "BASICは入れるだけ、PLUSモードは自分で切り替え（戻すのに24時間）。" + (u.usdt.kaiaBoostMaxRate ? "KAIAブーストで最大 年" + pct(u.usdt.maxRate || 0) + "（11/3で終了予定）" : "") })
-      ]));
-    }
-    var at = u.checked_at ? mdw(u.checked_at) + " " + hm(parseDate(u.checked_at)) : "";
-    return el("div", null, [cards, el("p", { class: "small muted", style: "margin:8px 2px 0" }, [
-      "Unifi公式サイトの数字（" + at + "に確認）。預金ではなくSuperEarnへの貸し出しの率で、元本保証はありません。率は予告なく変わります。"
-    ])]);
-  }
-  var tlCat = "all";
-  function renderData() {
-    var root = document.getElementById("data");
-    root.innerHTML = "";
-    if (!KB) { root.appendChild(el("div", { class: "notice bad", text: "データを読み込めませんでした" })); return; }
-    root.appendChild(el("p", { class: "howto", text: "詳しい人に聞かれたときの「数字・日付・出典」の一覧です。" + (KB.as_of ? ymd(KB.as_of) + "時点で確認した内容です。" : "") }));
-    var rates = unifiRates();
-    if (rates) { root.appendChild(el("div", { class: "sec-title", text: "📱 Unifiの今のリワード率（公式から自動）" })); root.appendChild(rates); }
-    var live = liveNumbers();
-    if (live) { root.appendChild(el("div", { class: "sec-title", text: "📊 Kaiaの上の数字（毎日自動）" })); root.appendChild(live); }
-    (KB.facts || []).forEach(function (g) {
-      var table = el("table", { class: "facts" });
-      g.rows.forEach(function (r) {
-        var isAddr = /^0x[0-9a-fA-F]{40}$/.test(r[1]);
-        table.appendChild(el("tr", null, [el("th", { text: r[0] }), el("td", null, [el("span", { class: isAddr ? "mono" : null, text: r[1] }), r[2] ? el("span", { class: "note", text: r[2] }) : null])]));
-      });
-      root.appendChild(el("div", { class: "card" }, [
-        el("h2", { text: g.group }), table,
-        (g.src || []).length ? el("div", { class: "small muted", style: "margin-top:8px" }, ["出典："].concat((g.src || []).map(function (s, i) {
-          return el("span", null, [i ? "／" : "", el("a", { href: s.u, target: "_blank", rel: "noopener", text: s.t })]);
-        }))) : null
-      ]));
-    });
-    // 年表
-    var tlBox = el("div");
-    var chips = el("div", { class: "chips" });
-    var cats = [["all", "すべて"], ["unifi", "📱 Unifi"], ["jpyc", "💴 JPYC"], ["kaia", "🟢 Kaia"], ["money", "🏛 制度"]];
-    function drawTl() {
-      chips.innerHTML = "";
-      cats.forEach(function (c) { chips.appendChild(el("button", { class: "chip", type: "button", "aria-pressed": String(tlCat === c[0]), onclick: function () { tlCat = c[0]; drawTl(); } }, [c[1]])); });
-      tlBox.innerHTML = "";
-      var today = todayJst();
-      var ul = el("ul", { class: "tl" });
-      (KB.timeline || []).slice().reverse().filter(function (t) { return tlCat === "all" || t.cat === tlCat; }).forEach(function (t) {
-        var future = t.d > today.slice(0, t.d.length);
-        ul.appendChild(el("li", { class: future ? "future" : null }, [
-          el("span", { class: "d", text: ymd(t.d) }),
-          el("span", { class: "t" }, [el("span", { class: "dotc", style: "background:" + (CAT_COLORS[t.cat] || "var(--ink-3)") }), t.u ? el("a", { href: t.u, target: "_blank", rel: "noopener", text: t.t }) : t.t])
-        ]));
-      });
-      tlBox.appendChild(ul);
-    }
-    root.appendChild(el("div", { class: "card" }, [el("h2", { text: "🗓 年表（新しい順）" }), chips, tlBox]));
-    drawTl();
-    // 公式の入口
-    (KB.links || []).forEach(function (g) {
-      root.appendChild(el("div", { class: "card links" }, [el("h2", { text: "🔗 公式の入口：" + g.group })].concat(g.items.map(function (x) {
-        return el("a", { href: x.u, target: "_blank", rel: "noopener" }, [el("span", { text: x.t }), el("span", { class: "h", text: host(x.u) })]);
-      }))));
-    });
-  }
-
-  // ---------- 🗞 ニュース ----------
-  var newsFilter = store("kaia.newsFilter") || "all";
-  function renderNews() {
-    var root = document.getElementById("news");
-    root.innerHTML = "";
-    if (!DATA) { root.appendChild(el("div", { class: "notice warn", text: "ニュースのデータを読み込めませんでした。少し時間をおいて開き直してください。" })); return; }
-    var list = DATA.news || [];
-    var chips = el("div", { class: "chips", role: "group", "aria-label": "区分で絞り込む" });
-    var listBox = el("div");
-    var filters = [["all", "すべて"], ["unifi", "Unifi"], ["both", "Kaia × JPYC"], ["kaia", "Kaia"], ["jpyc", "JPYC"], ["stablecoin", "円ステーブルコイン"]];
-    function draw() {
-      chips.innerHTML = "";
-      filters.forEach(function (f) {
-        var n = f[0] === "all" ? list.length : list.filter(function (x) { return x.topic === f[0]; }).length;
-        if (f[0] !== "all" && !n) return;
-        chips.appendChild(el("button", { class: "chip", type: "button", "aria-pressed": String(newsFilter === f[0]), onclick: function () { newsFilter = f[0]; store("kaia.newsFilter", newsFilter); draw(); } }, [f[1] + " " + n]));
-      });
-      listBox.innerHTML = "";
-      var shown = list.filter(function (x) { return newsFilter === "all" || x.topic === newsFilter; });
-      if (!shown.length) { listBox.appendChild(el("div", { class: "empty", text: "この区分の話題はまだありません" })); return; }
-      var lastDay = "";
-      shown.forEach(function (n) {
-        var day = mdw(n.date);
-        if (day !== lastDay) { listBox.appendChild(el("div", { class: "day", text: day })); lastDay = day; }
-        var flags = [];
-        if (n.negative) flags.push(el("span", { class: "flag bad", text: "注意" }));
-        if (n.price_talk) flags.push(el("span", { class: "flag warn", text: "値動きの話" }));
-        if (n.digested) flags.push(el("span", { class: "flag done", text: "✓ まとめ済み" }));
-        var others = (n.others || []).length ? el("details", { class: "others" }, [
-          el("summary", { text: "ほかの報道 " + n.others.length + "件" }),
-          el("div", null, n.others.map(function (o) { return el("a", { href: o.url, target: "_blank", rel: "noopener", text: "・" + o.source }); }))
-        ]) : null;
-        listBox.appendChild(el("article", { class: "news" }, [
-          el("a", { class: "title", href: n.url, target: "_blank", rel: "noopener", text: n.title }),
-          n.original_title ? el("div", { class: "orig", text: n.original_title }) : null,
-          el("div", { class: "meta" }, [topicTag(n.topic), el("span", { text: n.source + "｜" + n.label })].concat(flags).concat([el("span", { text: ago(n.date) })])),
-          relButtons((n.title || "") + " " + (n.original_title || "")),
-          others
-        ]));
-      });
-    }
-    root.appendChild(el("p", { class: "small muted", style: "margin:0 0 10px", text: "直近1週間のUnifi・Kaia・JPYC・円ステーブルコインの話題。同じ出来事は1件にまとめています。値動きの話は発信には使わないでください。" }));
-    root.appendChild(chips);
-    root.appendChild(listBox);
-    draw();
+  function cardOfTheDay() {
+    var cards = visibleCards();
+    if (!cards.length) return null;
+    var p = jstParts(new Date());
+    return cards[Math.floor(Date.UTC(p.y, p.m - 1, p.d) / 86400000) % cards.length];
   }
 
   // ---------- 📖 用語 ----------
@@ -876,161 +843,114 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     var root = document.getElementById("words");
     root.innerHTML = "";
     if (!KB) return;
-    var terms = KB.glossary || [];
-    root.appendChild(el("p", { class: "howto", text: "よく出てくる言葉を、中学生にも分かる言葉で。「慣れている人向け」にすると補足も出ます。" }));
     root.appendChild(audienceSwitch());
     var input = el("input", { class: "search", type: "search", placeholder: "🔍 言葉をさがす", "aria-label": "用語をさがす" });
     input.value = wordState.query;
-    var chips = el("div", { class: "chips" });
-    var list = el("div");
+    var chips = el("div", { class: "chips" }), list = el("div");
     var cats = [["all", "すべて"], ["unifi", "📱 Unifi・LINE"], ["jpyc", "💴 JPYC"], ["kaia", "🟢 Kaia"], ["basic", "🔤 基本"], ["law", "🏛 制度"]];
     function draw() {
-      chips.innerHTML = "";
-      cats.forEach(function (c) { chips.appendChild(el("button", { class: "chip", type: "button", "aria-pressed": String(wordState.cat === c[0]), onclick: function () { wordState.cat = c[0]; draw(); } }, [c[1]])); });
-      list.innerHTML = "";
+      fill(chips, cats.map(function (c) { return el("button", { class: "chip", type: "button", "aria-pressed": String(wordState.cat === c[0]), onclick: function () { wordState.cat = c[0]; draw(); } }, [c[1]]); }));
       var q = norm(wordState.query).trim();
-      terms.filter(function (t) {
-        return (wordState.cat === "all" || t.cat === wordState.cat) && (!q || norm(t.term + " " + t.desc + " " + t.pro).indexOf(q) >= 0);
-      }).forEach(function (t) {
-        list.appendChild(el("div", { class: "term" }, [
-          el("div", { class: "n", text: t.term }),
-          el("div", { class: "d", text: t.desc }),
-          audience === "pro" && t.pro ? el("div", { class: "p", text: "⚡ " + t.pro }) : null
-        ]));
-      });
-      if (!list.childNodes.length) list.appendChild(el("div", { class: "empty", text: "見つかりませんでした" }));
+      var shown = (KB.glossary || []).filter(function (t) { return (wordState.cat === "all" || t.cat === wordState.cat) && (!q || norm(t.term + " " + t.desc + " " + t.pro).indexOf(q) >= 0); });
+      fill(list, shown.length ? shown.map(function (t) {
+        return el("div", { class: "term" }, [el("div", { class: "n", text: t.term }), el("div", { class: "d", text: t.desc }), audience === "pro" && t.pro ? el("div", { class: "p", text: "⚡ " + t.pro }) : null]);
+      }) : [el("div", { class: "empty", text: "見つかりませんでした" })]);
     }
     input.addEventListener("input", function () { wordState.query = input.value; draw(); });
-    root.appendChild(input);
-    root.appendChild(chips);
-    root.appendChild(list);
-    draw();
+    root.appendChild(input); root.appendChild(chips); root.appendChild(list); draw();
   }
 
-  // ---------- 🛡 心得 ----------
-  function renderManner() {
-    var root = document.getElementById("manner");
-    root.innerHTML = "";
-    if (!KB) return;
-    var e = KB.etiquette || {};
-    root.appendChild(el("div", { class: "card daily" }, [el("div", { class: "k", text: "アンバサダーとしての基本姿勢" }), el("div", { class: "q", text: e.stance || "" })]));
-    root.appendChild(el("div", { class: "dodont" }, [
-      el("div", { class: "card ok" }, [el("h3", { text: "✅ すること" }), el("ul", null, (e.do || []).map(function (x) { return el("li", { text: x }); }))]),
-      el("div", { class: "card ng" }, [el("h3", { text: "🚫 しないこと" }), el("ul", null, (e.dont || []).map(function (x) { return el("li", { text: x }); }))])
-    ]));
-    if (e.program) {
-      var pg = e.program;
-      var list = function (title, xs) { return xs && xs.length ? [el("h3", { text: title }), el("ul", { style: "margin:0;padding-left:1.2em;font-size:14px" }, xs.map(function (x) { return el("li", { text: x }); }))] : []; };
-      root.appendChild(el("div", { class: "card", style: "border:1.5px solid var(--accent-strong)" }, [
-        el("h2", { text: "📋 " + pg.title }),
-        pg.note ? el("p", { class: "small muted", style: "margin:0 0 4px", text: pg.note }) : null
-      ].concat(list("📅 毎週やること", pg.weekly)).concat(list("🙋 役割", pg.roles)).concat(list("🎁 報酬", pg.rewards))
-        .concat(list("⚠️ 報酬が出なくなる条件", pg.ng)).concat(list("📝 そのほか", pg.other))
-        .concat([pg.url ? el("p", { class: "small", style: "margin:10px 0 0" }, [el("a", { href: pg.url, target: "_blank", rel: "noopener", text: "🔗 募集要項（Unifi公式のお知らせ）" })]) : null])));
-    }
-    if (e.disclosure) root.appendChild(el("div", { class: "card" }, [el("h2", { text: "🏷 PR表記（ステマ規制）" }), el("p", { style: "margin:0", text: e.disclosure })]));
-    if (e.answer_pattern) root.appendChild(el("div", { class: "card" }, [el("h2", { text: "🗣 答え方の型" }), el("ol", { class: "pattern" }, e.answer_pattern.map(function (x) { return el("li", { text: x }); })), el("p", { class: "small muted", style: "margin:8px 0 0", text: "「💬 説明」タブのカードはこの型で書いてあります。" })]));
-    root.appendChild(el("div", { class: "sec-title", text: "✍️ そのまま使える文章" }));
-    (KB.templates || []).forEach(function (t) {
-      root.appendChild(el("div", { class: "card tpl" }, [
-        el("div", { class: "box-head" }, [el("h3", { text: t.title }), el("span", { class: "count", text: t.text.length + "字" })]),
-        el("pre", { class: "text", text: t.text }),
-        t.note ? el("p", { class: "small muted", style: "margin:6px 0 0", text: "メモ：" + t.note }) : null,
-        el("div", { class: "actions" }, [copyBtn("📋 コピー", t.text)])
-      ]));
-    });
-  }
-
-  // ---------- ✅ 準備 ----------
-  var TODOS = [
-    ["rules", "アンバサダーの規約を確認する", "第3期の募集要項は「🛡 心得」タブにまとめ済み。届いた規約（タグ・PR表記・使ってよい画像）はデスクトップの「Kaiaアンバサダー資料」フォルダへ。反映します"],
-    ["try", "Unifiを自分で一通り使ってみる", "始める → JPYCを少し入れる → 送る → 円に戻す。自分の体験がいちばん伝わる説明になります（できる範囲で）"],
-    ["practice", "「今日おぼえる1枚」を声に出して練習する", "ひとことで言えるようになれば、はじめての人との会話がぐっと楽になります"],
-    ["community", "発信する場所を決める", "LINEオープンチャット・Discord・Xなど。決まったら、その場所に合う長さの文章に整えます"],
-    ["profile", "Xのプロフィールを整える", "「🛡 心得」タブに例があります"],
-    ["launch", "発信を始める日を決める", "準備期間が終わったら、このページの「準備期間」表示を外します"]
+  // ---------- 🔌 情報源 ----------
+  var SOURCES = [
+    ["kaia", "KAIAの価格", "CoinGecko", "https://www.coingecko.com/ja/coins/kaia", "1分ごと"],
+    ["jpyc-Polygon", "JPYC流通量（Polygon）", "ブロックチェーン（publicnode）", "https://polygonscan.com/token/0xe7c3d8c9a439fede00d2600032d5db0be71c3c29", "1分ごと"],
+    ["jpyc-Ethereum", "JPYC流通量（Ethereum）", "ブロックチェーン（publicnode）", "https://etherscan.io/token/0xe7c3d8c9a439fede00d2600032d5db0be71c3c29", "1分ごと"],
+    ["jpyc-Kaia", "JPYC流通量（Kaia）", "Kaia公開ノード", "https://kaiascan.io/token/0xe7c3d8c9a439fede00d2600032d5db0be71c3c29", "1分ごと"],
+    ["jpyc-Avalanche", "JPYC流通量（Avalanche）", "ブロックチェーン（publicnode）", "https://snowtrace.io/token/0xe7c3d8c9a439fede00d2600032d5db0be71c3c29", "1分ごと"],
+    ["jpycHist", "JPYC流通量の推移", "DefiLlama", "https://defillama.com/stablecoin/jpy-coin", "1時間ごと"],
+    ["rates", "Unifiのリワード率", "Unifi公式サイト", "https://www.unifi.me/", "5分ごと"],
+    ["ann", "Unifiのお知らせ", "Unifi公式サイト", "https://www.unifi.me/announcement?lng=ja-JP", "5分ごと"],
+    ["block", "Kaiaのブロック・ガス代", "Kaia公開ノード", "https://kaiascan.io/", "10秒ごと"],
+    ["tvl", "KaiaのDeFi預かり（TVL）", "DefiLlama", "https://defillama.com/chain/kaia", "30分ごと"],
+    ["superearn", "SuperEarnの預かり", "DefiLlama", "https://defillama.com/protocol/superearn", "30分ごと"],
+    ["site", "ニュース・毎朝のまとめ・毎日の記録", "このサイトの自動収集（GitHub）", "https://github.com/sajicosaji/crypto-news-bot", "5分ごとに確認（集めるのは1時間おき）"]
   ];
-  function renderStatus() {
-    var root = document.getElementById("status");
+  function renderSources() {
+    var root = document.getElementById("sources");
     root.innerHTML = "";
+    root.appendChild(el("p", { class: "howto", text: "このページは、開いている間、下の公開データを直接読みに行って自動で更新します。" }));
+    root.appendChild(el("div", { class: "card" }, [el("h2", { text: "リアルタイムのデータ" })].concat(SOURCES.map(function (s) {
+      var st = STATUS[s[0]];
+      return el("div", { class: "src-row" }, [
+        el("span", { text: !st ? "…" : st.ok ? "✅" : "⚠️" }),
+        el("span", null, [el("b", { text: s[1] }), el("br"), el("a", { class: "small muted", href: s[3], target: "_blank", rel: "noopener", text: s[2] }), el("span", { class: "small muted", text: "・" + s[4] })]),
+        el("span", { class: "w", text: st ? (st.ok ? hms(new Date(st.at)) : "取得できず（再試行中）") : "確認中" })
+      ]);
+    }))));
     var s = (DATA && DATA.status) || {};
     var src = (s.sources && s.sources.sources) || [];
-    var okCount = src.filter(function (x) { return x.ok; }).length;
-    function check(state, what, how, extra) {
-      var mark = { ok: "✓", wait: "!", ng: "×", off: "–" }[state];
-      return el("div", { class: "check" }, [el("span", { class: "dot " + state, text: mark }), el("div", { style: "flex:1;min-width:0" }, [el("div", { class: "what", text: what }), el("div", { class: "how", text: how }), extra || null])]);
+    root.appendChild(el("div", { class: "card" }, [
+      el("h2", { text: "ニュースを集めている情報源（" + src.filter(function (x) { return x.ok; }).length + "/" + src.length + "）" }),
+      el("p", { class: "small muted", style: "margin:0 0 6px", text: "1時間おきに見に行っています。" + (s.sources && s.sources.checked_at ? "最後に見に行った時刻 " + mdw(s.sources.checked_at) + " " + hm(parseDate(s.sources.checked_at)) : "") })
+    ].concat(src.map(function (x) {
+      return el("div", { class: "src-row" }, [el("span", { text: x.ok ? "✅" : "⚠️" }), el("span", { text: x.name }), el("span", { class: "w", text: x.ok ? "新着 " + x.added : "取得できず" })]);
+    }))));
+    if (KB && KB.links) {
+      KB.links.forEach(function (g) {
+        root.appendChild(el("div", { class: "card" }, [el("h2", { text: "🔗 公式の入口：" + g.group })].concat(g.items.map(function (x) {
+          return el("div", { class: "src-row" }, [el("span", { text: "↗" }), el("a", { href: x.u, target: "_blank", rel: "noopener", text: x.t }), el("span", { class: "w", text: host(x.u) })]);
+        }))));
+      });
     }
-    var aiState = s.ai === "off" ? ["ok", "費用: 無料で運用中", "AIは使わない設定です。ニュースは見出し・記事の一部・出典リンクでまとめます"]
-      : s.ai === "ok" ? ["wait", "AI要約: 動いています（有料）", "Claude APIの利用料がかかります"]
-      : ["ok", "費用: 無料で運用中", "AIは使っていません"];
-    var srcList = el("ul", { class: "src-list" }, src.map(function (x) {
-      return el("li", null, [el("span", { text: x.ok ? "✅" : "⚠️" }), el("span", { text: x.name }), el("span", { class: "n", text: x.ok ? "新着 " + x.added : "取得できず" })]);
-    }));
-    var generalNote = s.sources && s.sources.general_total ? el("div", { class: "how", text: "ほかに一般のニュース媒体 " + s.sources.general_ok + "/" + s.sources.general_total + " も見ています" }) : null;
-    root.appendChild(el("div", { class: "card" }, [
-      el("h2", { text: "仕組みの状態" }),
-      DATA ? check(src.length && okCount === src.length ? "ok" : (okCount ? "wait" : "ng"), "情報源: " + okCount + "/" + src.length + " 取得できています",
-        s.sources && s.sources.checked_at ? "最後に見に行った時刻 " + mdw(s.sources.checked_at) + " " + hm(parseDate(s.sources.checked_at)) : "",
-        el("div", null, [srcList, generalNote])) : check("ng", "ニュースのデータを読み込めませんでした", "少し時間をおいて開き直してください"),
-      check(aiState[0], aiState[1], aiState[2]),
-      check("ok", "Webページ: 自動で更新中", "まとめは毎朝" + (s.digest_hour || 7) + "時、ニュース一覧は" + (s.refresh_hours || 3) + "時間おき。説明カード・データは手で更新（" + (KB && KB.as_of ? ymd(KB.as_of) : "") + "時点）"),
-      check(s.discord ? "ok" : "off", "Discordへの通知: " + (s.discord ? "設定済み" : "使っていません（任意）"), "このページだけで使えます")
-    ]));
-    var todoCard = el("div", { class: "card" }, [el("h2", { text: "準備期間のやることリスト" }), el("p", { class: "small muted", style: "margin:0 0 4px", text: "チェックはこの端末に保存されます" })]);
-    TODOS.forEach(function (t) {
-      var key = "kaia.todo." + t[0];
-      var box = el("input", { type: "checkbox", "aria-label": t[1] });
-      box.checked = store(key) === "1";
-      var row = el("label", { class: "todo" + (box.checked ? " checked" : "") }, [box, el("div", null, [el("div", { class: "what", text: t[1] }), el("div", { class: "how", text: t[2] })])]);
-      box.addEventListener("change", function () { store(key, box.checked ? "1" : "0"); row.classList.toggle("checked", box.checked); });
-      todoCard.appendChild(row);
-    });
-    root.appendChild(todoCard);
-    root.appendChild(el("div", { class: "card" }, [
-      el("h2", { text: "💡 分からないことがあったら" }),
-      el("p", { style: "margin:0", text: "Claudeに聞いてください。Unifi・JPYC・Kaiaについて集めた資料（公式発表・日付・出典つき）から答えます。答えが決まった質問は、このページの「説明」にも足していきます。" })
-    ]));
   }
 
-  // ---------- 起動 ----------
-  var RENDER = { today: function () { renderToday(document.getElementById("today")); }, explain: renderExplain, data: renderData, news: renderNews, words: renderWords, manner: renderManner, status: renderStatus };
-  function renderAll() {
-    Object.keys(RENDER).forEach(function (k) {
-      try { RENDER[k](); }
-      catch (e) { var r = document.getElementById(k); r.innerHTML = ""; r.appendChild(el("div", { class: "notice bad", text: "この部分を表示できませんでした" })); }
-    });
-  }
+  // ---------- 起動・自動更新 ----------
+  var RENDER = { home: buildHome, news: function () { renderNews(true); }, market: renderMarket, schedule: renderSchedule, learn: renderLearn, words: renderWords, sources: renderSources };
   var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+  var current = "home";
   function show(name) {
-    if (!RENDER[name]) name = "today";
+    if (!RENDER[name]) name = "home";
+    current = name;
     tabs.forEach(function (t) { t.setAttribute("aria-selected", String(t.dataset.tab === name)); });
     Object.keys(RENDER).forEach(function (k) { document.getElementById(k).hidden = k !== name; });
-    store("kaia.tab", name);
+    store("watch.tab", name);
     if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
+    if (name === "market") fetchKaiaChart(kaiaDays).then(function () { if (current === "market") renderMarket(); });
+    if (name === "sources") renderSources();
   }
   tabs.forEach(function (t) { t.addEventListener("click", function () { show(t.dataset.tab); window.scrollTo(0, 0); }); });
-
-  function getJson(url) {
-    return fetch(url, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(null, function () { return null; });
+  function safe(fn) { try { fn(); } catch (e) { if (window.console) console.error(e); } }
+  function refreshViews() {
+    safe(updateHome);
+    if (current === "news") safe(function () { renderNews(false); });
+    if (current === "market") safe(renderMarket);
+    if (current === "sources") safe(renderSources);
   }
-  Promise.all([getJson(DATA_URL + "?t=" + Math.floor(Date.now() / 60000)), getJson(KB_URL + "?t=" + Math.floor(Date.now() / 600000))]).then(function (res) {
-    DATA = res[0];
-    KB = res[1];
+  // 種類ごとに間隔を変えて取りに行く（画面を閉じている間は止める）
+  var JOBS = [
+    { every: 10e3, run: fetchBlock },
+    { every: 60e3, run: function () { return Promise.all([fetchKaia(), fetchJpyc()]); } },
+    { every: 5 * 60e3, run: function () { return Promise.all([fetchRates(), fetchAnn(), fetchSite()]); } },
+    { every: 30 * 60e3, run: function () { return Promise.all([fetchKaiaChart(30), fetchJpycHist(), fetchTvl()]); } }
+  ];
+  function tick() {
+    if (document.hidden) return;
+    JOBS.forEach(function (j) {
+      if (j.busy || (j.last && Date.now() - j.last < j.every)) return;
+      j.busy = true; j.last = Date.now();
+      Promise.resolve(j.run()).then(function () { j.busy = false; refreshViews(); }, function () { j.busy = false; });
+    });
+  }
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) tick(); });
+
+  Promise.all([fetchSite(), getJson(KB_URL + "?t=" + Math.floor(Date.now() / 600000)).then(function (d) { KB = d; }).catch(function () { KB = null; })]).then(function () {
     document.getElementById("loading").remove();
-    if (!DATA && !KB) {
-      var main = document.querySelector("main");
-      main.insertBefore(el("div", { class: "loading", text: "データを読み込めませんでした。少し時間をおいて開き直してください。" }), main.firstChild);
-      return;
-    }
-    if (!DATA || DATA.prep_mode) document.getElementById("prepBadge").hidden = false;
-    var up = DATA && parseDate(DATA.updated_at);
-    if (up) document.getElementById("updated").append("ニュース更新 " + mdw(DATA.updated_at) + " " + hm(up), el("br"), ago(DATA.updated_at));
     prepareCards();
-    renderAll();
-    var start = (location.hash || "").slice(1) || store("kaia.tab") || "today";
-    if (start === "history") start = "today";
-    if (start === "numbers" || start === "topics") start = "data";
-    show(start);
+    Object.keys(RENDER).forEach(function (k) { safe(RENDER[k]); });
+    var start = (location.hash || "").slice(1) || store("watch.tab") || "home";
+    show(RENDER[start] ? start : "home");
+    tick();
+    setInterval(tick, 5000);
   });
 })();
 </script>

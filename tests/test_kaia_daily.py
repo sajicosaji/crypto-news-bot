@@ -229,6 +229,8 @@ def test_publish_web_keeps_archive_and_writes_preview(conn, tmp_path, monkeypatc
     monkeypatch.setattr(k, "BASE_DIR", tmp_path)
     monkeypatch.setattr(k, "chain_numbers", lambda: {"jpy": 1})
     monkeypatch.setattr(k, "unifi_rates", lambda now=None: {"jpyc": {"baseRate": 0.02}})
+    monkeypatch.setattr(k, "kaia_price", lambda: {"jpy": 5.0})
+    monkeypatch.setattr(k, "jpyc_supply", lambda: {"total": 3_000_000_000})
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
     _add(conn, "https://a", story="s", topic="kaia", hours_ago=3)
     cfg = {"kaia_daily": {**_kcfg(), "web": {"enabled": True}}}
@@ -381,3 +383,14 @@ def test_unifi_rates_by_token(monkeypatch):
     assert rates["usdt"]["plusBaseRate"] == 0.07
     assert rates["jpyc"]["baseRate"] == 0.02
     assert rates["checked_at"].startswith("2026-10-24")
+
+
+def test_daily_snapshots_keep_one_row_per_day():
+    site = {"daily": [{"date": "2026-10-23", "kaia_jpy": 5.1}, {"date": "2026-10-24", "kaia_jpy": 5.2, "jpyc": 100}]}
+    market = {"kaia": {"jpy": 5.3}, "jpyc": {}}
+    unifi = {"jpyc": {"baseRate": 0.02}, "usdt": {"baseRate": 0.03, "plusBaseRate": 0.07}}
+    days = k.daily_snapshots(site, NOW, market, unifi, {"tvl": 1})
+    assert [d["date"] for d in days] == ["2026-10-23", "2026-10-24"]
+    today = days[-1]
+    # 今日の値は新しい値で上書きし、取れなかったJPYCは前の値を残す
+    assert today["kaia_jpy"] == 5.3 and today["jpyc"] == 100 and today["unifi_usdt_plus"] == 0.07
