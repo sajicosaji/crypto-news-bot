@@ -288,10 +288,17 @@ def kaia_price() -> dict:
         k = (resp.json() if resp is not None else {}).get("kaia") or {}
     except ValueError:
         k = {}
-    if not k.get("jpy"):
+    if k.get("jpy"):
+        return {"jpy": k["jpy"], "usd": k.get("usd"), "jpy_24h_change": k.get("jpy_24h_change"),
+                "jpy_market_cap": k.get("jpy_market_cap"), "jpy_24h_vol": k.get("jpy_24h_vol"), "src": "CoinGecko"}
+    # CoinGeckoは無料枠の回数制限で断られることがある → 日本の取引所bitbankの円建て（銘柄名は旧称のKLAY）
+    resp = _http_get("https://public.bitbank.cc/klay_jpy/ticker")
+    try:
+        t = (resp.json() if resp is not None else {}).get("data") or {}
+        last, open_ = float(t["last"]), float(t.get("open") or 0)
+    except (ValueError, KeyError, TypeError):
         return {}
-    return {"jpy": k["jpy"], "usd": k.get("usd"), "jpy_24h_change": k.get("jpy_24h_change"),
-            "jpy_market_cap": k.get("jpy_market_cap"), "jpy_24h_vol": k.get("jpy_24h_vol")}
+    return {"jpy": last, "jpy_24h_change": (last / open_ - 1) * 100 if open_ else None, "src": "bitbank（KLAY/JPY）"}
 
 
 def daily_snapshots(site: dict, now: datetime, market: dict, unifi: dict, numbers: dict, keep: int = 400) -> list[dict]:

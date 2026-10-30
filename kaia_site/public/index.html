@@ -366,16 +366,53 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
   }, 30000);
 
   // ---------- 取りに行く（ブラウザから直接） ----------
+  // CoinGeckoは無料枠の回数制限（429）がきついので、断られたら10分間は予備（bitbankの円建て・DefiLlama）を使う
+  var geckoRestUntil = 0;
+  function gecko(path) {
+    if (Date.now() < geckoRestUntil) return Promise.reject(new Error("CoinGecko 休憩中"));
+    return getJson(GECKO + path).catch(function (e) { geckoRestUntil = Date.now() + 10 * 60 * 1000; throw e; });
+  }
+  var fx = null;  // 1ドルあたりの円（DefiLlamaのJPYC価格から）
+  function fetchLlamaPrice() {
+    return getJson("https://coins.llama.fi/prices/current/coingecko:kaia,coingecko:jpycoin").then(function (d) {
+      var c = d.coins || {};
+      if (c["coingecko:jpycoin"] && c["coingecko:jpycoin"].price) fx = 1 / c["coingecko:jpycoin"].price;
+      return c["coingecko:kaia"] ? c["coingecko:kaia"].price : null;
+    });
+  }
   function fetchKaia() {
-    return getJson(GECKO + "/simple/price?ids=kaia&vs_currencies=jpy,usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true")
-      .then(function (d) { if (!d.kaia || !d.kaia.jpy) throw new Error("no data"); L.kaia = d.kaia; L.kaia.at = Date.now(); ok("kaia"); })
-      .catch(function (e) { ng("kaia", e); });
+    return gecko("/simple/price?ids=kaia&vs_currencies=jpy,usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true")
+      .then(function (d) {
+        if (!d.kaia || !d.kaia.jpy) throw new Error("no data");
+        L.kaia = Object.assign(d.kaia, { at: Date.now(), src: "CoinGecko" });
+      })
+      .catch(function () {
+        // 予備：日本の取引所bitbankの円建て価格（銘柄名は旧称のKLAY）＋DefiLlamaのドル建て価格
+        return Promise.all([getJson("https://public.bitbank.cc/klay_jpy/ticker"), fetchLlamaPrice().catch(function () { return null; })]).then(function (r) {
+          var t = r[0] && r[0].data;
+          if (!t || !t.last) throw new Error("no data");
+          var last = Number(t.last), open = Number(t.open);
+          var prev = L.kaia || (DATA && DATA.market && DATA.market.kaia) || {};
+          L.kaia = { jpy: last, usd: r[1] || prev.usd, jpy_24h_change: open ? (last / open - 1) * 100 : null,
+            jpy_market_cap: prev.jpy_market_cap ? prev.jpy_market_cap * last / (prev.jpy || last) : null, at: Date.now(), src: "bitbank（KLAY/JPY）" };
+        });
+      })
+      .then(function () { ok("kaia"); }, function (e) { ng("kaia", e); });
   }
   function fetchKaiaChart(days) {
     if (L.chart[days] && Date.now() - L.chart[days].at < 30 * 60 * 1000) return Promise.resolve();
-    return getJson(GECKO + "/coins/kaia/market_chart?vs_currency=jpy&days=" + days + (days > 90 ? "&interval=daily" : ""))
-      .then(function (d) { L.chart[days] = { at: Date.now(), points: (d.prices || []).map(function (p) { return { t: p[0], v: p[1] }; }) }; ok("kaiaChart"); })
-      .catch(function (e) { ng("kaiaChart", e); });
+    return gecko("/coins/kaia/market_chart?vs_currency=jpy&days=" + days + (days > 90 ? "&interval=daily" : ""))
+      .then(function (d) { return { src: "CoinGecko", points: (d.prices || []).map(function (p) { return { t: p[0], v: p[1] }; }) }; })
+      .catch(function () {
+        // 予備：DefiLlamaのドル建ての推移を円に直す
+        var q = days <= 7 ? "span=42&period=4h" : "span=" + days + "&period=1d";
+        return Promise.all([getJson("https://coins.llama.fi/chart/coingecko:kaia?" + q), fx ? Promise.resolve() : fetchLlamaPrice()]).then(function (r) {
+          var pts = (((r[0].coins || {})["coingecko:kaia"] || {}).prices || []);
+          if (!pts.length || !fx) throw new Error("no data");
+          return { src: "DefiLlama（ドル建てを円に換算）", points: pts.map(function (p) { return { t: p.timestamp * 1000, v: p.price * fx }; }) };
+        });
+      })
+      .then(function (c) { if (c.points.length < 3) throw new Error("no data"); L.chart[days] = Object.assign(c, { at: Date.now() }); ok("kaiaChart"); }, function (e) { ng("kaiaChart", e); });
   }
   function fetchJpyc() {
     var calls = [["eth_call", [{ to: JPYC, data: "0x18160ddd" }, "latest"]]].concat(JPYC_ISSUER.map(function (a) {
@@ -584,7 +621,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
       el("div", { class: "value" }, [yen(k.jpy), el("small", { class: cls(k.jpy_24h_change), text: pct(k.jpy_24h_change, true) })]),
       el("div", { class: "sub", text: "$" + (k.usd || 0).toFixed(4) + "　時価総額 約" + oku(k.jpy_market_cap || k.jpy_usd_market_cap, 0) + "円" }),
       L.chart[30] ? spark(L.chart[30].points, "var(--kaia)") : null,
-      foot([el("span", { class: k.stale ? "ng" : "ok", text: k.stale ? "控えの値（" + (DATA.market.checked_at ? hm(parseDate(DATA.market.checked_at)) : "") + "）" : "CoinGecko " + hms(new Date(L.kaia.at)) }), el("span", { text: "グラフは30日" })])
+      foot([el("span", { class: k.stale ? "ng" : "ok", text: k.stale ? "控えの値（" + (DATA.market.checked_at ? hm(parseDate(DATA.market.checked_at)) : "") + "）" : L.kaia.src + " " + hms(new Date(L.kaia.at)) }), el("span", { text: "グラフは30日" })])
     ] : [el("div", { class: "head", text: "KAIA 価格" }), el("div", { class: "empty", text: "取得中…" })]);
 
     // JPYC流通量
@@ -732,7 +769,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
       el("h2", null, ["KAIA 価格（円）", el("span", { class: "now", text: L.kaia ? yen(L.kaia.jpy) : "" })]),
       el("div", { style: "margin:-2px 0 8px" }, [seg]),
       kc ? chart(kc.points, "var(--kaia)", function (v) { return yen(v); }) : el("div", { class: "empty", text: "読み込み中…" }),
-      el("p", { class: "small muted", style: "margin:6px 0 0", text: "出典：CoinGecko" })
+      el("p", { class: "small muted", style: "margin:6px 0 0", text: "出典：" + (kc ? kc.src : "CoinGecko") })
     ]));
     // JPYC流通量
     var jh = L.jpycHist;
@@ -862,7 +899,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
 
   // ---------- 🔌 情報源 ----------
   var SOURCES = [
-    ["kaia", "KAIAの価格", "CoinGecko", "https://www.coingecko.com/ja/coins/kaia", "1分ごと"],
+    ["kaia", "KAIAの価格", "CoinGecko（混んでいるときはbitbank・DefiLlama）", "https://www.coingecko.com/ja/coins/kaia", "2分ごと"],
     ["jpyc-Polygon", "JPYC流通量（Polygon）", "ブロックチェーン（publicnode）", "https://polygonscan.com/token/0xe7c3d8c9a439fede00d2600032d5db0be71c3c29", "1分ごと"],
     ["jpyc-Ethereum", "JPYC流通量（Ethereum）", "ブロックチェーン（publicnode）", "https://etherscan.io/token/0xe7c3d8c9a439fede00d2600032d5db0be71c3c29", "1分ごと"],
     ["jpyc-Kaia", "JPYC流通量（Kaia）", "Kaia公開ノード", "https://kaiascan.io/token/0xe7c3d8c9a439fede00d2600032d5db0be71c3c29", "1分ごと"],
@@ -929,7 +966,8 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
   // 種類ごとに間隔を変えて取りに行く（画面を閉じている間は止める）
   var JOBS = [
     { every: 10e3, run: fetchBlock },
-    { every: 60e3, run: function () { return Promise.all([fetchKaia(), fetchJpyc()]); } },
+    { every: 60e3, run: fetchJpyc },
+    { every: 120e3, run: fetchKaia },
     { every: 5 * 60e3, run: function () { return Promise.all([fetchRates(), fetchAnn(), fetchSite()]); } },
     { every: 30 * 60e3, run: function () { return Promise.all([fetchKaiaChart(30), fetchJpycHist(), fetchTvl()]); } }
   ];
