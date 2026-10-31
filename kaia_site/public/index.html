@@ -195,6 +195,14 @@ table.tbl th { font-size: 12px; color: var(--ink-3); font-weight: 700; }
 .term .p { color: var(--ink-3); font-size: 13px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 4px; }
 
 /* はじめての人向け */
+.tiles.mini { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.tiles.mini .tile { min-height: 0; padding: 12px; cursor: pointer; }
+.tiles.mini .tile .value { font-size: 24px; }
+.tiles.mini .tile .value small { display: block; margin-left: 0; font-size: 13px; }
+.tiles.mini .tile .sub { font-size: 12px; }
+.tiles.mini .legend { grid-template-columns: 1fr; font-size: 11.5px; }
+.tiles.mini .spark { height: 38px; }
+@media (min-width: 700px) { .tiles.mini .tile .value { font-size: 28px; } .tiles.mini .legend { grid-template-columns: 1fr 1fr; } }
 .intro .intro-row { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-bottom: 1px dashed var(--line); }
 .intro .intro-row:last-of-type { border-bottom: 0; }
 .intro .ic { font-size: 22px; line-height: 1.3; }
@@ -670,7 +678,8 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     homeNodes.ann = el("div", { class: "list" });
     homeNodes.events = el("div", { class: "list" });
     homeNodes.news = el("div", { class: "list" });
-    homeNodes.nums = el("div", { class: "nums" });
+    homeNodes.kaia = el("div", { class: "tile", role: "button", tabindex: "0", onclick: function () { show("market"); window.scrollTo(0, 0); } });
+    homeNodes.jpyc = el("div", { class: "tile", role: "button", tabindex: "0", onclick: function () { show("market"); window.scrollTo(0, 0); } });
     homeNodes.tip = el("div", { class: "card daily-card" });
     var input = el("input", { class: "calc-in", type: "number", inputmode: "numeric", min: "0", step: "1000", value: String(calcAmount), "aria-label": "入れるJPYCの数量" });
     input.addEventListener("input", function () { calcAmount = Math.max(0, Number(input.value) || 0); store("watch.calc", String(calcAmount)); updateCalc(); });
@@ -696,6 +705,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     }));
 
     root.appendChild(homeNodes.status);
+    root.appendChild(el("div", { class: "tiles mini" }, [homeNodes.jpyc, homeNodes.kaia]));
     root.appendChild(intro);
     root.appendChild(unifi);
     root.appendChild(el("div", { class: "sec-title", text: "🧭 やりたいこと" }));
@@ -708,8 +718,6 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     root.appendChild(homeNodes.events);
     root.appendChild(el("div", { class: "sec-title" }, ["🗞 最新ニュース", el("button", { class: "more", type: "button", onclick: function () { show("news"); } }, ["すべて見る →"])]));
     root.appendChild(homeNodes.news);
-    root.appendChild(el("div", { class: "sec-title" }, ["📈 数字", el("button", { class: "more", type: "button", onclick: function () { show("market"); } }, ["データを見る →"])]));
-    root.appendChild(homeNodes.nums);
     root.appendChild(el("div", { class: "sec-title", text: "💡 今日の豆知識" }));
     root.appendChild(homeNodes.tip);
     updateHome();
@@ -745,12 +753,8 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     fill(homeNodes.events, evs.length ? evs.map(eventRow) : [el("div", { class: "empty", text: "予定はありません" })]);
     var plain = news.filter(function (x) { return x.source !== "Unifi公式のお知らせ" && !isDev(x) && isJa(x); }).slice(0, 5);
     fill(homeNodes.news, plain.length ? plain.map(newsItem) : [el("div", { class: "empty", text: news.length ? "新しいニュースはありません" : "読み込み中…" })]);
-    var k = L.kaia || (DATA && DATA.market && DATA.market.kaia);
-    var jt = L.jpyc ? L.jpyc.total : DATA && DATA.market && DATA.market.jpyc ? DATA.market.jpyc.total : null;
-    fill(homeNodes.nums, [
-      el("button", { class: "num-pill", type: "button", onclick: function () { show("market"); } }, [el("span", { text: "JPYCの流通量" }), el("b", { text: jt ? oku(jt) + "JPYC" : "—" })]),
-      el("button", { class: "num-pill", type: "button", onclick: function () { show("market"); } }, [el("span", { text: "KAIAの価格" }), el("b", null, [k ? yen(k.jpy) : "—", k && k.jpy_24h_change !== undefined ? el("small", { class: cls(k.jpy_24h_change), text: " " + pct(k.jpy_24h_change, true) }) : null])])
-    ]);
+    fillJpycTile(homeNodes.jpyc, true);
+    fillKaiaTile(homeNodes.kaia, true);
     var c = cardOfTheDay();
     fill(homeNodes.tip, c ? [el("div", { class: "k", text: "今日の豆知識" }), el("div", { class: "q", text: "Q. " + c.q }), el("div", { text: c.one }),
       el("div", { style: "margin-top:8px" }, [el("button", { class: "btn", type: "button", onclick: function () { openCard(c.id); } }, ["📚 くわしく読む"])])] : []);
@@ -875,6 +879,34 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
 
   // ---------- 📈 データ ----------
   function foot(parts) { return el("div", { class: "foot" }, parts); }
+  function jpycPrev() { return L.jpycHist && L.jpycHist.points.length ? L.jpycHist.points[L.jpycHist.points.length - 1].v : null; }
+  function fillKaiaTile(node, mini) {
+    var k = L.kaia || (DATA && DATA.market && DATA.market.kaia && { jpy: DATA.market.kaia.jpy, usd: DATA.market.kaia.usd, jpy_24h_change: DATA.market.kaia.jpy_24h_change, jpy_market_cap: DATA.market.kaia.jpy_market_cap, stale: true });
+    fill(node, k ? [
+      el("div", { class: "head" }, [el("span", { class: "badge kaia", text: "KAIA" }), mini ? "価格" : "Kaiaのコイン 価格"]),
+      el("div", { class: "value" }, [yen(k.jpy), el("small", { class: cls(k.jpy_24h_change), text: pct(k.jpy_24h_change, true) })]),
+      el("div", { class: "sub", text: mini ? "$" + (k.usd || 0).toFixed(4) + "・30日" : "$" + (k.usd || 0).toFixed(4) + "　時価総額 約" + oku(k.jpy_market_cap, 0) + "円" }),
+      L.chart[30] ? spark(L.chart[30].points, "var(--kaia)") : null,
+      foot([el("span", { class: k.stale ? "ng" : "ok", text: k.stale ? "控えの値" : L.kaia.src + " " + hms(new Date(L.kaia.at)) })])
+    ] : [el("div", { class: "head", text: "KAIA 価格" }), el("div", { class: "empty", text: "取得中…" })]);
+  }
+  function fillJpycTile(node, mini) {
+    var j = L.jpyc, jprev = jpycPrev();
+    var jfall = !j && DATA && DATA.market && DATA.market.jpyc && DATA.market.jpyc.total ? DATA.market.jpyc : null;
+    var rows = j ? j.rows : jfall ? Object.keys(jfall.by_chain).map(function (key) { var c = CHAINS.filter(function (x) { return x.key === key; })[0]; return { name: key, circ: jfall.by_chain[key], color: c ? c.color : "var(--ink-3)" }; }) : [];
+    var total = j ? j.total : jfall ? jfall.total : 0;
+    rows = rows.slice().sort(function (a, b) { return b.circ - a.circ; });
+    var hist = L.jpycHist ? L.jpycHist.points.slice(-90).concat(total ? [{ t: Date.now(), v: total }] : []) : null;
+    fill(node, total ? [
+      el("div", { class: "head" }, [el("span", { class: "badge jpyc", text: "JPYC" }), mini ? "流通量" : "デジタルの円 流通量"]),
+      el("div", { class: "value" }, [oku(total), el("small", { text: "JPYC" })]),
+      el("div", { class: "sub" }, (jprev ? ["前日比 ", el("b", { class: cls(total / jprev - 1), text: pct((total / jprev - 1) * 100, true) })] : []).concat(mini ? ["・90日"] : [])),
+      mini && hist ? spark(hist, "var(--jpyc)") : null,
+      el("div", { class: "bars" }, rows.map(function (r) { return el("span", { style: "width:" + (r.circ / total * 100).toFixed(2) + "%;background:" + r.color, title: r.name }); })),
+      el("div", { class: "legend" }, rows.map(function (r) { return el("span", null, [el("i", { style: "background:" + r.color }), r.name + " " + oku(r.circ, 1)]); })),
+      foot([el("span", { class: j && j.live ? "ok" : "ng", text: j && j.live ? "ブロックチェーン " + hms(new Date(j.at)) : "DefiLlama" })])
+    ] : [el("div", { class: "head", text: "JPYC 流通量" }), el("div", { class: "empty", text: "取得中…" })]);
+  }
   function dataTiles() {
     var tiles = { kaia: el("div", { class: "tile" }), jpyc: el("div", { class: "tile" }), unifi: el("div", { class: "tile" }), net: el("div", { class: "tile" }) };
     var bits = [];
@@ -889,28 +921,8 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     var now = new Date();
     var today = el("div", { class: "today" }, [el("div", { class: "when", text: mdw(now.getTime()) + " " + hm(now) }), text]);
 
-    var k = L.kaia || (DATA && DATA.market && DATA.market.kaia && { jpy: DATA.market.kaia.jpy, usd: DATA.market.kaia.usd, jpy_24h_change: DATA.market.kaia.jpy_24h_change, jpy_market_cap: DATA.market.kaia.jpy_market_cap, stale: true });
-    fill(tiles.kaia, k ? [
-      el("div", { class: "head" }, [el("span", { class: "badge kaia", text: "KAIA" }), "Kaiaのコイン 価格"]),
-      el("div", { class: "value" }, [yen(k.jpy), el("small", { class: cls(k.jpy_24h_change), text: pct(k.jpy_24h_change, true) })]),
-      el("div", { class: "sub", text: "$" + (k.usd || 0).toFixed(4) + "　時価総額 約" + oku(k.jpy_market_cap, 0) + "円" }),
-      L.chart[30] ? spark(L.chart[30].points, "var(--kaia)") : null,
-      foot([el("span", { class: k.stale ? "ng" : "ok", text: k.stale ? "控えの値" : L.kaia.src + " " + hms(new Date(L.kaia.at)) })])
-    ] : [el("div", { class: "head", text: "KAIA 価格" }), el("div", { class: "empty", text: "取得中…" })]);
-
-    var j = L.jpyc;
-    var jfall = !j && DATA && DATA.market && DATA.market.jpyc && DATA.market.jpyc.total ? DATA.market.jpyc : null;
-    var rows = j ? j.rows : jfall ? Object.keys(jfall.by_chain).map(function (key) { var c = CHAINS.filter(function (x) { return x.key === key; })[0]; return { name: key, circ: jfall.by_chain[key], color: c ? c.color : "var(--ink-3)" }; }) : [];
-    var total = j ? j.total : jfall ? jfall.total : 0;
-    rows = rows.slice().sort(function (a, b) { return b.circ - a.circ; });
-    fill(tiles.jpyc, total ? [
-      el("div", { class: "head" }, [el("span", { class: "badge jpyc", text: "JPYC" }), "デジタルの円 流通量"]),
-      el("div", { class: "value" }, [oku(total), el("small", { text: "JPYC" })]),
-      el("div", { class: "sub" }, (jprev ? ["前日比 ", el("b", { class: cls(total / jprev - 1), text: pct((total / jprev - 1) * 100, true) })] : [])),
-      el("div", { class: "bars" }, rows.map(function (r) { return el("span", { style: "width:" + (r.circ / total * 100).toFixed(2) + "%;background:" + r.color, title: r.name }); })),
-      el("div", { class: "legend" }, rows.map(function (r) { return el("span", null, [el("i", { style: "background:" + r.color }), r.name + " " + oku(r.circ)]); })),
-      foot([el("span", { class: j && j.live ? "ok" : "ng", text: j && j.live ? "ブロックチェーン " + hms(new Date(j.at)) : "DefiLlama" })])
-    ] : [el("div", { class: "head", text: "JPYC 流通量" }), el("div", { class: "empty", text: "取得中…" })]);
+    fillKaiaTile(tiles.kaia, false);
+    fillJpycTile(tiles.jpyc, false);
 
     var rates = curRates();
     fill(tiles.unifi, rates && (rates.jpyc || rates.usdt) ? [
