@@ -24,3 +24,7 @@ data/*.db
 
 # Unifi公式サイトの調べもの（kaia_site/unifi_official.py の保存先）
 data/unifi_official/
+
+# Unifiウォッチの閲覧数ページの鍵（Pages の secret STATS_KEY の控え）。公開リポジトリなので絶対にコミットしない
+kaia_site/stats_key.txt
+kaia_site/.dev.vars

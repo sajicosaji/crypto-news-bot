@@ -727,6 +727,22 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     ]);
   }
 
+  // ---------- 閲覧の記録（持ち主の集計ページ用。端末ごとのランダムな番号だけを送る） ----------
+  var FRAMED = (function () { try { return window.top !== window.self; } catch (e) { return true; } })();
+  function hit(e, k) {
+    if (FRAMED || navigator.webdriver || location.protocol !== "https:" || store("watch.noCount") === "1") return;
+    try {
+      var vid = store("watch.vid");
+      if (!vid) { vid = (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36)).replace(/-/g, ""); store("watch.vid", vid); }
+      var app = false;
+      try { app = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; } catch (x) { /* 判定できなくても送る */ }
+      fetch("/api/hit", { method: "POST", headers: { "content-type": "application/json" }, credentials: "same-origin", keepalive: true, body: JSON.stringify({ v: vid, e: e, k: k || "", app: app ? 1 : 0 }) })
+        .then(function (r) { return r.status === 200 ? r.json() : null; })
+        .then(function (j) { if (j && /^[a-z0-9]{8,40}$/i.test(j.v || "") && j.v !== vid) store("watch.vid", j.v); })
+        .catch(function () {});
+    } catch (x) { /* 記録できなくても使える */ }
+  }
+
   // ---------- 共有・ホーム画面に追加 ----------
   var SITE_URL = "https://kaia-jpyc-desk.pages.dev/";
   var installPrompt = null;
@@ -743,11 +759,12 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
       el("div", null, [el("b", { text: "LINEの中で開いているとき：" }), "右上の︙ →「ブラウザで開く」から上の手順"])
     ]);
     var add = el("button", { class: "btn", type: "button", onclick: function () {
+      hit("share", "home");
       if (installPrompt) { installPrompt.prompt(); installPrompt = null; return; }
       how.hidden = !how.hidden;
     } }, ["📲 ホーム画面に追加"]);
-    var copy = el("button", { class: "btn", type: "button", onclick: function () { copyLink(copy); } }, ["🔗 リンクをコピー"]);
-    var line = el("a", { class: "btn", href: "https://line.me/R/share?text=" + encodeURIComponent("Unifi・JPYC・Kaia ウォッチ\n" + SITE_URL), target: "_blank", rel: "noopener" }, ["💬 LINEで送る"]);
+    var copy = el("button", { class: "btn", type: "button", onclick: function () { hit("share", "copy"); copyLink(copy); } }, ["🔗 リンクをコピー"]);
+    var line = el("a", { class: "btn", href: "https://line.me/R/share?text=" + encodeURIComponent("Unifi・JPYC・Kaia ウォッチ\n" + SITE_URL), target: "_blank", rel: "noopener", onclick: function () { hit("share", "line"); } }, ["💬 LINEで送る"]);
     return el("div", { class: "card keep" }, [el("h2", { text: "📌 このサイトを手元に残す" }), el("div", { class: "keep-url", text: SITE_URL.replace(/\/$/, "") }), el("div", { class: "actions" }, [add, line, copy]), how]);
   }
 
@@ -1356,7 +1373,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     if (name === "news") { renderNews(false); newsOpened = true; updateBadge(); saveSeen(); }
     if (name === "risk") renderRisk(false);
   }
-  tabs.forEach(function (t) { t.addEventListener("click", function () { show(t.dataset.tab); window.scrollTo(0, 0); }); });
+  tabs.forEach(function (t) { t.addEventListener("click", function () { show(t.dataset.tab); window.scrollTo(0, 0); hit("tab", t.dataset.tab); }); });
   function safe(fn) { try { fn(); } catch (e) { if (window.console) console.error(e); } }
   var newsOpened = false;
   function updateBadge() {
@@ -1400,6 +1417,8 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     Object.keys(RENDER).forEach(function (k) { safe(RENDER[k]); });
     var start = (location.hash || "").slice(1) || store("watch.tab") || "home";
     show(RENDER[start] ? start : "home");
+    // 開いてすぐ閉じた分（リンクの下見など）は数えない
+    setTimeout(function () { if (!document.hidden) hit("open"); }, 3000);
     tick();
     setInterval(tick, 5000);
   });

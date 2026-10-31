@@ -1,0 +1,18 @@
+-- 閲覧の記録（持ち主だけが /stats/<鍵> で見る）。IPアドレス・名前は保存しない
+CREATE TABLE IF NOT EXISTS hits (
+  ts INTEGER NOT NULL,
+  day TEXT NOT NULL,
+  vid TEXT NOT NULL,
+  ev TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT '',
+  dev TEXT NOT NULL DEFAULT '',
+  app INTEGER NOT NULL DEFAULT 0,
+  line INTEGER NOT NULL DEFAULT 0,
+  country TEXT NOT NULL DEFAULT '',
+  region TEXT NOT NULL DEFAULT '',
+  bot INTEGER NOT NULL DEFAULT 0,
+  asn INTEGER NOT NULL DEFAULT 0,
+  org TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS hits_vid ON hits(vid, ev, ts);
+CREATE INDEX IF NOT EXISTS hits_day ON hits(day);

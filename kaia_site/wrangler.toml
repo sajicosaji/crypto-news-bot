@@ -1,0 +1,11 @@
+# Unifi・JPYC・Kaia ウォッチ（Cloudflare Pages「kaia-jpyc-desk」）。静的ファイルは public/
+# 公開は kaia_site フォルダで: wrangler.cmd pages deploy public --project-name kaia-jpyc-desk --branch main --commit-dirty=true
+name = "kaia-jpyc-desk"
+pages_build_output_dir = "./public"
+compatibility_date = "2026-10-01"
+
+# 閲覧数（持ち主だけが見る /stats/<鍵>）の保存場所。鍵は Pages の secret STATS_KEY（リポジトリには入れない）
+[[d1_databases]]
+binding = "DB"
+database_name = "kaia-watch-stats"
+database_id = "1a7480c1-6c54-434c-90b4-5ad8c7a66c2b"
