@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import base64
 import calendar
+import hashlib
 import html as html_lib
 import json
 import logging
@@ -66,7 +67,7 @@ _UNIFI_CONTEXT = re.compile(r"LINE|ステーブルコイン|stablecoin|JPYC|USDT
 def mentions_unifi(text: str) -> bool:
     if _KW_UNIFI_SURE.search(text):
         return True
-    return bool(re.search(r"Unifi", text, re.IGNORECASE) and _UNIFI_CONTEXT.search(text)
+    return bool(re.search(r"(?<![A-Za-z])Unifi(?![A-Za-z])", text, re.IGNORECASE) and _UNIFI_CONTEXT.search(text)
                 and not re.search(r"Ubiquiti", text, re.IGNORECASE))
 
 
@@ -190,6 +191,8 @@ def ensure_schema(conn) -> None:
     for column in ("topic", "digest_on"):
         if column not in existing:
             conn.execute(f"ALTER TABLE kaia_items ADD COLUMN {column} TEXT")
+    # 古い目印（日本語だけの見出しが「-」、英数字が少しだけの「jpyc」など）でまとまってしまった記事をほどく
+    conn.execute("UPDATE kaia_items SET story = 'r' || rowid || '-split' WHERE story = '-' OR length(story) < 6")
     conn.commit()
 
 
@@ -310,6 +313,53 @@ def kaia_price() -> dict:
     except (ValueError, KeyError, TypeError):
         return {}
     return {"jpy": last, "jpy_24h_change": (last / open_ - 1) * 100 if open_ else None, "src": "bitbank（KLAY/JPY）"}
+
+
+# Unifiのリワード率のうち、変わったら知らせる項目（JPYCの最大＝基本なので重ねて数えない）
+RATE_FIELDS = [("jpyc", "baseRate", "JPYCのリワード率"), ("jpyc", "promotionRate", "JPYCのキャンペーン率"),
+               ("usdt", "baseRate", "USDT BASICの率"), ("usdt", "plusBaseRate", "USDT PLUSモードの率"),
+               ("usdt", "kaiaBoostMaxRate", "USDTのKAIAブーストの上乗せ"), ("usdt", "promotionRate", "USDTのキャンペーン率")]
+
+
+def _pct(x) -> str:
+    return "なし" if not x else f"{round(x * 100, 2):g}%"
+
+
+def _change_text(name: str, before, after) -> str:
+    if not after:
+        return f"{name}（年{_pct(before)}）が終了"
+    if not before:
+        return f"{name}が始まった（年{_pct(after)}）"
+    return f"{name}が年{_pct(before)}→年{_pct(after)}に"
+
+
+def rate_changes(prev: dict, cur: dict, now: datetime) -> list[dict]:
+    """前回の公式の数字と比べて変わった率（どちらかが取れていないときは比べない）。"""
+    if not prev or not cur:
+        return []
+    out = []
+    for token, field, name in RATE_FIELDS:
+        a, b = (prev.get(token) or {}), (cur.get(token) or {})
+        if not a or not b or (a.get(field) or 0) == (b.get(field) or 0):
+            continue
+        out.append({"at": now.isoformat(), "token": token, "field": field, "name": name,
+                    "before": a.get(field), "after": b.get(field),
+                    "text": _change_text(name, a.get(field), b.get(field))})
+    return out
+
+
+def rate_change_news(changes: list[dict], now: datetime, days: int = 14) -> list[dict]:
+    """率の変更をニュース一覧に1件ずつ出す（公式サイトの数字が変わったという事実だけ）。"""
+    out = []
+    for c in changes:
+        at = _parse_iso(c["at"])
+        if at is None or now - at > timedelta(days=days):
+            continue
+        out.append({"title": f"Unifiの{c['text']}", "original_title": "", "source": "Unifi公式サイトの数字",
+                    "label": "Unifi公式（LINE NEXT）", "url": f"https://www.unifi.me/?rate={c['token']}-{c['field']}-{int(at.timestamp())}",
+                    "excerpt": "", "topic": "unifi", "date": c["at"], "importance": 5,
+                    "negative": (c["after"] or 0) < (c["before"] or 0), "price_talk": False, "digested": False, "others": []})
+    return out
 
 
 def daily_snapshots(site: dict, now: datetime, market: dict, unifi: dict, numbers: dict, keep: int = 400) -> list[dict]:
@@ -519,6 +569,13 @@ def _keyword_topic(text: str) -> str:
     return "stablecoin" if "ステーブルコイン" in text else "other"
 
 
+def story_key(title: str) -> str:
+    """AIを使わないときの「出来事」の目印。見出しごとに別にし、同じ出来事かどうかは見出しの似かたで決める。
+    （以前は英数字だけで作っていたため、日本語だけの見出しがすべて「-」になり、無関係な記事がまとまっていた）"""
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")[:50]
+    return (slug + "-" if slug else "t-") + hashlib.sha1(title.encode("utf-8")).hexdigest()[:8]
+
+
 def _heuristic_triage(row) -> dict:
     """モデルが使えないときの簡易判定（公式は大事め・値段の話は除外）。"""
     title = row["title"]
@@ -526,7 +583,7 @@ def _heuristic_triage(row) -> dict:
     return {
         "relevant": topic != "other" or row["kind"] in OFFICIAL_KINDS,
         "topic": (("unifi" if row["kind"] == "unifi" else "kaia") if topic == "other" else topic),
-        "story": re.sub(r"[^a-z0-9]+", "-", title.lower())[:60] or row["url"],
+        "story": story_key(title),
         "ja_title": title[:60],
         "importance": 4 if row["kind"] in OFFICIAL_KINDS else 3,
         "sentiment": "negative" if NEGATIVE_WORDS.search(title) else "neutral",
@@ -1197,18 +1254,34 @@ def easy_title_rule(title: str) -> str:
     return title
 
 
+# お知らせの決まり文句のあいさつ（抜粋の頭からは外す）
+_GREETING = re.compile(
+    r"^(いつも[^。]{0,30}ありがとうございます[。！!]?|こんにちは[、。！!]?|Unifiチーム(です|からのお知らせです|よりご挨拶いたします)?[、。！!]?|"
+    r"LINE NEXTチーム(です|よりこんにちは)?[、。！!]?)\s*")
+
+
+def excerpt_of(item: dict, title: str, limit: int = 90) -> str:
+    """日本語記事の抜粋の冒頭（会社紹介のかっこ書きを外し、見出しの繰り返しなら空）。"""
+    if item.get("lang") != "ja":
+        return ""
+    raw = _PAREN.sub("", item.get("summary") or item.get("body") or "")
+    raw = re.sub(r"[（(][^（）()]*$", "…", raw)  # 途中で切れたかっこ書きも外す
+    for _ in range(4):
+        raw = _GREETING.sub("", raw.strip())
+    summary = _snippet(raw, limit)
+    s_grams = _bigrams(summary)
+    if s_grams and len(s_grams & _bigrams(title)) / len(s_grams) > 0.8:
+        return ""  # 抜粋が見出しの繰り返しなら出さない
+    return summary
+
+
 def headline_digest(stories: list[dict]) -> dict:
     """Claude APIが使えないときのまとめ（見出し＋日本語記事の抜粋だけ。文章は作らない）。"""
     items = []
     for n, g in enumerate(stories, 1):
         rep = g["items"][0]
         title = rep["title"] if rep["lang"] == "ja" else (g["ja_title"] or rep["title"])
-        raw = _PAREN.sub("", rep.get("summary") or rep.get("body") or "")
-        raw = re.sub(r"[（(][^（）()]*$", "…", raw)  # 途中で切れたかっこ書きも外す
-        summary = _snippet(raw) if rep["lang"] == "ja" else ""
-        s_grams = _bigrams(summary)
-        if s_grams and len(s_grams & _bigrams(title)) / len(s_grams) > 0.8:
-            summary = ""  # 抜粋が見出しの繰り返しなら出さない
+        summary = excerpt_of(rep, title)
         clean_title = re.sub(r"\s*\.\.\.$|\s*…$", "…", title)
         items.append({"id": n, "title": clean_title, "summary": summary, "point": "",
                       "easy_title": easy_title_rule(clean_title), "easy_summary": summary, "easy_point": ""})
@@ -1489,11 +1562,14 @@ def news_board(conn, now: datetime, days: int = 7) -> list[dict]:
     out = []
     for g in sorted(_stories(conn, now, days=days), key=lambda g: g["latest_at"], reverse=True):
         rep = g["items"][0]
+        if rep["kind"] == "media" and not topic_match(f"{rep['title']} {(rep.get('summary') or '')[:400]}"):
+            continue
         title = rep["title"] if rep["lang"] == "ja" else (g["ja_title"] or rep["title"])
         out.append({
             "title": title,
             "original_title": rep["title"] if title != rep["title"] else "",
             "source": rep["source"], "label": _kind_label(rep["kind"], rep["url"]), "url": rep["url"],
+            "excerpt": excerpt_of(rep, title, 110),
             "topic": g["topic"] if g["topic"] in TOPICS else "kaia",
             "date": g["latest_at"].isoformat(), "importance": g["importance"],
             "negative": g["negative"], "price_talk": g["price_talk"], "digested": g["digested"],
@@ -1555,6 +1631,10 @@ def publish_web(conn, cfg: dict, now: datetime, entry: dict | None = None, site:
                     "urls": t.get("urls", [])} for t in load_topics()],
     }
     payload["daily"] = daily_snapshots(site, now, payload["market"], payload["unifi"], payload["numbers"])
+    # Unifiのリワード率が変わったら記録し、ニュースの先頭にも出す
+    changes = (site.get("rate_changes") or []) + rate_changes(site.get("unifi") or {}, payload["unifi"], now)
+    payload["rate_changes"] = changes[-100:]
+    payload["news"] = rate_change_news(payload["rate_changes"], now) + payload["news"]
     if dry_run or _gh_target(cfg) is None:
         preview = BASE_DIR / "data" / "kaia_site_preview.json"
         preview.parent.mkdir(parents=True, exist_ok=True)

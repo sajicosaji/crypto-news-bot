@@ -194,6 +194,30 @@ table.tbl th { font-size: 12px; color: var(--ink-3); font-weight: 700; }
 .term .d { color: var(--ink-2); font-size: 14px; margin-top: 2px; }
 .term .p { color: var(--ink-3); font-size: 13px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 4px; }
 
+/* Unifiのリワード率 */
+.rate-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.rate-cell { background: var(--unifi-bg); border-radius: 10px; padding: 8px 6px; text-align: center; }
+.rate-cell .nm { display: block; font-size: 11.5px; font-weight: 800; color: var(--unifi); }
+.rate-cell b { display: block; font-size: 22px; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.rate-cell .ds { display: block; font-size: 11px; color: var(--ink-3); }
+.rate-change { margin-top: 8px; font-size: 13px; border-top: 1px dashed var(--line); padding-top: 8px; display: grid; gap: 3px; }
+.rate-change .k { font-size: 11.5px; font-weight: 800; color: var(--ink-3); margin-right: 6px; }
+.rate-change .flag { margin-right: 6px; }
+.rate-change .more { justify-self: start; margin-left: 0; font-size: 12.5px; font-weight: 700; color: var(--accent-strong); background: none; border: 0; padding: 0; cursor: pointer; }
+
+/* ニュースを追いやすく */
+.tab-n { display: inline-block; min-width: 18px; margin-left: 4px; padding: 0 5px; border-radius: 999px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 800; line-height: 17px; text-align: center; vertical-align: 1px; }
+.tab-n[hidden] { display: none; }
+.sec-n { font-size: 12px; font-weight: 800; color: var(--accent-strong); }
+.li .excerpt { font-size: 13px; color: var(--ink-2); margin-top: 3px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.flag.major { background: var(--jpyc-bg); color: var(--jpyc); }
+.seen-line { display: flex; align-items: center; gap: 10px; margin: 22px 2px 4px; font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.seen-line::before, .seen-line::after { content: ""; flex: 1; border-top: 1px dashed var(--line); }
+details.intro-fold { padding: 12px 16px; }
+details.intro-fold > summary { cursor: pointer; font-weight: 800; }
+details.intro-fold .intro { box-shadow: none; border: 0; padding: 8px 0 0; margin: 0; }
+details.intro-fold .intro h2 { display: none; }
+
 /* はじめての人向け */
 .tiles.mini { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
 .tiles.mini .tile { min-height: 0; padding: 12px; cursor: pointer; }
@@ -301,9 +325,9 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
 <nav class="tabs" aria-label="ページの切り替え">
   <div class="wrap" role="tablist">
     <button class="tab" role="tab" data-tab="home" aria-selected="true">🏠 ホーム</button>
+    <button class="tab" role="tab" data-tab="news" aria-selected="false">🗞 ニュース<span class="tab-n" hidden></span></button>
     <button class="tab" role="tab" data-tab="guide" aria-selected="false">🧭 使い方</button>
     <button class="tab" role="tab" data-tab="risk" aria-selected="false">😈 リスク</button>
-    <button class="tab" role="tab" data-tab="news" aria-selected="false">🗞 ニュース</button>
     <button class="tab" role="tab" data-tab="market" aria-selected="false">📈 データ</button>
     <button class="tab" role="tab" data-tab="learn" aria-selected="false">📚 解説</button>
     <button class="tab" role="tab" data-tab="words" aria-selected="false">📖 用語</button>
@@ -347,6 +371,13 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
   var DATA = null, KB = null;
   var L = { kaia: null, chart: {}, jpyc: null, jpycHist: null, rates: null, ann: null, block: null, gas: null, tvl: null, tvlHist: null, superearn: null };
   var STATUS = {};  // 情報源ごとの最後の成功・失敗
+  var PREV_SEEN = Number((function () { try { return window.localStorage.getItem("watch.lastSeen"); } catch (e) { return 0; } })()) || 0;
+  var FIRST_VISIT = !PREV_SEEN;
+  function saveSeen() { try { window.localStorage.setItem("watch.lastSeen", String(Date.now())); } catch (e) { /* 保存できなくても動く */ } }
+  setTimeout(saveSeen, 20000);
+  document.addEventListener("visibilitychange", function () { if (document.hidden) saveSeen(); });
+  window.addEventListener("pagehide", saveSeen);
+  function isNew(n) { return PREV_SEEN ? n.t > PREV_SEEN : Date.now() - n.t < 24 * 3600 * 1000; }
   var NEG = new RegExp([
     "ハッキング|ハック|流出|盗難|不正|詐欺|なりすまし|偽|フィッシング|停止|中止|障害|遅延|不具合|終了|廃止|撤退|閉鎖",
     "上場廃止|取扱い?終了|下落|急落|暴落|続落|最安値|減少|急減|割れ|乖離|赤字|損失|損害|訴訟|提訴|行政処分|業務改善命令",
@@ -364,7 +395,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
       var v = attrs[k];
       if (v === null || v === undefined || v === false) return;
       if (k === "class") node.className = v;
-      else if (k === "text") node.textContent = v;
+      else if (k === "text") node.textContent = typeof v === "string" && v.indexOf("{{") >= 0 ? withRates(v) : v;
       else if (k.slice(0, 2) === "on") node.addEventListener(k.slice(2), v);
       else node.setAttribute(k, v === true ? "" : v);
     });
@@ -373,6 +404,20 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
       node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
     });
     return node;
+  }
+  // 文章中の {{JPYC}} などを、Unifi公式の今の率に置き換える（取れないときは控えの値）
+  function rateValues() {
+    var fb = (KB && KB.rate_fallback) || {}, r = (typeof curRates === "function" && curRates()) || {};
+    var j = r.jpyc ? r.jpyc.baseRate : fb.JPYC, u = r.usdt || {};
+    return { JPYC: j, USDT_BASIC: u.baseRate !== undefined ? u.baseRate : fb.USDT_BASIC, USDT_PLUS: u.plusBaseRate !== undefined ? u.plusBaseRate : fb.USDT_PLUS,
+      USDT_MAX: u.maxRate !== undefined ? u.maxRate : fb.USDT_MAX };
+  }
+  function withRates(text) {
+    var v = rateValues();
+    return text.replace(/\{\{(JPYC|USDT_BASIC|USDT_PLUS|USDT_MAX|JPYC_10K)\}\}/g, function (m, k) {
+      if (k === "JPYC_10K") return v.JPYC === undefined ? "—" : Math.round(10000 * v.JPYC).toLocaleString("ja-JP");
+      return v[k] === undefined ? "—" : (Math.round(v[k] * 1000) / 10) + "%";
+    });
   }
   function fill(node, children) { node.innerHTML = ""; children.forEach(function (c) { if (c) node.appendChild(typeof c === "string" ? document.createTextNode(c) : c); }); return node; }
   function store(key, value) {
@@ -549,11 +594,18 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
       ok("rates");
     }).catch(function (e) { ng("rates", e); });
   }
+  function annExcerpt(html) {
+    var t = String(html || "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/ㅤ/g, " ").replace(/\s+/g, " ").trim();
+    for (var i = 0; i < 5; i++) {
+      t = t.replace(/^(いつもUnifiをご利用いただき(誠に)?ありがとうございます[。！!]?|こんにちは[、。！!]?|Unifiチーム(です|からのお知らせです|よりご挨拶いたします)?[、。！!]?|LINE NEXTチーム(です|よりこんにちは)?[、。！!]?|Unifiをご利用いただき、?ありがとうございます[。！!]?)\s*/, "");
+    }
+    return t.length > 110 ? t.slice(0, 110) + "…" : t;
+  }
   function fetchAnn() {
     return getJson(UNIFI + "/announcement?size=20", { cache: "no-store", headers: { "Accept-Language": "ja-JP" } }).then(function (d) {
       L.ann = (d.content || []).map(function (a) {
         return { title: a.title, url: "https://www.unifi.me/announcement/" + a.id, source: "Unifi公式のお知らせ", label: "Unifi公式（LINE NEXT）",
-          topic: "unifi", date: new Date(a.createdAt).toISOString(), t: a.createdAt, official: true, kind: a.announcementType };
+          topic: "unifi", date: new Date(a.createdAt).toISOString(), t: a.createdAt, official: true, kind: a.announcementType, excerpt: annExcerpt(a.content) };
       });
       ok("ann");
     }).catch(function (e) { ng("ann", e); });
@@ -642,8 +694,9 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
   }
   function newsItem(n) {
     var flags = [];
-    if (Date.now() - n.t < 24 * 3600 * 1000) flags.push(el("span", { class: "flag new", text: "NEW" }));
+    if (isNew(n)) flags.push(el("span", { class: "flag new", text: "NEW" }));
     if (n.official) flags.push(el("span", { class: "flag official", text: "公式" }));
+    else if ((n.others || []).length) flags.push(el("span", { class: "flag major", text: "📌 " + (n.others.length + 1) + "社が報道" }));
     var hit = negHit(n);
     if (hit) flags.push(el("span", { class: "flag bad", text: "😈 " + hit }));
     if (n.price_talk) flags.push(el("span", { class: "flag warn", text: "値動き" }));
@@ -654,6 +707,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     return el("div", { class: "li" }, [
       el("a", { class: "t", href: n.url, target: "_blank", rel: "noopener", text: n.title }),
       n.original_title ? el("div", { class: "orig", text: n.original_title }) : null,
+      n.excerpt ? el("div", { class: "excerpt", text: n.excerpt }) : null,
       el("div", { class: "meta" }, [topicTag(n.topic)].concat(flags).concat([el("span", { text: n.source + "｜" + mdw(n.t) + " " + hm(new Date(n.t)) + "（" + ago(n.t) + "）" })])),
       relButtons((n.title || "") + " " + (n.original_title || "")),
       others
@@ -670,32 +724,36 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     var root = document.getElementById("home");
     root.innerHTML = "";
     homeNodes.status = el("div", { class: "today" });
-    homeNodes.rateBig = el("div", { class: "value" });
-    homeNodes.rateSub = el("div", { class: "sub" });
+    homeNodes.rateGrid = el("div", { class: "rate-grid" });
+    homeNodes.rateBoost = el("div", { class: "small", style: "margin-top:6px" });
+    homeNodes.rateChange = el("div", { class: "rate-change" });
+    homeNodes.calcSeg = el("span", { class: "seg" });
+    homeNodes.calcUnit = el("span", { text: "JPYC" });
     homeNodes.calcOut = el("div", { class: "calc-out" });
     homeNodes.calcNote = el("div", { class: "small muted", style: "margin-top:6px" });
     homeNodes.rateFoot = el("div", { class: "foot" });
-    homeNodes.ann = el("div", { class: "list" });
     homeNodes.events = el("div", { class: "list" });
     homeNodes.news = el("div", { class: "list" });
     homeNodes.kaia = el("div", { class: "tile", role: "button", tabindex: "0", onclick: function () { show("market"); window.scrollTo(0, 0); } });
     homeNodes.jpyc = el("div", { class: "tile", role: "button", tabindex: "0", onclick: function () { show("market"); window.scrollTo(0, 0); } });
     homeNodes.tip = el("div", { class: "card daily-card" });
-    var input = el("input", { class: "calc-in", type: "number", inputmode: "numeric", min: "0", step: "1000", value: String(calcAmount), "aria-label": "入れるJPYCの数量" });
+    var input = el("input", { class: "calc-in", type: "number", inputmode: "numeric", min: "0", step: "100", value: String(calcAmount), "aria-label": "入れる数量" });
     input.addEventListener("input", function () { calcAmount = Math.max(0, Number(input.value) || 0); store("watch.calc", String(calcAmount)); updateCalc(); });
 
     var intro = el("div", { class: "card intro" }, [el("h2", { text: "はじめての方へ" })].concat(((KB && KB.intro) || []).map(function (i) {
       return el("div", { class: "intro-row" }, [el("span", { class: "ic", text: i.icon }), el("div", null, [el("b", { text: i.name }), el("div", { class: "small", text: i.text })])]);
     })).concat([el("div", { style: "margin-top:10px" }, [el("button", { class: "btn", type: "button", onclick: function () { openCard("big-picture"); } }, ["📚 3つの関係をくわしく"])])]));
+    var rates = el("div", { class: "card unifi-card" }, [
+      el("div", { class: "head" }, [el("span", { class: "badge unifi", text: "Unifi" }), "リワード率（公式の今の数字）"]),
+      homeNodes.rateGrid, homeNodes.rateBoost, homeNodes.rateChange, homeNodes.rateFoot
+    ]);
     var unifi = el("div", { class: "card unifi-card" }, [
-      el("div", { class: "head" }, [el("span", { class: "badge unifi", text: "Unifi" }), "いまのリワード率（JPYC）"]),
-      homeNodes.rateBig, homeNodes.rateSub,
-      el("div", { class: "calc" }, [el("label", null, ["入れる額", input, "JPYC"]), homeNodes.calcOut, homeNodes.calcNote]),
+      el("div", { class: "head" }, [el("span", { class: "badge unifi", text: "Unifi" }), "いくら付く？"]),
+      el("div", { class: "calc", style: "margin-top:8px" }, [el("div", { style: "margin-bottom:8px" }, [homeNodes.calcSeg]), el("label", null, ["入れる額", input, homeNodes.calcUnit]), homeNodes.calcOut, homeNodes.calcNote]),
       el("div", { class: "pills" }, [
         el("button", { class: "pill", type: "button", onclick: function () { openGuide("cashout"); } }, ["1JPYC＝1円で円に戻せる"]),
         el("button", { class: "pill bad", type: "button", onclick: function () { show("risk"); window.scrollTo(0, 0); } }, ["😈 預金ではない（元本保証なし）"])
-      ]),
-      homeNodes.rateFoot
+      ])
     ]);
     var tasks = el("div", { class: "tasks" }, ((KB && KB.guides) || []).map(function (g) {
       return el("button", { class: "task", type: "button", onclick: function () { openGuide(g.id); } }, [el("span", { class: "ic", text: g.icon }), el("span", { text: g.title })]);
@@ -704,33 +762,50 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
       return el("div", { class: "li" }, [el("div", { class: "t", text: "😈 " + r.t }), el("div", { class: "small muted", text: r.d })]);
     }));
 
+    homeNodes.newsCount = el("span", { class: "sec-n" });
     root.appendChild(homeNodes.status);
     root.appendChild(el("div", { class: "tiles mini" }, [homeNodes.jpyc, homeNodes.kaia]));
-    root.appendChild(intro);
+    root.appendChild(rates);
+    if (FIRST_VISIT) root.appendChild(intro);
+    root.appendChild(el("div", { class: "sec-title" }, ["🗞 新着ニュース", homeNodes.newsCount, el("button", { class: "more", type: "button", onclick: function () { show("news"); window.scrollTo(0, 0); } }, ["すべて見る →"])]));
+    root.appendChild(homeNodes.news);
+    root.appendChild(el("div", { class: "sec-title" }, ["🗓 これからの予定", el("button", { class: "more", type: "button", onclick: function () { show("news"); jumpTo("news-events"); } }, ["年表を見る →"])]));
+    root.appendChild(homeNodes.events);
     root.appendChild(unifi);
     root.appendChild(el("div", { class: "sec-title", text: "🧭 やりたいこと" }));
     root.appendChild(tasks);
     root.appendChild(el("div", { class: "sec-title" }, ["😈 まず気をつけること", el("button", { class: "more", type: "button", onclick: function () { show("risk"); window.scrollTo(0, 0); } }, ["😈 リスクをすべて見る →"])]));
     root.appendChild(br);
-    root.appendChild(el("div", { class: "sec-title" }, ["📢 Unifi公式のお知らせ", el("button", { class: "more", type: "button", onclick: function () { newsFilter = "official"; show("news"); renderNews(true); } }, ["すべて見る →"])]));
-    root.appendChild(homeNodes.ann);
-    root.appendChild(el("div", { class: "sec-title" }, ["🗓 これからの予定", el("button", { class: "more", type: "button", onclick: function () { show("news"); } }, ["年表を見る →"])]));
-    root.appendChild(homeNodes.events);
-    root.appendChild(el("div", { class: "sec-title" }, ["🗞 最新ニュース", el("button", { class: "more", type: "button", onclick: function () { show("news"); } }, ["すべて見る →"])]));
-    root.appendChild(homeNodes.news);
+    if (!FIRST_VISIT) root.appendChild(el("details", { class: "card intro-fold" }, [el("summary", { text: "はじめての方へ（Unifi・JPYC・Kaiaとは）" }), intro]));
     root.appendChild(el("div", { class: "sec-title", text: "💡 今日の豆知識" }));
     root.appendChild(homeNodes.tip);
     updateHome();
   }
   function yenSmall(v) { return v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.round(v).toLocaleString("ja-JP"); }
+  var calcAsset = store("watch.calcAsset") || "jpyc";
+  var CALC = { jpyc: ["JPYC", "JPYC", "円"], usdt: ["USDT BASIC", "USDT", "ドル"], plus: ["USDT PLUS", "USDT", "ドル"] };
   function updateCalc() {
-    var r = curRates(), R = r && r.jpyc ? r.jpyc.baseRate : null;
-    if (R === null || R === undefined) { fill(homeNodes.calcOut, [el("span", { class: "muted", text: "率を取得中…" })]); return; }
-    var d = Math.pow(1 + R, 1 / 365) - 1, A = calcAmount;
-    fill(homeNodes.calcOut, [["1日", A * d], ["30日", A * (Math.pow(1 + d, 30) - 1)], ["1年", A * R]].map(function (x) {
-      return el("div", null, [el("span", { text: x[0] }), el("b", { text: "約" + yenSmall(x[1]) + "円" })]);
+    if (!CALC[calcAsset]) calcAsset = "jpyc";
+    fill(homeNodes.calcSeg, Object.keys(CALC).map(function (k) {
+      return el("button", { type: "button", "aria-pressed": String(calcAsset === k), onclick: function () { calcAsset = k; store("watch.calcAsset", k); updateCalc(); } }, [CALC[k][0]]);
     }));
-    fill(homeNodes.calcNote, ["年" + rate(R) + "のまま続いた場合。付くのは入れた翌日から、毎日 朝9時ごろ。"]);
+    fill(homeNodes.calcUnit, [CALC[calcAsset][1]]);
+    var v = rateValues(), R = calcAsset === "jpyc" ? v.JPYC : calcAsset === "usdt" ? v.USDT_BASIC : v.USDT_PLUS;
+    if (R === null || R === undefined) { fill(homeNodes.calcOut, [el("span", { class: "muted", text: "率を取得中…" })]); return; }
+    var d = Math.pow(1 + R, 1 / 365) - 1, A = calcAmount, unit = CALC[calcAsset][2];
+    fill(homeNodes.calcOut, [["1日", A * d], ["30日", A * (Math.pow(1 + d, 30) - 1)], ["1年", A * R]].map(function (x) {
+      return el("div", null, [el("span", { text: x[0] }), el("b", { text: "約" + yenSmall(x[1]) + unit })]);
+    }));
+    fill(homeNodes.calcNote, ["年" + rate(R) + "のまま続いた場合。付くのは入れた翌日から、毎日 朝9時ごろ。" + (calcAsset === "plus" ? "PLUSから戻すのに24時間。" : "")]);
+  }
+  // 率の変更履歴（公式のお知らせから＋サーバーが自動で見つけたもの）。新しい順
+  function rateHistory() {
+    var a = ((KB && KB.rate_history) || []).map(function (h) { return { d: h.d, t: h.t, u: h.u, auto: false }; });
+    var b = ((DATA && DATA.rate_changes) || []).map(function (c) {
+      var at = parseDate(c.at), p = at ? jstParts(at) : null;
+      return { d: p ? p.y + "-" + String(p.m).padStart(2, "0") + "-" + String(p.d).padStart(2, "0") : "", t: c.text, u: "https://www.unifi.me/announcement?lng=ja-JP", auto: true };
+    });
+    return a.concat(b).sort(function (x, y) { return x.d < y.d ? 1 : -1; });
   }
   function updateHome() {
     if (!homeNodes.status) return;
@@ -740,19 +815,28 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     var annDay = (L.ann || []).filter(function (a) { return Date.now() - a.t < 24 * 3600 * 1000; }).length;
     var negWeek = news.filter(function (x) { return negHit(x) && Date.now() - x.t < 7 * 86400000; }).length;
     fill(homeNodes.status, [el("div", { class: "when", text: mdw(now.getTime()) + " " + hm(now) }), el("div", { class: "text" }, [
-      "UnifiのJPYCリワード 年" + (r && r.jpyc ? rate(r.jpyc.baseRate) : "—") + "。Unifi公式のお知らせ（24時間）" + annDay + "件。",
+      "Unifiのリワード JPYC 年" + (r && r.jpyc ? rate(r.jpyc.baseRate) : "—") + "・USDT 年" + (r && r.usdt ? rate(r.usdt.baseRate) + "（PLUS " + rate(r.usdt.plusBaseRate) + "）" : "—") + "。Unifi公式のお知らせ（24時間）" + annDay + "件。",
       "注意が必要な話（1週間）", el("b", { class: negWeek ? "down" : "", text: negWeek + "件" }), "。"
     ])]);
-    fill(homeNodes.rateBig, ["年" + (r && r.jpyc ? rate(r.jpyc.baseRate) : "—"), el("small", { text: "JPYC" })]);
-    fill(homeNodes.rateSub, [r && r.usdt ? "USDT（米ドル）は BASIC 年" + rate(r.usdt.baseRate) + "・PLUSモード 年" + rate(r.usdt.plusBaseRate) : ""]);
+    var rv = rateValues();
+    fill(homeNodes.rateGrid, [["JPYC", "円のデジタル版", rv.JPYC], ["USDT BASIC", "入れるだけ", rv.USDT_BASIC], ["USDT PLUS", "戻すのに24時間", rv.USDT_PLUS]].map(function (x) {
+      return el("div", { class: "rate-cell" }, [el("span", { class: "nm", text: x[0] }), el("b", { text: x[2] === undefined ? "—" : "年" + rate(x[2]) }), el("span", { class: "ds", text: x[1] })]);
+    }));
+    fill(homeNodes.rateBoost, [r && r.usdt && r.usdt.kaiaBoostMaxRate ? "KAIAを30万枚以上持つと最大 年" + rate(r.usdt.maxRate) + "（KAIAブースト）" : ""]);
+    var today = todayJst(), last = rateHistory().filter(function (h) { return h.d && h.d <= today; })[0], soon = rateHistory().filter(function (h) { return h.d > today; }).pop();
+    fill(homeNodes.rateChange, [
+      last ? el("div", null, [el("span", { class: "k", text: "最近の変更" }), (Date.now() - new Date(last.d + "T00:00:00+09:00") < 7 * 86400000) ? el("span", { class: "flag new", text: "NEW" }) : null, ymd(last.d) + " " + last.t]) : null,
+      soon ? el("div", null, [el("span", { class: "k", text: "予定" }), ymd(soon.d) + " " + soon.t.replace("（予定）", "")]) : null,
+      el("button", { class: "more", type: "button", onclick: function () { show("market"); jumpTo("rate-history"); } }, ["率の変更履歴 →"])
+    ]);
     fill(homeNodes.rateFoot, [el("span", { class: L.rates ? "ok" : "ng", text: L.rates ? "Unifi公式 " + hms(new Date(L.rates.at)) : "控えの値" })]);
     updateCalc();
-    var anns = (L.ann || []).slice(0, 3);
-    fill(homeNodes.ann, anns.length ? anns.map(newsItem) : [el("div", { class: "empty", text: L.ann ? "お知らせはありません" : "取得中…" })]);
     var evs = upcoming().slice(0, 5);
     fill(homeNodes.events, evs.length ? evs.map(eventRow) : [el("div", { class: "empty", text: "予定はありません" })]);
-    var plain = news.filter(function (x) { return x.source !== "Unifi公式のお知らせ" && !isDev(x) && isJa(x); }).slice(0, 5);
-    fill(homeNodes.news, plain.length ? plain.map(newsItem) : [el("div", { class: "empty", text: news.length ? "新しいニュースはありません" : "読み込み中…" })]);
+    var plain = news.filter(function (x) { return !isDev(x) && (isJa(x) || x.official); });
+    var fresh = plain.filter(isNew).length;
+    fill(homeNodes.newsCount, [fresh ? (PREV_SEEN ? "前回から " : "24時間で ") + fresh + "件" : ""]);
+    fill(homeNodes.news, plain.length ? plain.slice(0, 8).map(newsItem) : [el("div", { class: "empty", text: news.length ? "新しいニュースはありません" : "読み込み中…" })]);
     fillJpycTile(homeNodes.jpyc, true);
     fillKaiaTile(homeNodes.kaia, true);
     var c = cardOfTheDay();
@@ -839,15 +923,14 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     if (!force && sig === newsSig && root.childNodes.length) return;
     newsSig = sig;
     root.innerHTML = "";
-    var up = upcoming();
-    if (up.length) {
-      root.appendChild(el("div", { class: "sec-title", style: "margin-top:0", text: "🗓 これからの予定" }));
-      root.appendChild(el("div", { class: "list", style: "margin-bottom:14px" }, up.map(eventRow)));
-    }
-    var filters = [["all", "すべて"], ["caution", "😈 注意"], ["official", "公式の発表"], ["unifi", "Unifi"], ["jpyc", "JPYC"], ["kaia", "Kaia"], ["stablecoin", "円ステーブルコイン"], ["dev", "開発・ガバナンス"]];
+    var newN = list.filter(function (x) { return !isDev(x) && isNew(x); }).length;
+    root.appendChild(el("div", { class: "today" }, [el("div", { class: "when", text: PREV_SEEN ? "前回 " + mdw(PREV_SEEN) + " " + hm(new Date(PREV_SEEN)) + " に見たとき から" : "この24時間" }),
+      el("div", { class: "text" }, ["新着 ", el("b", { class: newN ? "up" : "", text: newN + "件" })])]));
+    var filters = [["all", "すべて"], ["new", "🆕 新着"], ["caution", "😈 注意"], ["official", "公式の発表"], ["unifi", "Unifi"], ["jpyc", "JPYC"], ["kaia", "Kaia"], ["stablecoin", "円ステーブルコイン"], ["dev", "開発・ガバナンス"]];
     var match = function (x, f) {
       if (f === "dev") return isDev(x);
       if (isDev(x)) return false;
+      if (f === "new") return isNew(x);
       return f === "all" || (f === "official" ? x.official : f === "caution" ? !!negHit(x) : f === "kaia" ? (x.topic === "kaia" || x.topic === "both") : f === "jpyc" ? (x.topic === "jpyc" || x.topic === "both") : x.topic === f);
     };
     root.appendChild(el("div", { class: "chips" }, filters.map(function (f) {
@@ -856,12 +939,21 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     })));
     var shown = list.filter(function (x) { return match(x, newsFilter); });
     if (!shown.length) root.appendChild(el("div", { class: "card empty", text: DATA || L.ann ? "この区分のニュースはまだありません" : "読み込み中…" }));
-    var lastDay = "", box = null;
+    var lastDay = "", box = null, wasNew = shown.length && isNew(shown[0]);
     shown.forEach(function (n) {
+      if (wasNew && !isNew(n) && newsFilter !== "new") {
+        root.appendChild(el("div", { class: "seen-line", text: "ここから前に見たニュース" }));
+        lastDay = ""; wasNew = false;
+      }
       var day = mdw(n.t);
       if (day !== lastDay) { root.appendChild(el("div", { class: "day", text: day })); box = el("div", { class: "list" }); root.appendChild(box); lastDay = day; }
       box.appendChild(newsItem(n));
     });
+    var up = upcoming();
+    if (up.length) {
+      root.appendChild(el("div", { class: "sec-title", id: "news-events", text: "🗓 これからの予定" }));
+      root.appendChild(el("div", { class: "list" }, up.map(eventRow)));
+    }
     var arc = (DATA && DATA.archive) || [];
     if (arc.length) {
       root.appendChild(el("div", { class: "sec-title", text: "📰 毎朝のまとめ（" + arc.length + "日分）" }));
@@ -995,6 +1087,13 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
       ]));
     }
     root.appendChild(grid);
+    // Unifiのリワード率の変更履歴
+    root.appendChild(el("div", { class: "sec-title", id: "rate-history", text: "📈 Unifiのリワード率の変更履歴" }));
+    root.appendChild(el("div", { class: "list" }, rateHistory().map(function (h) {
+      var future = h.d > todayJst();
+      return el("div", { class: "ev" + (future ? "" : " past") }, [el("span", { class: "d", text: ymd(h.d) }),
+        el("span", null, [h.u ? el("a", { href: h.u, target: "_blank", rel: "noopener", text: h.t }) : h.t]), el("span", { class: "left", text: future ? "予定" : h.auto ? "自動検知" : "" })]);
+    })));
     // 毎日の記録
     var days = ((DATA && DATA.daily) || []).slice().reverse();
     root.appendChild(el("div", { class: "sec-title", text: "📒 毎日の記録" }));
@@ -1211,12 +1310,24 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     store("watch.tab", name);
     if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
     if (name === "market") fetchKaiaChart(kaiaDays).then(function () { if (current === "market") renderMarket(); });
-    if (name === "news") renderNews(false);
+    if (name === "news") { renderNews(false); newsOpened = true; updateBadge(); saveSeen(); }
     if (name === "risk") renderRisk(false);
   }
   tabs.forEach(function (t) { t.addEventListener("click", function () { show(t.dataset.tab); window.scrollTo(0, 0); }); });
   function safe(fn) { try { fn(); } catch (e) { if (window.console) console.error(e); } }
+  var newsOpened = false;
+  function updateBadge() {
+    var b = document.querySelector('.tab[data-tab="news"] .tab-n');
+    if (!b) return;
+    var n = newsOpened ? 0 : allNews().filter(function (x) { return !isDev(x) && isNew(x); }).length;
+    b.hidden = !n;
+    b.textContent = n > 99 ? "99+" : String(n);
+  }
+  var ratesSig = "";
   function refreshViews() {
+    safe(updateBadge);
+    var rs = JSON.stringify(rateValues());
+    if (rs !== ratesSig) { ratesSig = rs; safe(renderLearn); safe(renderWords); safe(renderGuide); }
     safe(updateHome);
     if (current === "news") safe(function () { renderNews(false); });
     if (current === "market") safe(renderMarket);

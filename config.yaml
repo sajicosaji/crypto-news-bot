@@ -617,7 +617,7 @@ kaia_daily:
     branch: "kaia-data"
     path: "kaia/site.json"
     refresh_hours: 1             # ニュース一覧・数字はこの間隔で更新（AIは使わないので無料）
-    news_days: 7                 # ニュース一覧に出す日数
+    news_days: 14                # ニュース一覧に出す日数（2回目以降に来た人が追えるように2週間）
     archive_days: 90             # まとめの履歴を残す日数
     prep_mode: false             # 2026-10-31 アンバサダーの準備から「毎日追える情報サイト」に方針変更
   # 本人の方針（2026-10-28）「課金はしたくない。無料でできる範囲で」→ Claude APIは呼ばない。

@@ -10,7 +10,7 @@ terms:
   # ---- Unifi・LINE ----
   - term: "Unifi（ユニファイ）"
     cat: unifi
-    match: 'Unifi|ユニファイ'
+    match: '(?<![A-Za-z])Unifi(?![A-Za-z])|ユニファイ'
     desc: "LINE NEXTが運営する、LINEの中で使えるステーブルコインのお財布（ウォレット）。2026年3月に正式公開。"
     pro: "ノンカストディアル型。LINE・Google・NAVER・Kakao・Appleのアカウントで作成。ネットワークはKaia。2026/3/9グローバル正式ローンチ（ベータは2/12）。"
   - term: "Unifi mini"
@@ -70,7 +70,7 @@ terms:
   - term: "PLUSモード"
     cat: unifi
     match: 'PLUSモード|プラスモード|PLUS Mode'
-    desc: "UnifiでUSDTのリワードを高くする設定（2026年10月時点で年7%）。元に戻すときは24時間待つ。"
+    desc: "UnifiでUSDTのリワードを高くする設定（今は年{{USDT_PLUS}}）。元に戻すときは24時間待つ。"
   - term: "KAIAブースト"
     cat: unifi
     match: 'KAIAブースト|ブースト|KAIA Boost'

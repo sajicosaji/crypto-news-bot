@@ -404,3 +404,31 @@ def test_negative_words_without_false_alarms():
         assert not k.NEGATIVE_WORDS.search(title), title
     row = {"title": "JPYC、アップビットで1円割れ", "summary": "", "kind": "media", "lang": "ja", "url": "https://x"}
     assert k._heuristic_triage(row)["sentiment"] == "negative"
+
+
+def test_unified_is_not_unifi_and_greeting_is_dropped():
+    assert not k.mentions_unifi("Carnegie Mellon research shows unified theory of Web3 wallets")
+    assert k.mentions_unifi("LINEのUnifiでJPYCが使える")
+    item = {"lang": "ja", "summary": "こんにちは、Unifiチームです。 商品券の購入をメンテナンスのため一時停止します。"}
+    assert k.excerpt_of(item, "商品券の購入一時停止について").startswith("商品券の購入をメンテナンス")
+
+
+def test_japanese_only_titles_do_not_share_a_story(conn):
+    a, b = k.story_key("商品券の購入一時停止について"), k.story_key("注目の「ステーブルコイン」、一体何が便利になるのか？")
+    assert a != b and a != "-" and b != "-"
+    k.ensure_schema(conn)
+    _add(conn, "https://x1", title="商品券の購入一時停止について", story="-")
+    _add(conn, "https://x2", title="注目のステーブルコイン", story="-")
+    k.ensure_schema(conn)  # 古い目印でまとまっていた記事はほどける
+    stories = {r["story"] for r in conn.execute("SELECT story FROM kaia_items")}
+    assert len(stories) == 2 and "-" not in stories
+
+
+def test_rate_changes_are_recorded_and_shown_as_news():
+    prev = {"jpyc": {"baseRate": 0.02, "maxRate": 0.02}, "usdt": {"baseRate": 0.03, "plusBaseRate": 0.07, "kaiaBoostMaxRate": 0.03}}
+    cur = {"jpyc": {"baseRate": 0.015, "maxRate": 0.015}, "usdt": {"baseRate": 0.03, "plusBaseRate": 0.07, "kaiaBoostMaxRate": 0}}
+    ch = k.rate_changes(prev, cur, NOW)
+    assert [c["text"] for c in ch] == ["JPYCのリワード率が年2%→年1.5%に", "USDTのKAIAブーストの上乗せ（年3%）が終了"]
+    news = k.rate_change_news(ch, NOW)
+    assert news[0]["title"].startswith("Unifiの") and news[0]["negative"] and news[0]["importance"] == 5
+    assert k.rate_changes({}, cur, NOW) == []  # 前回が取れていないときは比べない
