@@ -27,7 +27,7 @@ terms:
     cat: unifi
     match: 'LINE NEXT|ラインネクスト'
     desc: "LINEヤフーの関連会社（アメリカの会社）。LINEの中で使えるブロックチェーンのサービスを作っていて、Unifiの運営元。"
-    pro: "LINE NEXT Inc.（代表 コ・ヨンス）。日本でのPR窓口は LINE NEXT Start株式会社。旧Dapp Portal・Mini Dappも同社。"
+    pro: "LINE NEXT Inc.（代表 コ・ヨンス）。日本でのPR窓口はLINE NEXT Start株式会社。旧Dapp Portal・Mini Dappも同社。"
   - term: "LINEミニアプリ"
     cat: unifi
     match: 'LINEミニアプリ|ミニアプリ'
@@ -36,7 +36,7 @@ terms:
     cat: unifi
     match: 'Mini ?Dapp|ミニDapp'
     desc: "LINEの中で動く、ブロックチェーンを使ったミニアプリ。"
-    pro: "2025年1月にDapp Portalとともに公開。2026年3月のUnifi公開でDapp Portal・Mini Dappsは Unifi に統合された。"
+    pro: "2025年1月にDapp Portalとともに公開。2026年3月のUnifi公開でDapp Portal・Mini DappsはUnifiに統合された。"
   - term: "K-Pick"
     cat: unifi
     match: 'K-?Pick'

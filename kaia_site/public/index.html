@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#15201a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Unifiウォッチ">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Unifi・JPYC・Kaia ウォッチ</title>
 <meta name="description" content="Unifi・JPYC・Kaiaの価格・流通量・リワード率・ニュースを、毎日リアルタイムで追えるサイト">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2315201a'/%3E%3Cpath d='M10 40l12-12 10 9 20-20' fill='none' stroke='%2337d67a' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='52' cy='17' r='5' fill='%2337d67a'/%3E%3C/svg%3E">
@@ -193,6 +198,14 @@ table.tbl th { font-size: 12px; color: var(--ink-3); font-weight: 700; }
 .term .n { font-weight: 800; }
 .term .d { color: var(--ink-2); font-size: 14px; margin-top: 2px; }
 .term .p { color: var(--ink-3); font-size: 13px; margin-top: 4px; border-top: 1px dashed var(--line); padding-top: 4px; }
+
+/* 手元に残す・近道 */
+.keep .keep-url { font-family: var(--mono); font-size: 13px; color: var(--ink-2); word-break: break-all; }
+.keep .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.keep-how { margin-top: 10px; font-size: 13.5px; display: grid; gap: 6px; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+.keep-how[hidden] { display: none; }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.quick button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 11px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
 
 /* Unifiのリワード率 */
 .rate-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
@@ -714,6 +727,30 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     ]);
   }
 
+  // ---------- 共有・ホーム画面に追加 ----------
+  var SITE_URL = "https://kaia-jpyc-desk.pages.dev/";
+  var installPrompt = null;
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); installPrompt = e; });
+  function copyLink(btn) {
+    function done() { var t = btn.textContent; btn.textContent = "✓ コピーしました"; setTimeout(function () { btn.textContent = t; }, 1800); }
+    if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(SITE_URL).then(done, function () { window.prompt("このリンクをコピーしてください", SITE_URL); }); }
+    else window.prompt("このリンクをコピーしてください", SITE_URL);
+  }
+  function keepCard() {
+    var how = el("div", { class: "keep-how", hidden: true }, [
+      el("div", null, [el("b", { text: "iPhone：" }), "Safariで開き、下の共有ボタン（□に↑）→「ホーム画面に追加」"]),
+      el("div", null, [el("b", { text: "Android：" }), "Chromeで開き、右上の︙ →「ホーム画面に追加」"]),
+      el("div", null, [el("b", { text: "LINEの中で開いているとき：" }), "右上の︙ →「ブラウザで開く」から上の手順"])
+    ]);
+    var add = el("button", { class: "btn", type: "button", onclick: function () {
+      if (installPrompt) { installPrompt.prompt(); installPrompt = null; return; }
+      how.hidden = !how.hidden;
+    } }, ["📲 ホーム画面に追加"]);
+    var copy = el("button", { class: "btn", type: "button", onclick: function () { copyLink(copy); } }, ["🔗 リンクをコピー"]);
+    var line = el("a", { class: "btn", href: "https://line.me/R/share?text=" + encodeURIComponent("Unifi・JPYC・Kaia ウォッチ\n" + SITE_URL), target: "_blank", rel: "noopener" }, ["💬 LINEで送る"]);
+    return el("div", { class: "card keep" }, [el("h2", { text: "📌 このサイトを手元に残す" }), el("div", { class: "keep-url", text: SITE_URL.replace(/\/$/, "") }), el("div", { class: "actions" }, [add, line, copy]), how]);
+  }
+
   // ---------- 🏠 ホーム（はじめての人向け） ----------
   function isDev(n) { return /GitHub|ガバナンスフォーラム/.test(n.source || "") || /govforum\.|github\.com/.test(n.url || ""); }
   function isJa(n) { return /[ぁ-んァ-ン]/.test(n.title || ""); }
@@ -779,6 +816,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     if (!FIRST_VISIT) root.appendChild(el("details", { class: "card intro-fold" }, [el("summary", { text: "はじめての方へ（Unifi・JPYC・Kaiaとは）" }), intro]));
     root.appendChild(el("div", { class: "sec-title", text: "💡 今日の豆知識" }));
     root.appendChild(homeNodes.tip);
+    root.appendChild(keepCard());
     updateHome();
   }
   function yenSmall(v) { return v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : Math.round(v).toLocaleString("ja-JP"); }
@@ -827,7 +865,12 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     fill(homeNodes.rateChange, [
       last ? el("div", null, [el("span", { class: "k", text: "最近の変更" }), (Date.now() - new Date(last.d + "T00:00:00+09:00") < 7 * 86400000) ? el("span", { class: "flag new", text: "NEW" }) : null, ymd(last.d) + " " + last.t]) : null,
       soon ? el("div", null, [el("span", { class: "k", text: "予定" }), ymd(soon.d) + " " + soon.t.replace("（予定）", "")]) : null,
-      el("button", { class: "more", type: "button", onclick: function () { show("market"); jumpTo("rate-history"); } }, ["率の変更履歴 →"])
+      el("div", { class: "quick" }, [
+        el("button", { type: "button", onclick: function () { show("market"); jumpTo("rate-history"); } }, ["📈 率の変更履歴"]),
+        el("button", { type: "button", onclick: function () { newsFilter = "official"; show("news"); renderNews(true); window.scrollTo(0, 0); } }, ["📢 キャンペーン・お知らせ"]),
+        el("button", { type: "button", onclick: function () { openGuide("cashout"); } }, ["🏦 円に戻す"]),
+        el("button", { type: "button", onclick: function () { openGuide("troubles"); } }, ["🆘 困ったとき"])
+      ])
     ]);
     fill(homeNodes.rateFoot, [el("span", { class: L.rates ? "ok" : "ng", text: L.rates ? "Unifi公式 " + hms(new Date(L.rates.at)) : "控えの値" })]);
     updateCalc();
@@ -924,7 +967,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     newsSig = sig;
     root.innerHTML = "";
     var newN = list.filter(function (x) { return !isDev(x) && isNew(x); }).length;
-    root.appendChild(el("div", { class: "today" }, [el("div", { class: "when", text: PREV_SEEN ? "前回 " + mdw(PREV_SEEN) + " " + hm(new Date(PREV_SEEN)) + " に見たとき から" : "この24時間" }),
+    root.appendChild(el("div", { class: "today" }, [el("div", { class: "when", text: PREV_SEEN ? "前回 " + mdw(PREV_SEEN) + " " + hm(new Date(PREV_SEEN)) + " に見たときから" : "この24時間" }),
       el("div", { class: "text" }, ["新着 ", el("b", { class: newN ? "up" : "", text: newN + "件" })])]));
     var filters = [["all", "すべて"], ["new", "🆕 新着"], ["caution", "😈 注意"], ["official", "公式の発表"], ["unifi", "Unifi"], ["jpyc", "JPYC"], ["kaia", "Kaia"], ["stablecoin", "円ステーブルコイン"], ["dev", "開発・ガバナンス"]];
     var match = function (x, f) {
@@ -1074,7 +1117,7 @@ footer { color: var(--ink-3); font-size: 12px; text-align: center; padding: 8px 
     ]));
     // Kaia TVL
     grid.appendChild(el("div", { class: "card chart-card" }, [
-      el("h2", null, ["Kaia のDeFi預かり（TVL・ドル）", el("span", { class: "now", text: L.tvlHist && L.tvlHist.length ? "$" + oku(L.tvlHist[L.tvlHist.length - 1].v) : "" })]),
+      el("h2", null, ["KaiaのDeFi預かり（TVL・ドル）", el("span", { class: "now", text: L.tvlHist && L.tvlHist.length ? "$" + oku(L.tvlHist[L.tvlHist.length - 1].v) : "" })]),
       L.tvlHist ? chart(L.tvlHist.slice(-90), "var(--both)", function (v) { return "$" + oku(v); }) : el("div", { class: "empty", text: "読み込み中…" })
     ]));
     // Kaia上の円ステーブルコイン
