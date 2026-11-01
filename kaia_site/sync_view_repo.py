@@ -92,10 +92,12 @@ def main():
     for word in ("# 本人", "忖度", "talk-", "etiquette:", "templates:", "会話のコツ"):
         assert word not in filtered, f"消し忘れ: {word}"
 
+    # フォルダごと消すと OneDrive がつかんでいて失敗することがあるので、ファイル単位で上書きし、本番に無いファイルだけ消す
     for d in ("kaia_site/public", "kaia_site/functions"):
-        if (VIEW / d).exists():
-            shutil.rmtree(VIEW / d)
-        shutil.copytree(MAIN / d, VIEW / d, ignore=shutil.ignore_patterns("knowledge.json"))
+        shutil.copytree(MAIN / d, VIEW / d, ignore=shutil.ignore_patterns("knowledge.json"), dirs_exist_ok=True)
+        for f in (VIEW / d).rglob("*"):
+            if f.is_file() and f.name != "knowledge.json" and not (MAIN / f.relative_to(VIEW)).exists():
+                f.unlink()
     for f in ("kaia_site/build.py", "kaia_site/schema.sql", "kaia_site/package.json", "kaia_glossary.yaml"):
         shutil.copy2(MAIN / f, VIEW / f)
     (VIEW / "kaia_knowledge.yaml").write_text(filtered, encoding="utf-8", newline="\n")
