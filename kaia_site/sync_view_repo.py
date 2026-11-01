@@ -99,6 +99,12 @@ def main():
     for f in ("kaia_site/build.py", "kaia_site/schema.sql", "kaia_site/package.json", "kaia_glossary.yaml"):
         shutil.copy2(MAIN / f, VIEW / f)
     (VIEW / "kaia_knowledge.yaml").write_text(filtered, encoding="utf-8", newline="\n")
+    # 改行は LF にそろえる（Windows の作業コピーは CRLF のことがあり、写すたびに全行が変わったことになるのを防ぐ）
+    for f in VIEW.rglob("*"):
+        if f.is_file() and ".git" not in f.parts and (f.suffix in (".html", ".js", ".json", ".py", ".sql", ".yaml", ".md", ".txt", ".webmanifest") or f.name == "_headers"):
+            b = f.read_bytes()
+            if b"\r\n" in b:
+                f.write_bytes(b.replace(b"\r\n", b"\n"))
 
     subprocess.run([sys.executable, str(VIEW / "kaia_site" / "build.py")], check=True, capture_output=True)
     made = json.loads((VIEW / "kaia_site/public/knowledge.json").read_text(encoding="utf-8"))
